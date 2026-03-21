@@ -262,6 +262,7 @@
         .leaflet-popup-content-wrapper { border-radius: 12px !important; }
         /* ========== MOBILE TAB BAR ========== */
         .mobile-tab-bar { display: none; }
+        .mobile-map-view { display: none !important; }
         @media (max-width: 600px) {
             .map-widget { display: none !important; } /* hide floating map on mobile */
             .mobile-tab-bar {
@@ -277,10 +278,10 @@
             .mobile-tab.active { color: var(--accent); }
             .mobile-tab svg { width: 20px; height: 20px; }
             .mobile-map-view {
-                display: none; position: fixed; top: 54px; left: 0; right: 0; bottom: 52px; z-index: 998;
+                display: none !important; position: fixed; top: 54px; left: 0; right: 0; bottom: 52px; z-index: 998;
                 background: var(--bg-main);
             }
-            .mobile-map-view.active { display: block; }
+            .mobile-map-view.active { display: block !important; }
             .mobile-map-view #mobile-map { width: 100%; height: 100%; }
             .mobile-map-controls {
                 position: absolute; top: 0; left: 0; right: 0; z-index: 1001;
