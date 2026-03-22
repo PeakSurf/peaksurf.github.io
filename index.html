@@ -1198,8 +1198,23 @@ function _renderHeroWithHour(h, spotData) {
     const conf = h.ml_conseil_conf;
     const confLabel = conf > 0.5 ? 'High' : conf > 0.3 ? 'Medium' : 'Low';
     const confColor = conf > 0.5 ? '#10b981' : conf > 0.3 ? '#f59e0b' : '#ef4444';
-    rb.innerHTML = `${(conseil || h.rating || 'FLAT').toUpperCase()} <span style="font-size:0.55rem;font-weight:600;color:${confColor};margin-left:4px;">${conf != null ? confLabel : ''}</span>`;
+    rb.textContent = (conseil || h.rating || 'FLAT').toUpperCase();
     rb.style.background = `var(--${ratingColor})`;
+
+    // Confidence badge next to rating
+    let confBadge = document.getElementById('hero-confidence');
+    if (!confBadge) {
+        confBadge = document.createElement('span');
+        confBadge.id = 'hero-confidence';
+        rb.parentNode.insertBefore(confBadge, rb.nextSibling);
+    }
+    if (conf != null) {
+        confBadge.style.display = 'inline-flex';
+        confBadge.textContent = confLabel + ' Confidence';
+        confBadge.style.cssText = `display:inline-flex;align-items:center;font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:4px;margin-left:0.5rem;border:1.5px solid ${confColor};color:${confColor};background:transparent;`;
+    } else {
+        confBadge.style.display = 'none';
+    }
     rb.style.color = (ratingColor === 'epic' || ratingColor === 'good') ? '#000' : '#fff';
 
     let trendIcon = '';
@@ -1569,9 +1584,9 @@ function showDetailPanel(h) {
     const displaySetsText = mlWaveSets != null ? `Sets: ${fmt(mlWaveSets)}m` : '';
 
     const getP = (key) => mlProba[key] || mlProba[key.toLowerCase()] || mlProba[key.charAt(0).toUpperCase() + key.slice(1)] || 0;
-    const topProba = getP(conseilLabel) || 0;
-    const confLabel = topProba > 0.6 ? 'High' : topProba > 0.4 ? 'Medium' : 'Low';
-    const confColor = topProba > 0.6 ? 'var(--good)' : topProba > 0.4 ? 'var(--fair)' : 'var(--poor)';
+    const topProba = h.ml_conseil_conf || getP(conseilLabel) || 0;
+    const confLabel = topProba > 0.5 ? 'High' : topProba > 0.3 ? 'Medium' : 'Low';
+    const confColor = topProba > 0.5 ? '#10b981' : topProba > 0.3 ? '#f59e0b' : '#ef4444';
 
     panel.innerHTML = `
         <div class="detail-header">
