@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alaia-Surf — AI Surf Forecast</title>
+    <title>PeakSurf — AI Surf Forecast</title>
     <link rel="icon" type="image/png" href="logo-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -328,8 +328,8 @@
 <header class="header">
     <div class="header-inner">
         <a class="logo" href="#">
-            <span class="logo-icon-wrap"><img src="logo-icon.png" alt="Alaia-Surf"></span>
-            ALAIA-SURF
+            <span class="logo-icon-wrap"><img src="logo-icon.png" alt="PeakSurf"></span>
+            PEAKSURF
         </a>
         <div style="text-align:right;">
             <span class="header-update" id="update-time"></span>
@@ -388,7 +388,7 @@
         <!-- OFFSHORE -->
         <div class="hero-card">
             <span class="hero-card-title">Offshore</span>
-            <div class="hero-val"><span id="hero-swell">--</span><span class="hero-val-unit">m</span></div>
+            <div class="hero-val"><span id="hero-swell">--</span><span class="hero-val-unit">m</span> <span style="font-size:0.7em;color:var(--text-muted);">@</span> <span id="hero-period">--</span><span class="hero-val-unit">s</span></div>
             <span class="hero-desc" id="hero-swell-detail">--</span>
         </div>
         <!-- TIDE -->
@@ -473,10 +473,10 @@
 
 <footer class="footer">
     <div class="footer-logo-wrap">
-        <img src="logo-full.png" alt="Alaia-Surf - AI Surf Forecast">
+        <img src="logo-full.png" alt="PeakSurf - AI Surf Forecast">
     </div>
     <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.4rem;">
-        &copy; 2026 ALAIA-SURF &mdash; AI Surf Forecast
+        &copy; 2026 PEAKSURF &mdash; AI Surf Forecast
     </div>
     <div style="opacity: 0.7;">
         Waves: Copernicus Marine IBI | Wind: AROME via Open-Meteo | Tides: SHOM<br>
@@ -487,7 +487,7 @@
 <script src="data/forecast.js"></script>
 <script>
 /* =====================================================
-   Alaia - Dark Mode UI & IA Logic
+   PeakSurf - Dark Mode UI & IA Logic
    ===================================================== */
 
 const SLOT_W = 56;
@@ -1074,6 +1074,7 @@ function renderSpotNav() {
             renderSpot(id);
             renderSpotNav();
             updateFavToggle();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             // Clear search after selection
             const searchInput = document.getElementById('spot-search');
             if (searchInput) { searchInput.value = ''; _searchQuery = ''; }
@@ -1182,7 +1183,8 @@ function renderHero(spotData) {
     `;
 
     document.getElementById('hero-swell').textContent = fmt(h.wave_height_model);
-    document.getElementById('hero-swell-detail').textContent = `${fmt(h.swell_period, 0)}s ${h.swell_direction_text || ''} ${fmt(h.swell_direction, 0)}\u00B0`;
+    document.getElementById('hero-period').textContent = fmt(h.peak_period || h.swell_period, 0);
+    document.getElementById('hero-swell-detail').textContent = `${h.swell_direction_text || ''} ${fmt(h.swell_direction, 0)}\u00B0`;
     document.getElementById('hero-wind').textContent = fmt(h.wind_speed_kmh, 0);
     const windEffect = getWindEffect(h, spotData.spot);
     const arrow = h.wind_direction != null ? `<span style="display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>` : '';
@@ -1551,7 +1553,13 @@ function showDetailPanel(h) {
         document.querySelectorAll('.wave-slot.active').forEach(s => s.classList.remove('active'));
     });
 
-    setTimeout(() => { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+    // Only scroll to panel if it's not already visible
+    setTimeout(() => {
+        const rect = panel.getBoundingClientRect();
+        if (rect.top > window.innerHeight || rect.bottom < 0) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }, 50);
 }
 
 function setupCanvas(id) {
