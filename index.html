@@ -583,11 +583,18 @@ function isDaylight(h, spot) {
     tanCalc = Math.max(-1, Math.min(1, tanCalc));
     const halfDaylight = (Math.acos(tanCalc) * (180 / Math.PI)) / 15;
     // Solar noon in local time: 12:00 UTC + timezone offset + longitude correction
-    const isDST = date.getMonth() >= 2 && date.getMonth() <= 9; // March-October (EU DST approx)
-    let utcOffset = 0; // default UTC
-    if (tz === 'Europe/Paris' || tz === 'Europe/Madrid') utcOffset = isDST ? 2 : 1;
+    // EU DST: last Sunday of March to last Sunday of October
+    const month = date.getMonth(); // 0-indexed
+    const day = date.getDate();
+    const dow = date.getDay(); // 0=Sun
+    let isDST = false;
+    if (month > 2 && month < 9) isDST = true; // Apr-Sep always DST
+    else if (month === 2) isDST = day - dow >= 25; // last Sun of March
+    else if (month === 9) isDST = day - dow < 25; // before last Sun of October
+    let utcOffset = 0;
+    if (tz === 'Africa/Casablanca') utcOffset = 1; // UTC+1 year-round
+    else if (tz === 'Europe/Paris' || tz === 'Europe/Madrid') utcOffset = isDST ? 2 : 1;
     else if (tz === 'Europe/Lisbon' || tz === 'Europe/London' || tz === 'Europe/Dublin') utcOffset = isDST ? 1 : 0;
-    else if (tz === 'Africa/Casablanca') utcOffset = isDST ? 1 : 0;
     else utcOffset = isDST ? 2 : 1; // default CET
     const solarNoon = 12 + utcOffset - (lon / 15); // longitude correction
     const sunrise = solarNoon - halfDaylight;
