@@ -508,7 +508,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js"></script>
+<script src="data/forecast.js?v=20260322b"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1311,7 +1311,12 @@ function renderDailyCarousel() {
 
         if (mlHours.length > 0) {
             const daylightHours = mlHours.filter(h => isDaylight(h, spot));
+            if (daylightHours.length === 0) console.warn('No daylight hours for', d.date, spot.name, 'falling back to first hour');
             const hoursToSearch = daylightHours.length > 0 ? daylightHours : [mlHours[0]];
+            // NEVER allow night hours as best session
+            if (hoursToSearch.length > 0 && !isDaylight(hoursToSearch[0], spot)) {
+                console.warn('Best hour is night!', tzHour(hoursToSearch[0].time), 'for', spot.name);
+            }
 
             let bestHour = hoursToSearch[0];
             let bestScore = -1000;
