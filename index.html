@@ -80,6 +80,12 @@
         .spot-fav-toggle { background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--text-light); padding: 0.2rem; transition: color var(--transition); }
         .spot-fav-toggle:hover, .spot-fav-toggle.is-fav { color: var(--accent); }
 
+        /* ========== TAGLINE BANNER ========== */
+        .tagline-banner { max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem 0.5rem; }
+        .tagline-banner p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
+        .tagline-banner strong { color: var(--accent); }
+        @media (max-width: 600px) { .tagline-banner p { font-size: 0.7rem; } }
+
         /* ========== HERO / CURRENT CONDITIONS ========== */
         .spot-header { margin-bottom: 1.25rem; }
         .spot-name { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); }
@@ -347,6 +353,10 @@
         </div>
     </div>
 </header>
+
+<div class="tagline-banner">
+    <p>Offshore swells are easy to predict. What happens when they hit surf spots isn't. <strong>PeakSurf</strong> runs high-resolution European coastal models, then uses AI to decode how each spot transforms raw swell into rideable waves &mdash; based on offshore swell conditions, local wind, seafloor, tide, and beach geometry.</p>
+</div>
 
 <main class="container">
 
