@@ -296,6 +296,15 @@
             .mobile-map-controls .map-play-btn { background: var(--bg-surface); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; width: 26px; height: 26px; font-size: 0.7rem; cursor: pointer; }
             body { padding-bottom: 56px; } /* space for tab bar */
             .footer { margin-bottom: 56px; }
+            /* Narrower hourly slots on mobile — show ~8-9 hours */
+            .time-slot, .wave-slot, .wind-slot, .swell-dir-slot { width: 42px; }
+            .time-slot { font-size: 0.65rem; padding: 0.3rem 0; }
+            .wave-slot { padding-bottom: 4px; }
+            .wave-label { font-size: 0.6rem; }
+            .wind-slot { font-size: 0.55rem; }
+            .swell-dir-slot { font-size: 0.55rem; }
+            .rating-dot { width: 34px; }
+            .canvas-row { height: 70px; }
         }
 
         /* ========== RATING LEGEND ========== */
@@ -491,7 +500,7 @@
    PeakSurf - Dark Mode UI & IA Logic
    ===================================================== */
 
-const SLOT_W = 56;
+const SLOT_W = window.innerWidth <= 600 ? 42 : 56;
 let _allData = null;
 let _currentSpot = null;
 let _hourlyData = [];
