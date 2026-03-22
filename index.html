@@ -1375,7 +1375,7 @@ function renderDailyCarousel() {
                         }
                     }
                 }
-            }
+            } catch(e) { console.error('Daily card click error:', e); }
         });
         container.appendChild(card);
     });
