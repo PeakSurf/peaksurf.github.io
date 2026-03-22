@@ -1195,7 +1195,10 @@ function _renderHeroWithHour(h, spotData) {
     const rb = document.getElementById('hero-rating');
     const conseil = getNormalizedConseil(h);
     const ratingColor = getRatingColor(h);
-    rb.textContent = (conseil || h.rating || 'FLAT').toUpperCase();
+    const conf = h.ml_conseil_conf;
+    const confLabel = conf > 0.5 ? 'High' : conf > 0.3 ? 'Medium' : 'Low';
+    const confColor = conf > 0.5 ? '#10b981' : conf > 0.3 ? '#f59e0b' : '#ef4444';
+    rb.innerHTML = `${(conseil || h.rating || 'FLAT').toUpperCase()} <span style="font-size:0.55rem;font-weight:600;color:${confColor};margin-left:4px;">${conf != null ? confLabel : ''}</span>`;
     rb.style.background = `var(--${ratingColor})`;
     rb.style.color = (ratingColor === 'epic' || ratingColor === 'good') ? '#000' : '#fff';
 
@@ -1508,13 +1511,11 @@ function renderUnifiedTrack() {
         const scroller = document.getElementById('unified-scroll');
         scroller.scrollLeft = Math.max(0, closestIdx * SLOT_W - scroller.clientWidth / 2);
     }
-    // Highlight current hour but don't open detail panel (avoids scroll jump)
+    // Auto-open detail panel for current hour
     _selectedSlotIdx = closestIdx;
     const activeSlot = waveRow.children[closestIdx];
     if (activeSlot) activeSlot.classList.add('active');
-    // Close any open detail panel
-    const panel = document.getElementById('detail-panel');
-    if (panel) { panel.innerHTML = ''; panel.classList.remove('open'); }
+    showDetailPanel(_hourlyData[closestIdx]);
 
     document.getElementById('scroll-left').onclick = () => { document.getElementById('unified-scroll').scrollBy({ left: -SLOT_W * 6, behavior: 'smooth' }); };
     document.getElementById('scroll-right').onclick = () => { document.getElementById('unified-scroll').scrollBy({ left: SLOT_W * 6, behavior: 'smooth' }); };
