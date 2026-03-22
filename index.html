@@ -1285,7 +1285,7 @@ function renderDailyCarousel() {
             hoursToSearch.forEach(h => {
                 const p = h.ml_conseil_proba || {};
                 const getP = (key) => p[key] || p[key.toLowerCase()] || p[key.charAt(0).toUpperCase() + key.slice(1)] || 0;
-                let goodness = (getP('Epic') * 3) + (getP('Good') * 2) + (getP('Fair') * 1);
+                let goodness = (getP('Epic') * 3) + (getP('Good') * 2) + (getP('Fair') * 1) - (getP('Poor') * 1);
                 goodness += (h.ml_wave_height_max || 0) * 0.1;
                 if (goodness > bestScore) {
                     bestScore = goodness;
