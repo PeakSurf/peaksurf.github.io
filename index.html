@@ -1237,7 +1237,8 @@ function getWindEffect(h, spot) {
 function renderDailyCarousel() {
     const container = document.getElementById('daily-carousel');
     container.innerHTML = '';
-    const todayStr = tzDateStr(new Date());
+    const _now = new Date();
+    const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
 
     _dailyData.forEach((d, idx) => {
         const dp = tzParts(d.date + 'T12:00:00');
@@ -1311,7 +1312,7 @@ function renderDailyCarousel() {
         const heightDisplay = typeof displayRange !== 'undefined' && displayRange ? displayRange : fmt(displayHeight);
 
         const card = document.createElement('button');
-        card.className = 'daily-card' + (isToday ? ' active' : (idx === 0 && !_dailyData.some(dd => dd.date === todayStr) ? ' active' : ''));
+        card.className = 'daily-card' + (isToday ? ' active' : '');
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 0.5rem;">
                 <div class="daily-day">${isToday ? 'Today' : dp.weekday} <span style="font-size:0.65rem; color:var(--text-muted); margin-left:4px">${dp.day}/${dp.month}</span></div>
@@ -1373,7 +1374,8 @@ function renderUnifiedTrack() {
     const spot = _allData.data[_currentSpot].spot;
     const maxWave = Math.max(..._hourlyData.map(h => h.ml_wave_height_max || h.wave_height || 0), 0.5);
     const BAR_MAX = 100;
-    const todayStr = tzDateStr(new Date());
+    const _now = new Date();
+    const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
     let prevDay = '';
     const nowHour = tzHour(new Date());
     const nowDayStr = todayStr;
