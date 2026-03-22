@@ -888,16 +888,40 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
                 <span class="popup-name" onclick="renderSpot('${sid}');renderSpotNav();updateFavToggle();window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer;">${spotInfo.name}</span>
                 <span class="popup-best" style="background:${ratingColor};color:${conseil==='Poor'?'#fff':'#000'}">${(conseil||'--').toUpperCase()}</span>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.8rem;font-size:0.7rem;padding:0.3rem 0;color:#cbd5e1;">
-                <div><span style="color:#8ba0b9;">Waves:</span> <b style="color:#f8fafc;">${waveText}</b> ${setsText ? '<span style="color:#8ba0b9;">'+setsText+'</span>' : ''}</div>
-                <div><span style="color:#8ba0b9;">Surface:</span> <b style="color:#f8fafc;">${surface}</b></div>
-                <div><span style="color:#8ba0b9;">Wind:</span> <b style="color:#f8fafc;">${windDir} ${windSpd}</b></div>
-                <div><span style="color:#8ba0b9;">Gusts:</span> <b style="color:#f8fafc;">${windGust || '--'}</b></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.8rem;font-size:0.7rem;padding:0.3rem 0;color:#64748b;">
+                <div><span style="color:#94a3b8;">Waves:</span> <b style="color:#1e293b;">${waveText}</b> ${setsText ? '<span style="color:#64748b;">'+setsText+'</span>' : ''}</div>
+                <div><span style="color:#94a3b8;">Surface:</span> <b style="color:#1e293b;">${surface}</b></div>
+                <div><span style="color:#94a3b8;">Wind:</span> <b style="color:#1e293b;">${windDir} ${windSpd}</b></div>
+                <div><span style="color:#94a3b8;">Gusts:</span> <b style="color:#1e293b;">${windGust || '--'}</b></div>
             </div>
             <div class="popup-hourly">${hourlyHtml}</div>
-            <span class="popup-link" onclick="renderSpot('${sid}');renderSpotNav();updateFavToggle();window.scrollTo({top:0,behavior:'smooth'});" style="display:block;text-align:center;padding:6px;font-size:0.75rem;font-weight:700;">View full forecast &rarr;</span>
+            <span class="popup-link" onclick="_switchToSpotAtTime('${sid}','${sel.time}');" style="display:block;text-align:center;padding:6px;font-size:0.75rem;font-weight:700;">View full forecast &rarr;</span>
         </div>
     `, { maxWidth: 420, className: 'map-popup-dark' }).openPopup();
+}
+
+function _switchToSpotAtTime(sid, time) {
+    renderSpot(sid);
+    renderSpotNav();
+    updateFavToggle();
+    // Find and click the hourly slot matching the map time
+    setTimeout(() => {
+        const idx = _hourlyData.findIndex(h => h.time === time);
+        if (idx >= 0) {
+            const waveRow = document.getElementById('wave-bars');
+            if (waveRow && waveRow.children[idx]) {
+                waveRow.children[idx].click();
+                const scroller = document.getElementById('unified-scroll');
+                if (scroller) scroller.scrollLeft = Math.max(0, idx * SLOT_W - scroller.clientWidth / 2);
+            }
+        }
+        // Also highlight the correct day in 7-day carousel
+        const dayStr = time.split('T')[0];
+        document.querySelectorAll('.daily-card').forEach((card, i) => {
+            card.classList.remove('active');
+            if (_dailyData[i] && _dailyData[i].date === dayStr) card.classList.add('active');
+        });
+    }, 200);
 }
 
 function updateMapMarkers() {
