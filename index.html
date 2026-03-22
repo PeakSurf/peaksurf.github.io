@@ -1095,9 +1095,9 @@ function renderSpotNav() {
             renderSpotNav();
             updateFavToggle();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            // Clear search after selection
+            // Clear search and blur to dismiss keyboard / dezoom on mobile
             const searchInput = document.getElementById('spot-search');
-            if (searchInput) { searchInput.value = ''; _searchQuery = ''; }
+            if (searchInput) { searchInput.value = ''; _searchQuery = ''; searchInput.blur(); }
         });
         nav.appendChild(btn);
     }
