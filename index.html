@@ -246,7 +246,8 @@
         .map-widget-mini .map-legend { display: none; }
         .map-legend-row { display: flex; align-items: center; gap: 0.3rem; margin: 0.1rem 0; }
         .map-legend-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.3); flex-shrink: 0; }
-        .map-spot-popup { font-family: var(--font); min-width: 320px; }
+        .map-spot-popup { font-family: var(--font); min-width: 280px; }
+        @media (max-width: 600px) { .map-spot-popup { min-width: 220px; } }
         .map-spot-popup .popup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .map-spot-popup .popup-name { font-weight: 700; font-size: 0.85rem; color: #0d1e36; }
         .map-spot-popup .popup-best { font-weight: 700; font-size: 0.7rem; text-transform: uppercase; padding: 1px 8px; border-radius: 10px; color: #fff; }
@@ -846,7 +847,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     marker.bindPopup(`
         <div class="map-spot-popup">
             <div class="popup-header">
-                <span class="popup-name">${spotInfo.name}</span>
+                <span class="popup-name" onclick="renderSpot('${sid}');renderSpotNav();updateFavToggle();window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer;">${spotInfo.name}</span>
                 <span class="popup-best" style="background:${ratingColor};color:${conseil==='Poor'?'#fff':'#000'}">${(conseil||'--').toUpperCase()}</span>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.8rem;font-size:0.7rem;padding:0.3rem 0;color:#cbd5e1;">
@@ -856,7 +857,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
                 <div><span style="color:#8ba0b9;">Gusts:</span> <b style="color:#f8fafc;">${windGust || '--'}</b></div>
             </div>
             <div class="popup-hourly">${hourlyHtml}</div>
-            <span class="popup-link" onclick="renderSpot('${sid}');window.scrollTo({top:0,behavior:'smooth'});">View full forecast &rarr;</span>
+            <span class="popup-link" onclick="renderSpot('${sid}');renderSpotNav();updateFavToggle();window.scrollTo({top:0,behavior:'smooth'});" style="display:block;text-align:center;padding:6px;font-size:0.75rem;font-weight:700;">View full forecast &rarr;</span>
         </div>
     `, { maxWidth: 420, className: 'map-popup-dark' }).openPopup();
 }
@@ -1093,6 +1094,7 @@ function renderSpot(spotId) {
     if (!spotData) return;
     _currentSpot = spotId;
     highlightMapSpot(spotId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const webcamEl = document.getElementById('webcam-link');
     const webcamUrl = spotData.spot.webcam;
