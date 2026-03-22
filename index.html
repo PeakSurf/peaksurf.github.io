@@ -1113,7 +1113,6 @@ function renderSpot(spotId) {
     if (!spotData) return;
     _currentSpot = spotId;
     highlightMapSpot(spotId);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const webcamEl = document.getElementById('webcam-link');
     const webcamUrl = spotData.spot.webcam;
@@ -1144,6 +1143,8 @@ function renderSpot(spotId) {
     renderUnifiedTrack();
     updateFavToggle();
     setTimeout(() => { renderTideCanvas(); }, 60);
+    // Force scroll to top after all rendering is done
+    setTimeout(() => { window.scrollTo(0, 0); }, 100);
 }
 
 function findClosest(data) {
@@ -1574,13 +1575,7 @@ function showDetailPanel(h) {
         document.querySelectorAll('.wave-slot.active').forEach(s => s.classList.remove('active'));
     });
 
-    // Only scroll to panel if it's not already visible
-    setTimeout(() => {
-        const rect = panel.getBoundingClientRect();
-        if (rect.top > window.innerHeight || rect.bottom < 0) {
-            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-    }, 50);
+    // No auto-scroll — user stays where they are
 }
 
 function setupCanvas(id) {
