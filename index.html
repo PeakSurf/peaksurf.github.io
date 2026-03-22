@@ -1311,7 +1311,7 @@ function renderDailyCarousel() {
         const heightDisplay = typeof displayRange !== 'undefined' && displayRange ? displayRange : fmt(displayHeight);
 
         const card = document.createElement('button');
-        card.className = 'daily-card' + (idx === 0 ? ' active' : '');
+        card.className = 'daily-card' + (isToday ? ' active' : (idx === 0 && !_dailyData.some(dd => dd.date === todayStr) ? ' active' : ''));
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 0.5rem;">
                 <div class="daily-day">${isToday ? 'Today' : dp.weekday} <span style="font-size:0.65rem; color:var(--text-muted); margin-left:4px">${dp.day}/${dp.month}</span></div>
