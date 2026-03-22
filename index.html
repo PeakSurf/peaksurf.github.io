@@ -1142,8 +1142,10 @@ function renderSpot(spotId) {
     renderUnifiedTrack();
     updateFavToggle();
     setTimeout(() => { renderTideCanvas(); }, 60);
-    // Force scroll to top after all rendering is done
-    setTimeout(() => { window.scrollTo(0, 0); }, 100);
+    // Force scroll to top AFTER all rendering (tide canvas etc) is done
+    setTimeout(() => { window.scrollTo(0, 0); }, 150);
+    setTimeout(() => { window.scrollTo(0, 0); }, 300);
+    setTimeout(() => { window.scrollTo(0, 0); }, 500);
 }
 
 function findClosest(data) {
@@ -1459,11 +1461,13 @@ function renderUnifiedTrack() {
         const scroller = document.getElementById('unified-scroll');
         scroller.scrollLeft = Math.max(0, closestIdx * SLOT_W - scroller.clientWidth / 2);
     }
-    // Auto-open detail panel on current hour
+    // Highlight current hour but don't open detail panel (avoids scroll jump)
     _selectedSlotIdx = closestIdx;
     const activeSlot = waveRow.children[closestIdx];
     if (activeSlot) activeSlot.classList.add('active');
-    showDetailPanel(_hourlyData[closestIdx]);
+    // Close any open detail panel
+    const panel = document.getElementById('detail-panel');
+    if (panel) { panel.innerHTML = ''; panel.classList.remove('open'); }
 
     document.getElementById('scroll-left').onclick = () => { document.getElementById('unified-scroll').scrollBy({ left: -SLOT_W * 6, behavior: 'smooth' }); };
     document.getElementById('scroll-right').onclick = () => { document.getElementById('unified-scroll').scrollBy({ left: SLOT_W * 6, behavior: 'smooth' }); };
