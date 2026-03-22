@@ -277,16 +277,17 @@
             .map-widget { display: none !important; } /* hide floating map on mobile */
             .mobile-tab-bar {
                 display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
-                background: var(--bg-main); border-top: 1px solid var(--border);
-                height: 52px; padding-bottom: env(safe-area-inset-bottom);
+                background: var(--bg-surface); border-top: 2px solid var(--accent);
+                height: 56px; padding-bottom: env(safe-area-inset-bottom);
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
             }
             .mobile-tab {
                 flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-                gap: 2px; font-size: 0.6rem; font-weight: 600; color: var(--text-muted);
+                gap: 3px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
                 background: none; border: none; cursor: pointer; font-family: var(--font);
             }
             .mobile-tab.active { color: var(--accent); }
-            .mobile-tab svg { width: 20px; height: 20px; }
+            .mobile-tab svg { width: 22px; height: 22px; }
             .mobile-map-view {
                 display: none !important; position: fixed; top: 54px; left: 0; right: 0; bottom: 52px; z-index: 998;
                 background: var(--bg-main);
@@ -429,8 +430,8 @@
     </div>
 
     <!-- Webcam link -->
-    <a id="webcam-link" href="#" target="_blank" style="display:none;align-items:center;gap:0.4rem;padding:0.4rem 1rem;border-radius:20px;border:1px solid var(--border);background:var(--bg-surface);color:var(--accent);font-size:0.8rem;font-weight:600;text-decoration:none;transition:all var(--transition);font-family:var(--font);margin-bottom:1rem;width:max-content;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+    <a id="webcam-link" href="#" target="_blank" style="display:none;align-items:center;gap:0.5rem;padding:0.5rem 1.2rem;border-radius:20px;border:none;background:var(--accent);color:#000;font-size:0.8rem;font-weight:700;text-decoration:none;transition:all var(--transition);font-family:var(--font);margin-bottom:1rem;width:max-content;box-shadow:0 2px 8px rgba(26,192,198,0.3);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
         Live Cam
     </a>
 
