@@ -57,7 +57,7 @@
         .header { background: var(--bg-surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
         /* ========== HEADER LOGO FIX ========== */
-        .logo { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); text-decoration: none; display: flex; align-items: center; gap: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase; }
+        .logo { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); text-decoration: none; display: flex; align-items: center; gap: 0.6rem; letter-spacing: 0.05em; }
         .logo-icon-wrap { display: inline-flex; align-items: center; justify-content: center; background: #fff; border-radius: 10px; padding: 3px; flex-shrink: 0; box-shadow: 0 0 12px rgba(26, 192, 198, 0.3); }
         .logo-icon-wrap img { height: 38px; width: 38px; object-fit: contain; display: block; }
         .header-update { font-size: 0.7rem; color: var(--text-light); }
@@ -1355,6 +1355,10 @@ function renderDailyCarousel() {
         });
         container.appendChild(card);
     });
+    // Fallback: if no card is active (today not in data), activate the first one
+    if (!container.querySelector('.daily-card.active') && container.firstChild) {
+        container.firstChild.classList.add('active');
+    }
 }
 
 function renderUnifiedTrack() {
