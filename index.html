@@ -328,8 +328,8 @@
         /* ========== FOOTER ========== */
         .footer { max-width: 1280px; margin: 2rem auto 0; padding: 1rem 1.5rem; border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--text-light); text-align: center; }
         /* ========== FOOTER LOGO (Pilule Premium) ========== */
-        .footer-logo-wrap { background: #ffffff; display: inline-flex; align-items: center; justify-content: center; padding: 1rem 2.5rem; border-radius: 20px; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(26, 192, 198, 0.15); }
-        .footer-logo-wrap img { display: block; height: 100px; width: auto; }
+        .footer-logo-wrap { background: #ffffff; display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 14px; margin-bottom: 0.75rem; box-shadow: 0 4px 20px rgba(26, 192, 198, 0.15); }
+        .footer-logo-wrap img { display: block; height: 60px; width: 60px; }
 
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
@@ -1164,8 +1164,17 @@ function findClosest(data) {
     return closest;
 }
 
+function updateHero(h) {
+    const spotData = _allData.data[_currentSpot];
+    _renderHeroWithHour(h, spotData);
+}
+
 function renderHero(spotData) {
     const h = findClosest(spotData);
+    _renderHeroWithHour(h, spotData);
+}
+
+function _renderHeroWithHour(h, spotData) {
 
     const rb = document.getElementById('hero-rating');
     const conseil = getNormalizedConseil(h);
@@ -1338,21 +1347,28 @@ function renderDailyCarousel() {
             card.classList.add('active');
             document.getElementById('current-day-label').textContent = isToday ? 'Today' : dp.weekday + ' ' + dp.day + '/' + dp.month;
 
+            // Find first daylight hour of that day
             let morningIdx = _hourlyData.findIndex(h => {
                 return tzDateStr(h.time) === d.date && isDaylight(h, spot);
             });
             if (morningIdx < 0) morningIdx = _hourlyData.findIndex(h => tzDateStr(h.time) === d.date);
 
+            // Scroll hourly track to that day
             if (morningIdx >= 0) {
                 const scroller = document.getElementById('unified-scroll');
                 scroller.scrollTo({ left: Math.max(0, morningIdx * SLOT_W - 20), behavior: 'smooth' });
             }
 
-            if (bestHourTime) {
-                const bestIdx = _hourlyData.findIndex(h => h.time === bestHourTime);
-                if (bestIdx >= 0) {
-                    const waveSlots = document.querySelectorAll('.wave-slot');
-                    if (waveSlots[bestIdx]) waveSlots[bestIdx].click();
+            // Update hero with best hour of that day
+            const bestIdx = bestHourTime ? _hourlyData.findIndex(h => h.time === bestHourTime) : morningIdx;
+            if (bestIdx >= 0) {
+                updateHero(_hourlyData[bestIdx]);
+                // Highlight the slot
+                const waveSlots = document.querySelectorAll('.wave-slot');
+                waveSlots.forEach(s => s.classList.remove('active'));
+                if (waveSlots[bestIdx]) {
+                    waveSlots[bestIdx].classList.add('active');
+                    _selectedSlotIdx = bestIdx;
                 }
             }
         });
