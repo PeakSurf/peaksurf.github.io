@@ -1343,32 +1343,37 @@ function renderDailyCarousel() {
         `;
 
         card.addEventListener('click', () => {
-            container.querySelectorAll('.daily-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-            document.getElementById('current-day-label').textContent = isToday ? 'Today' : dp.weekday + ' ' + dp.day + '/' + dp.month;
+            try {
+                container.querySelectorAll('.daily-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                document.getElementById('current-day-label').textContent = isToday ? 'Today' : dp.weekday + ' ' + dp.day + '/' + dp.month;
 
-            // Find first daylight hour of that day
-            let morningIdx = _hourlyData.findIndex(h => {
-                return tzDateStr(h.time) === d.date && isDaylight(h, spot);
-            });
-            if (morningIdx < 0) morningIdx = _hourlyData.findIndex(h => tzDateStr(h.time) === d.date);
+                // Find first daylight hour of that day
+                let morningIdx = _hourlyData.findIndex(hh => {
+                    return tzDateStr(hh.time) === d.date && isDaylight(hh, spot);
+                });
+                if (morningIdx < 0) morningIdx = _hourlyData.findIndex(hh => tzDateStr(hh.time) === d.date);
 
-            // Scroll hourly track to that day
-            if (morningIdx >= 0) {
-                const scroller = document.getElementById('unified-scroll');
-                scroller.scrollTo({ left: Math.max(0, morningIdx * SLOT_W - 20), behavior: 'smooth' });
-            }
+                // Scroll hourly track to that day
+                if (morningIdx >= 0) {
+                    const scroller = document.getElementById('unified-scroll');
+                    scroller.scrollTo({ left: Math.max(0, morningIdx * SLOT_W - 20), behavior: 'smooth' });
+                }
 
-            // Update hero with best hour of that day
-            const bestIdx = bestHourTime ? _hourlyData.findIndex(h => h.time === bestHourTime) : morningIdx;
-            if (bestIdx >= 0) {
-                updateHero(_hourlyData[bestIdx]);
-                // Highlight the slot
-                const waveSlots = document.querySelectorAll('.wave-slot');
-                waveSlots.forEach(s => s.classList.remove('active'));
-                if (waveSlots[bestIdx]) {
-                    waveSlots[bestIdx].classList.add('active');
-                    _selectedSlotIdx = bestIdx;
+                // Update hero with best hour of that day
+                const targetIdx = bestHourTime ? _hourlyData.findIndex(hh => hh.time === bestHourTime) : morningIdx;
+                if (targetIdx >= 0 && _hourlyData[targetIdx]) {
+                    updateHero(_hourlyData[targetIdx]);
+                    // Highlight the slot
+                    const waveRow = document.getElementById('wave-bars');
+                    if (waveRow) {
+                        waveRow.querySelectorAll('.wave-slot').forEach(s => s.classList.remove('active'));
+                        const targetSlot = waveRow.children[targetIdx];
+                        if (targetSlot) {
+                            targetSlot.classList.add('active');
+                            _selectedSlotIdx = targetIdx;
+                        }
+                    }
                 }
             }
         });
