@@ -1311,7 +1311,7 @@ function renderDailyCarousel() {
 
         if (mlHours.length > 0) {
             const daylightHours = mlHours.filter(h => isDaylight(h, spot));
-            const hoursToSearch = daylightHours.length > 0 ? daylightHours : mlHours;
+            const hoursToSearch = daylightHours.length > 0 ? daylightHours : [mlHours[0]];
 
             let bestHour = hoursToSearch[0];
             let bestScore = -1000;
