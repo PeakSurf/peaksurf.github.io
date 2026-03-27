@@ -628,14 +628,19 @@ function getRatingColor(h) {
 }
 /* ------------------------------------------------ */
 
-const DEFAULT_FAVS = ['hendaye', 'les-cavaliers-anglet', 'la-centrale-capbreton', 'les-estagnots-seignosse', 'lacanau'];
+const DEFAULT_FAVS = [
+    'hossegor-centrale', 'la-centrale-capbreton', 'biarritz-grande-plage', 'hendaye',
+    'lacanau', 'la-torche', 'fistral', 'supertubos', 'arrifana', 'mundaka',
+    'les-cavaliers-anglet', 'les-estagnots-seignosse', 'biscarrosse',
+];
 
 function initApp(rawData) {
     _allData = rawData;
-    // Set default favorites on first visit
-    if (!localStorage.getItem(FAV_KEY)) {
+    // Set default favorites on first visit or after favorites upgrade (v2)
+    if (!localStorage.getItem('alaia_fav_v2')) {
         const validDefaults = DEFAULT_FAVS.filter(id => rawData.spots[id]);
         if (validDefaults.length) setFavorites(validDefaults);
+        localStorage.setItem('alaia_fav_v2', '1');
     }
     renderSpotNav();
     const favs = getFavorites();
@@ -1063,20 +1068,19 @@ function toggleMapSize() {
 }
 
 
-/* --- FAVORITES (stored in localStorage, max 6) --- */
+/* --- FAVORITES (stored in localStorage, unlimited) --- */
 const FAV_KEY = 'alaia_fav_spots';
 function getFavorites() {
     try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch(e) { return []; }
 }
 function setFavorites(favs) {
-    localStorage.setItem(FAV_KEY, JSON.stringify(favs.slice(0, 6)));
+    localStorage.setItem(FAV_KEY, JSON.stringify(favs));
 }
 function toggleFavorite(spotId) {
     let favs = getFavorites();
     if (favs.includes(spotId)) {
         favs = favs.filter(f => f !== spotId);
     } else {
-        if (favs.length >= 6) favs.shift(); // remove oldest if at limit
         favs.push(spotId);
     }
     setFavorites(favs);
@@ -1089,7 +1093,7 @@ function updateFavToggle() {
     const isFav = getFavorites().includes(_currentSpot);
     btn.innerHTML = isFav ? '&#9733;' : '&#9734;';
     btn.className = 'spot-fav-toggle' + (isFav ? ' is-fav' : '');
-    btn.title = isFav ? 'Remove from favorites' : 'Add to favorites (max 6)';
+    btn.title = isFav ? 'Remove from favorites' : 'Add to favorites';
 }
 
 let _searchQuery = '';
