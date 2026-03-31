@@ -148,7 +148,7 @@
         /* NOW indicator */
         .time-slot.is-now { background: rgba(255,255,255,0.08); color: var(--text-dark); font-weight: 800; }
 
-        .rating-strip { display: flex; height: 6px; position: relative; z-index: 2; gap: 1px; }
+        .rating-strip { display: flex; height: 6px; position: relative; z-index: 2; }
         .rating-segment { width: 56px; flex-shrink: 0; }
 
         /* Night shades hidden — replaced by data dimming */
@@ -157,7 +157,6 @@
         /* Data dimming: night hours fade out gracefully */
         .slot-night { opacity: 0.2 !important; filter: grayscale(50%); transition: opacity 0.3s ease, filter 0.3s ease; }
         .slot-night:hover, .wave-slot.active.slot-night { opacity: 0.9 !important; filter: grayscale(0%); }
-        .rating-segment.slot-night { background: #1e293b !important; opacity: 1 !important; }
 
         .waves-row { display: flex; align-items: flex-end; height: 150px; padding-top: 18px; position: relative; z-index: 1; border-bottom: 1px solid var(--border-light); }
         .wave-slot { width: 56px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; cursor: pointer; height: 100%; position: relative; padding-bottom: 8px; background: none; border: none; font: inherit; color: inherit; }
