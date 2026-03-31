@@ -572,22 +572,24 @@ function degToCompass(deg) {
 function isDaylight(h, spot) {
     if (h.is_day !== undefined) return h.is_day === 1;
 
-    // Simple and robust: compute sunrise/sunset in UTC hours
     const utcHour = tzParts(h.time).hour;
     const lat = (spot && (spot.lat || spot.latitude)) ? (spot.lat || spot.latitude) : 46.0;
     const lon = (spot && (spot.lon || spot.longitude)) ? (spot.lon || spot.longitude) : -1.4;
     const tp = tzParts(h.time);
-    const date = new Date(tp.year, tp.month - 1, tp.day);
-    const dayOfYear = Math.floor((date - new Date(tp.year, 0, 0)) / 86400000);
+
+    // Day of year (use UTC date components to avoid local timezone issues)
+    const dayOfYear = Math.floor((Date.UTC(tp.year, tp.month - 1, tp.day) - Date.UTC(tp.year, 0, 1)) / 86400000) + 1;
+
     const declination = -23.44 * Math.cos((360 / 365) * (dayOfYear + 10) * (Math.PI / 180));
     let tanCalc = -Math.tan(lat * Math.PI / 180) * Math.tan(declination * Math.PI / 180);
     tanCalc = Math.max(-1, Math.min(1, tanCalc));
     const halfDaylight = (Math.acos(tanCalc) * (180 / Math.PI)) / 15;
-    // Solar noon in UTC: 12:00 - longitude/15 (no timezone offset needed)
+
+    // Solar noon in UTC = 12:00 - longitude correction (no timezone needed)
     const solarNoonUTC = 12 - (lon / 15);
     const sunriseUTC = solarNoonUTC - halfDaylight;
     const sunsetUTC = solarNoonUTC + halfDaylight;
-    // Use ceiling for sunrise (hour must be fully past sunrise) and floor for sunset
+
     return utcHour >= Math.ceil(sunriseUTC) && utcHour < Math.ceil(sunsetUTC);
 }
 
