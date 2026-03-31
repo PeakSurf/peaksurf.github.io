@@ -599,7 +599,9 @@ function isDaylight(h, spot) {
     const solarNoon = 12 + utcOffset - (lon / 15); // longitude correction
     const sunrise = solarNoon - halfDaylight;
     const sunset = solarNoon + halfDaylight;
-    return hour >= Math.floor(sunrise) && hour <= Math.floor(sunset);
+    // hour is UTC — convert to local for comparison with local sunrise/sunset
+    const localHour = hour + utcOffset;
+    return localHour >= Math.floor(sunrise) && localHour <= Math.floor(sunset);
 }
 
 /* --- SOURCE DE VÉRITÉ : COULEURS ET NOTES IA --- */
