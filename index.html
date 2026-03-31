@@ -587,7 +587,8 @@ function isDaylight(h, spot) {
     const solarNoonUTC = 12 - (lon / 15);
     const sunriseUTC = solarNoonUTC - halfDaylight;
     const sunsetUTC = solarNoonUTC + halfDaylight;
-    return utcHour >= Math.floor(sunriseUTC) && utcHour <= Math.floor(sunsetUTC);
+    // Use ceiling for sunrise (hour must be fully past sunrise) and floor for sunset
+    return utcHour >= Math.ceil(sunriseUTC) && utcHour < Math.ceil(sunsetUTC);
 }
 
 /* --- SOURCE DE VÉRITÉ : COULEURS ET NOTES IA --- */
