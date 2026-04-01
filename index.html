@@ -1466,9 +1466,18 @@ function renderUnifiedTrack() {
     const nowHour = tzHour(new Date());
     const nowDayStr = todayStr;
 
+    // UTC offset for display labels only (spot local time)
+    const _tz = spot.timezone || '';
+    const _tp0 = tzParts(_hourlyData[0].time);
+    const _d0 = new Date(Date.UTC(_tp0.year, _tp0.month - 1, _tp0.day));
+    const _m0 = _d0.getUTCMonth(), _dd0 = _d0.getUTCDate(), _dw0 = _d0.getUTCDay();
+    const _dst = (_m0 > 2 && _m0 < 9) || (_m0 === 2 && _dd0 - _dw0 >= 25) || (_m0 === 9 && _dd0 - _dw0 < 25);
+    const _off = _tz === 'Africa/Casablanca' ? 1 : (_tz === 'Europe/Lisbon' || _tz === 'Europe/London' || _tz === 'Europe/Dublin') ? (_dst ? 1 : 0) : (_dst ? 2 : 1);
+
     _hourlyData.forEach((h, i) => {
         const tp = tzParts(h.time);
         const hour = tp.hour;
+        const localH = (hour + _off) % 24;
         const isNight = !isDaylight(h, spot);
 
         const ratingColor = getRatingColor(h);
@@ -1480,11 +1489,11 @@ function renderUnifiedTrack() {
 
         shadesRow.innerHTML += `<div class="night-shade ${isNight ? 'is-night' : ''}"></div>`;
 
-        const showLabel = hour % 3 === 0;
+        const showLabel = localH % 3 === 0;
         const isToday = dayStr === todayStr;
         const isNow = dayStr === nowDayStr && hour === nowHour;
         const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
-        timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? hour + 'h' : ''}</div>`;
+        timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localH + 'h' : ''}</div>`;
 
         stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"></div>`;
 
