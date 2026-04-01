@@ -567,31 +567,12 @@ function degToCompass(deg) {
     return dirs[Math.round(deg / 22.5) % 16];
 }
 
-/* --- CALCUL DYNAMIQUE DU JOUR ET DE LA NUIT --- */
+/* --- JOUR / NUIT (from Open-Meteo sunrise/sunset in forecast data) --- */
 function isDaylight(h, spot) {
     if (h.is_day !== undefined) return h.is_day === 1;
-
+    // Fallback: assume day for hours 6-20 UTC
     const utcHour = tzParts(h.time).hour;
-    const lat = (spot && (spot.lat || spot.latitude)) ? (spot.lat || spot.latitude) : 46.0;
-    const lon = (spot && (spot.lon || spot.longitude)) ? (spot.lon || spot.longitude) : -1.4;
-    const tp = tzParts(h.time);
-
-    // Day of year (use UTC date components to avoid local timezone issues)
-    const dayOfYear = Math.floor((Date.UTC(tp.year, tp.month - 1, tp.day) - Date.UTC(tp.year, 0, 1)) / 86400000) + 1;
-
-    const declination = -23.44 * Math.cos((360 / 365) * (dayOfYear + 10) * (Math.PI / 180));
-    let tanCalc = -Math.tan(lat * Math.PI / 180) * Math.tan(declination * Math.PI / 180);
-    tanCalc = Math.max(-1, Math.min(1, tanCalc));
-    const halfDaylight = (Math.acos(tanCalc) * (180 / Math.PI)) / 15;
-
-    // Solar noon in local time = 12:00 + utcOffset - longitude correction
-    const offset = getUtcOffset(spot, tp);
-    const solarNoonLocal = 12 + offset - (lon / 15);
-    const sunriseLocal = solarNoonLocal - halfDaylight;
-    const sunsetLocal = solarNoonLocal + halfDaylight;
-    const localHour = utcHour + offset;
-
-    return localHour >= Math.ceil(sunriseLocal) && localHour < Math.ceil(sunsetLocal);
+    return utcHour >= 6 && utcHour <= 20;
 }
 
 function getUtcOffset(spot, tp) {
