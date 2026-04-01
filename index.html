@@ -1483,7 +1483,13 @@ function renderUnifiedTrack() {
     const nowHour = tzHour(new Date());
     const nowDayStr = todayStr;
 
+    if (!_hourlyData || !_hourlyData.length) return;
     const _utcOff = getUtcOffset(spot, tzParts(_hourlyData[0].time));
+    // Recompute todayStr and nowHour in local time
+    const nowLocal = new Date(Date.now() + _utcOff * 3600000);
+    const todayLocalStr = `${nowLocal.getUTCFullYear()}-${String(nowLocal.getUTCMonth()+1).padStart(2,'0')}-${String(nowLocal.getUTCDate()).padStart(2,'0')}`;
+    const nowLocalHour = nowLocal.getUTCHours();
+
     _hourlyData.forEach((h, i) => {
         const tp = tzParts(h.time);
         const utcHour = tp.hour;
@@ -1493,7 +1499,7 @@ function renderUnifiedTrack() {
         const ratingColor = getRatingColor(h);
         const conseilLabel = getNormalizedConseil(h) || h.rating || 'flat';
 
-        // Use local date for day labels (hours after midnight UTC but before midnight local belong to previous local day)
+        // Local date (handles day rollover from UTC offset)
         const localDate = new Date(Date.UTC(tp.year, tp.month - 1, tp.day, utcHour + _utcOff));
         const ldStr = `${localDate.getUTCFullYear()}-${String(localDate.getUTCMonth()+1).padStart(2,'0')}-${String(localDate.getUTCDate()).padStart(2,'0')}`;
         const isDayStart = ldStr !== prevDay;
@@ -1501,13 +1507,12 @@ function renderUnifiedTrack() {
         const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
         const ldWeekday = weekdays[localDate.getUTCDay()];
         const ldDay = localDate.getUTCDate();
-        const ldMonth = localDate.getUTCMonth() + 1;
 
         shadesRow.innerHTML += `<div class="night-shade ${isNight ? 'is-night' : ''}"></div>`;
 
         const showLabel = localHour % 3 === 0;
-        const isToday = ldStr === todayStr;
-        const isNow = ldStr === nowDayStr && localHour === nowHour;
+        const isToday = ldStr === todayLocalStr;
+        const isNow = ldStr === todayLocalStr && localHour === nowLocalHour;
         const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : ldWeekday + ' ' + ldDay}</span>` : '';
         timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localHour + 'h' : ''}</div>`;
 
