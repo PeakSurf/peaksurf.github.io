@@ -1360,8 +1360,16 @@ function renderDailyCarousel() {
             if (Math.abs(bestWaveMax - bestWaveMin) < 0.1) displayRange = `${fmt(bestWaveMax)}`;
             else displayRange = `${fmt(bestWaveMin)}-${fmt(bestWaveMax)}`;
 
-            const bestHr = tzHour(bestHour.time);
+            const bestHrUTC = tzHour(bestHour.time);
             bestHourTime = bestHour.time;
+            // Convert to spot local time
+            const _btp = tzParts(bestHour.time);
+            const _bd = new Date(Date.UTC(_btp.year, _btp.month - 1, _btp.day));
+            const _bm = _bd.getUTCMonth(), _bdd = _bd.getUTCDate(), _bdw = _bd.getUTCDay();
+            const _bdst = (_bm > 2 && _bm < 9) || (_bm === 2 && _bdd - _bdw >= 25) || (_bm === 9 && _bdd - _bdw < 25);
+            const _btz = spot.timezone || '';
+            const _boff = _btz === 'Africa/Casablanca' ? 1 : (_btz === 'Europe/Lisbon' || _btz === 'Europe/London' || _btz === 'Europe/Dublin') ? (_bdst ? 1 : 0) : (_bdst ? 2 : 1);
+            const bestHr = (bestHrUTC + _boff) % 24;
 
             const bestConseil = getNormalizedConseil(bestHour);
             bestColor = `var(--${getRatingColor(bestHour)})`;
@@ -1599,8 +1607,17 @@ function showDetailPanel(h) {
     panel.classList.add('open');
 
     const tp = tzParts(h.time);
-    const timeStr = tp.weekday + ' ' + tp.day + '/' + tp.month + ' ' + String(tp.hour).padStart(2,'0') + ':00';
     const spotData = _allData.data[_currentSpot];
+    const _sp = spotData.spot;
+    // Convert to spot local time for display
+    const _tz2 = _sp.timezone || '';
+    const _d2 = new Date(Date.UTC(tp.year, tp.month - 1, tp.day));
+    const _m2 = _d2.getUTCMonth(), _dd2 = _d2.getUTCDate(), _dw2 = _d2.getUTCDay();
+    const _dst2 = (_m2 > 2 && _m2 < 9) || (_m2 === 2 && _dd2 - _dw2 >= 25) || (_m2 === 9 && _dd2 - _dw2 < 25);
+    const _off2 = _tz2 === 'Africa/Casablanca' ? 1 : (_tz2 === 'Europe/Lisbon' || _tz2 === 'Europe/London' || _tz2 === 'Europe/Dublin') ? (_dst2 ? 1 : 0) : (_dst2 ? 2 : 1);
+    const localDate = new Date(Date.UTC(tp.year, tp.month - 1, tp.day, tp.hour + _off2));
+    const wkd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const timeStr = wkd[localDate.getUTCDay()] + ' ' + localDate.getUTCDate() + '/' + (localDate.getUTCMonth()+1) + ' ' + String(localDate.getUTCHours()).padStart(2,'0') + ':00';
     const offshoreHs = h.wave_height_model != null ? fmt(h.wave_height_model) + 'm' : '--';
     const surfaceTexture = getSurfaceTexture(h, spotData.spot);
 
