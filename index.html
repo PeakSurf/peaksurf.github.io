@@ -584,12 +584,30 @@ function isDaylight(h, spot) {
     tanCalc = Math.max(-1, Math.min(1, tanCalc));
     const halfDaylight = (Math.acos(tanCalc) * (180 / Math.PI)) / 15;
 
-    // Solar noon in UTC = 12:00 - longitude correction (no timezone needed)
-    const solarNoonUTC = 12 - (lon / 15);
-    const sunriseUTC = solarNoonUTC - halfDaylight;
-    const sunsetUTC = solarNoonUTC + halfDaylight;
+    // Solar noon in local time = 12:00 + utcOffset - longitude correction
+    const offset = getUtcOffset(spot, tp);
+    const solarNoonLocal = 12 + offset - (lon / 15);
+    const sunriseLocal = solarNoonLocal - halfDaylight;
+    const sunsetLocal = solarNoonLocal + halfDaylight;
+    const localHour = utcHour + offset;
 
-    return utcHour >= Math.ceil(sunriseUTC) && utcHour < Math.ceil(sunsetUTC);
+    return localHour >= Math.ceil(sunriseLocal) && localHour < Math.ceil(sunsetLocal);
+}
+
+function getUtcOffset(spot, tp) {
+    const tz = spot && spot.timezone;
+    const date = new Date(Date.UTC(tp.year, tp.month - 1, tp.day));
+    const month = date.getUTCMonth(); // 0-indexed
+    const day = date.getUTCDate();
+    const dow = date.getUTCDay(); // 0=Sun
+    let isDST = false;
+    if (month > 2 && month < 9) isDST = true;
+    else if (month === 2) isDST = day - dow >= 25;
+    else if (month === 9) isDST = day - dow < 25;
+    if (tz === 'Africa/Casablanca') return 1;
+    if (tz === 'Europe/Paris' || tz === 'Europe/Madrid') return isDST ? 2 : 1;
+    if (tz === 'Europe/Lisbon' || tz === 'Europe/London' || tz === 'Europe/Dublin') return isDST ? 1 : 0;
+    return isDST ? 2 : 1;
 }
 
 /* --- SOURCE DE VÉRITÉ : COULEURS ET NOTES IA --- */
@@ -1465,25 +1483,33 @@ function renderUnifiedTrack() {
     const nowHour = tzHour(new Date());
     const nowDayStr = todayStr;
 
+    const _utcOff = getUtcOffset(spot, tzParts(_hourlyData[0].time));
     _hourlyData.forEach((h, i) => {
         const tp = tzParts(h.time);
-        const hour = tp.hour;
+        const utcHour = tp.hour;
+        const localHour = (utcHour + _utcOff) % 24;
         const isNight = !isDaylight(h, spot);
 
         const ratingColor = getRatingColor(h);
         const conseilLabel = getNormalizedConseil(h) || h.rating || 'flat';
 
-        const dayStr = tzDateStr(h.time);
-        const isDayStart = dayStr !== prevDay;
-        prevDay = dayStr;
+        // Use local date for day labels (hours after midnight UTC but before midnight local belong to previous local day)
+        const localDate = new Date(Date.UTC(tp.year, tp.month - 1, tp.day, utcHour + _utcOff));
+        const ldStr = `${localDate.getUTCFullYear()}-${String(localDate.getUTCMonth()+1).padStart(2,'0')}-${String(localDate.getUTCDate()).padStart(2,'0')}`;
+        const isDayStart = ldStr !== prevDay;
+        prevDay = ldStr;
+        const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const ldWeekday = weekdays[localDate.getUTCDay()];
+        const ldDay = localDate.getUTCDate();
+        const ldMonth = localDate.getUTCMonth() + 1;
 
         shadesRow.innerHTML += `<div class="night-shade ${isNight ? 'is-night' : ''}"></div>`;
 
-        const showLabel = hour % 3 === 0;
-        const isToday = dayStr === todayStr;
-        const isNow = dayStr === nowDayStr && hour === nowHour;
-        const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
-        timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? hour + 'h' : ''}</div>`;
+        const showLabel = localHour % 3 === 0;
+        const isToday = ldStr === todayStr;
+        const isNow = ldStr === nowDayStr && localHour === nowHour;
+        const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : ldWeekday + ' ' + ldDay}</span>` : '';
+        timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localHour + 'h' : ''}</div>`;
 
         stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"></div>`;
 
