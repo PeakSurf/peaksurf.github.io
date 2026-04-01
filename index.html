@@ -1466,25 +1466,42 @@ function renderUnifiedTrack() {
     const nowHour = tzHour(new Date());
     const nowDayStr = todayStr;
 
+    // Compute UTC offset for this spot to display local time labels
+    const _off = (function() {
+        const tz = spot.timezone || '';
+        const tp0 = tzParts(_hourlyData[0].time);
+        const d = new Date(Date.UTC(tp0.year, tp0.month - 1, tp0.day));
+        const m = d.getUTCMonth(), dd = d.getUTCDate(), dw = d.getUTCDay();
+        let dst = (m > 2 && m < 9) || (m === 2 && dd - dw >= 25) || (m === 9 && dd - dw < 25);
+        if (tz === 'Africa/Casablanca') return 1;
+        if (tz === 'Europe/Lisbon' || tz === 'Europe/London' || tz === 'Europe/Dublin') return dst ? 1 : 0;
+        return dst ? 2 : 1; // CET/CEST default
+    })();
+
     _hourlyData.forEach((h, i) => {
         const tp = tzParts(h.time);
-        const hour = tp.hour;
+        const utcHour = tp.hour;
+        const displayHour = (utcHour + _off) % 24;
         const isNight = !isDaylight(h, spot);
 
         const ratingColor = getRatingColor(h);
         const conseilLabel = getNormalizedConseil(h) || h.rating || 'flat';
 
-        const dayStr = tzDateStr(h.time);
+        // Compute local date for day boundary detection
+        const localMs = Date.UTC(tp.year, tp.month - 1, tp.day, utcHour + _off);
+        const ld = new Date(localMs);
+        const dayStr = `${ld.getUTCFullYear()}-${String(ld.getUTCMonth()+1).padStart(2,'0')}-${String(ld.getUTCDate()).padStart(2,'0')}`;
         const isDayStart = dayStr !== prevDay;
         prevDay = dayStr;
 
         shadesRow.innerHTML += `<div class="night-shade ${isNight ? 'is-night' : ''}"></div>`;
 
-        const showLabel = hour % 3 === 0;
+        const showLabel = displayHour % 3 === 0;
         const isToday = dayStr === todayStr;
-        const isNow = dayStr === nowDayStr && hour === nowHour;
-        const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
-        timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? hour + 'h' : ''}</div>`;
+        const isNow = dayStr === nowDayStr && displayHour === nowHour;
+        const wkdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : wkdays[ld.getUTCDay()] + ' ' + ld.getUTCDate()}</span>` : '';
+        timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? displayHour + 'h' : ''}</div>`;
 
         stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"></div>`;
 
