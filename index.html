@@ -510,7 +510,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402g"></script>
+<script src="data/forecast.js?v=20260402h"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -628,6 +628,12 @@ function isDaylight(h, spot) {
     // Fallback: if is_day is missing, use the spot's local hour.
     const localHour = spotLocalParts(h.time, spot).hour;
     return localHour >= 6 && localHour <= 20;
+}
+
+function isBestMomentSessionStart(hours, idx, spot) {
+    const h = hours[idx];
+    const next = hours[idx + 1];
+    return !!(h && next && isDaylight(h, spot) && isDaylight(next, spot));
 }
 
 function getUtcOffset(spot, tp) {
@@ -1364,12 +1370,12 @@ function getWindEffect(h, spot) {
     return { label: 'Cross-shore' };
 }
 
-function getBestMomentTideAdjustment(h) {
-    const tideQuality = (h.tide_quality || '').toLowerCase();
-    if (tideQuality === 'good') return { bonus: 0.7, label: 'Tide +' };
-    if (tideQuality === 'poor') return { bonus: -1.0, label: h.tide_issue || 'Bad tide' };
-    if (tideQuality === 'ok') return { bonus: 0.1, label: 'Tide OK' };
-    return { bonus: 0, label: '' };
+function getBestMomentMlScore(h) {
+    const p = h.ml_conseil_proba || {};
+    const getP = (key) => p[key] || p[key.toLowerCase()] || p[key.charAt(0).toUpperCase() + key.slice(1)] || 0;
+    let goodness = (getP('Epic') * 3) + (getP('Good') * 2) + (getP('Fair') * 1) - (getP('Poor') * 1);
+    goodness += (h.ml_wave_height_max || 0) * 0.1;
+    return goodness;
 }
 
 function renderDailyCarousel() {
@@ -1402,9 +1408,15 @@ function renderDailyCarousel() {
         let bestHourData = {};
 
         if (mlHours.length > 0) {
+            const sessionHours = [];
+            for (let i = 0; i < dayHours.length; i++) {
+                const h = dayHours[i];
+                if (h.ml_wave_height_max == null) continue;
+                if (isBestMomentSessionStart(dayHours, i, spot)) sessionHours.push(h);
+            }
             const daylightHours = mlHours.filter(h => isDaylight(h, spot));
             if (daylightHours.length === 0) console.warn('No daylight hours for', d.date, spot.name, 'falling back to first hour');
-            const hoursToSearch = daylightHours.length > 0 ? daylightHours : [mlHours[0]];
+            const hoursToSearch = sessionHours.length > 0 ? sessionHours : (daylightHours.length > 0 ? daylightHours : [mlHours[0]]);
             // NEVER allow night hours as best session
             if (hoursToSearch.length > 0 && !isDaylight(hoursToSearch[0], spot)) {
                 console.warn('Best hour is night!', tzHour(hoursToSearch[0].time), 'for', spot.name);
@@ -1414,11 +1426,7 @@ function renderDailyCarousel() {
             let bestScore = -1000;
 
             hoursToSearch.forEach(h => {
-                const p = h.ml_conseil_proba || {};
-                const getP = (key) => p[key] || p[key.toLowerCase()] || p[key.charAt(0).toUpperCase() + key.slice(1)] || 0;
-                let goodness = (getP('Epic') * 3) + (getP('Good') * 2) + (getP('Fair') * 1) - (getP('Poor') * 1);
-                goodness += (h.ml_wave_height_max || 0) * 0.1;
-                goodness += getBestMomentTideAdjustment(h).bonus;
+                const goodness = getBestMomentMlScore(h);
                 if (goodness > bestScore) {
                     bestScore = goodness;
                     bestHour = h;
