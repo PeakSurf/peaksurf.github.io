@@ -1364,6 +1364,14 @@ function getWindEffect(h, spot) {
     return { label: 'Cross-shore' };
 }
 
+function getBestMomentTideAdjustment(h) {
+    const tideQuality = (h.tide_quality || '').toLowerCase();
+    if (tideQuality === 'good') return { bonus: 0.7, label: 'Tide +' };
+    if (tideQuality === 'poor') return { bonus: -1.0, label: h.tide_issue || 'Bad tide' };
+    if (tideQuality === 'ok') return { bonus: 0.1, label: 'Tide OK' };
+    return { bonus: 0, label: '' };
+}
+
 function renderDailyCarousel() {
     const container = document.getElementById('daily-carousel');
     container.innerHTML = '';
@@ -1410,6 +1418,7 @@ function renderDailyCarousel() {
                 const getP = (key) => p[key] || p[key.toLowerCase()] || p[key.charAt(0).toUpperCase() + key.slice(1)] || 0;
                 let goodness = (getP('Epic') * 3) + (getP('Good') * 2) + (getP('Fair') * 1) - (getP('Poor') * 1);
                 goodness += (h.ml_wave_height_max || 0) * 0.1;
+                goodness += getBestMomentTideAdjustment(h).bonus;
                 if (goodness > bestScore) {
                     bestScore = goodness;
                     bestHour = h;
