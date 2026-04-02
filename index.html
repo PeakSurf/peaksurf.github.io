@@ -510,7 +510,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260322b"></script>
+<script src="data/forecast.js?v=20260402a"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1282,7 +1282,22 @@ function _renderHeroWithHour(h, spotData) {
     const sst = h.sst || 0;
     document.getElementById('hero-sst-suit').textContent = sst < 14 ? '4/3mm Wetsuit' : sst < 18 ? '3/2mm Wetsuit' : sst < 22 ? 'Shorty / Spring suit' : 'Boardshorts';
     document.getElementById('hero-tide').textContent = h.tide_height != null ? fmt(h.tide_height) : '--';
-    document.getElementById('hero-tide-trend').textContent = h.tide_trend === 'rising' ? 'Rising' : h.tide_trend === 'falling' ? 'Falling' : h.tide_trend === 'high' ? 'High tide' : h.tide_trend === 'low' ? 'Low tide' : '';
+    const tideStatus = h.tide_issue
+        ? h.tide_issue.charAt(0).toUpperCase() + h.tide_issue.slice(1)
+        : h.tide_quality === 'good'
+            ? 'Tide optimal'
+            : h.tide_quality === 'poor'
+                ? 'Bad tide'
+                : h.tide_trend === 'rising'
+                    ? 'Rising'
+                    : h.tide_trend === 'falling'
+                        ? 'Falling'
+                        : h.tide_trend === 'high'
+                            ? 'High tide'
+                            : h.tide_trend === 'low'
+                                ? 'Low tide'
+                                : '';
+    document.getElementById('hero-tide-trend').textContent = tideStatus;
 }
 
 function getWindEffect(h, spot) {
