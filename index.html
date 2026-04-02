@@ -510,7 +510,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402h"></script>
+<script src="data/forecast.js?v=20260402i"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -969,7 +969,7 @@ function _switchToSpotAtTime(sid, time) {
             }
         }
         // Also highlight the correct day in 7-day carousel
-        const dayStr = time.split('T')[0];
+        const dayStr = spotLocalDateStr(time, _allData.data[sid].spot);
         document.querySelectorAll('.daily-card').forEach((card, i) => {
             card.classList.remove('active');
             if (_dailyData[i] && _dailyData[i].date === dayStr) card.classList.add('active');
@@ -1226,8 +1226,9 @@ function renderSpot(spotId) {
     });
 
     _tideData = spotData.tides || [];
-    const daysWithData = new Set(_hourlyData.map(h => tzDateStr(h.time)));
-    _dailyData = (spotData.daily || []).filter(d => daysWithData.has(d.date));
+    const dailyByDate = new Map((spotData.daily || []).map(d => [d.date, d]));
+    const localDays = Array.from(new Set(_hourlyData.map(h => spotLocalDateStr(h.time, spotData.spot)))).sort();
+    _dailyData = localDays.map(date => ({ ...(dailyByDate.get(date) || {}), date }));
 
     document.getElementById('spot-name').textContent = spotData.spot.name;
     document.getElementById('spot-desc').innerHTML = (spotData.spot.region || '') + (spotData.spot.bathy_info ? ' &mdash; ' + spotData.spot.bathy_info : '');
@@ -1378,18 +1379,91 @@ function getBestMomentMlScore(h) {
     return goodness;
 }
 
+function pickBestWindowCandidate(candidates) {
+    if (!candidates.length) return null;
+    return candidates.reduce((best, candidate) => {
+        if (!best) return candidate;
+        if (candidate.avgScore > best.avgScore + 1e-9) return candidate;
+        if (Math.abs(candidate.avgScore - best.avgScore) < 1e-9 && candidate.peakScore > best.peakScore + 1e-9) return candidate;
+        if (Math.abs(candidate.avgScore - best.avgScore) < 1e-9 && Math.abs(candidate.peakScore - best.peakScore) < 1e-9 && candidate.startIdx < best.startIdx) return candidate;
+        return best;
+    }, null);
+}
+
+function collectBestWindowCandidates(dayHours, spot, length) {
+    const candidates = [];
+    for (let startIdx = 0; startIdx + length < dayHours.length; startIdx++) {
+        const endBoundary = dayHours[startIdx + length];
+        if (!endBoundary || !isDaylight(endBoundary, spot)) continue;
+
+        const windowHours = dayHours.slice(startIdx, startIdx + length);
+        if (windowHours.length !== length) continue;
+        if (windowHours.some(h => !isDaylight(h, spot) || h.ml_wave_height_max == null)) continue;
+
+        const scores = windowHours.map(getBestMomentMlScore);
+        let peakOffset = 0;
+        for (let i = 1; i < scores.length; i++) {
+            if (scores[i] > scores[peakOffset]) peakOffset = i;
+        }
+
+        const peakHour = windowHours[peakOffset];
+        const waveMins = windowHours.map(h => h.ml_wave_height_min).filter(v => v != null);
+        const waveMaxs = windowHours.map(h => h.ml_wave_height_max).filter(v => v != null);
+        const periods = windowHours.map(h => h.peak_period || h.swell_period).filter(v => v != null);
+
+        candidates.push({
+            startIdx,
+            length,
+            peakIdx: startIdx + peakOffset,
+            peakHour,
+            startHour: windowHours[0],
+            endBoundary,
+            avgScore: scores.reduce((sum, score) => sum + score, 0) / scores.length,
+            peakScore: scores[peakOffset],
+            waveMin: waveMins.length ? Math.min(...waveMins) : peakHour.ml_wave_height_min,
+            waveMax: waveMaxs.length ? Math.max(...waveMaxs) : peakHour.ml_wave_height_max,
+            displayPeriod: periods.length ? Math.max(...periods) : (peakHour.peak_period || peakHour.swell_period),
+        });
+    }
+    return candidates;
+}
+
+function getBestSurfWindow(dayHours, spot) {
+    const byLength = {
+        3: collectBestWindowCandidates(dayHours, spot, 3),
+        5: collectBestWindowCandidates(dayHours, spot, 5),
+        6: collectBestWindowCandidates(dayHours, spot, 6),
+    };
+
+    const baseWindow = pickBestWindowCandidate(byLength[3]);
+    if (!baseWindow) return null;
+
+    let chosen = baseWindow;
+    [
+        { length: 5, tolerance: 0.15 },
+        { length: 6, tolerance: 0.22 },
+    ].forEach(rule => {
+        const options = byLength[rule.length].filter(candidate => candidate.startIdx <= baseWindow.peakIdx && baseWindow.peakIdx < candidate.startIdx + candidate.length);
+        const candidate = pickBestWindowCandidate(options);
+        if (candidate && candidate.avgScore >= baseWindow.avgScore - rule.tolerance) {
+            chosen = candidate;
+        }
+    });
+
+    return chosen;
+}
+
 function renderDailyCarousel() {
     const container = document.getElementById('daily-carousel');
     container.innerHTML = '';
-    const _now = new Date();
-    const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+    const spot = _allData.data[_currentSpot].spot;
+    const nowLocal = spotLocalParts(new Date(), spot);
+    const todayStr = `${nowLocal.year}-${String(nowLocal.month).padStart(2,'0')}-${String(nowLocal.day).padStart(2,'0')}`;
 
     _dailyData.forEach((d, idx) => {
         const dp = tzParts(d.date + 'T12:00:00');
         const isToday = d.date === todayStr;
-        const dayHours = _hourlyData.filter(h => tzDateStr(h.time) === d.date);
-
-        const spot = _allData.data[_currentSpot].spot;
+        const dayHours = _hourlyData.filter(h => spotLocalDateStr(h.time, spot) === d.date);
 
         let samples = [];
         if (dayHours.length > 0) {
@@ -1408,58 +1482,79 @@ function renderDailyCarousel() {
         let bestHourData = {};
 
         if (mlHours.length > 0) {
-            const sessionHours = [];
-            for (let i = 0; i < dayHours.length; i++) {
-                const h = dayHours[i];
-                if (h.ml_wave_height_max == null) continue;
-                if (isBestMomentSessionStart(dayHours, i, spot)) sessionHours.push(h);
-            }
-            const daylightHours = mlHours.filter(h => isDaylight(h, spot));
-            if (daylightHours.length === 0) console.warn('No daylight hours for', d.date, spot.name, 'falling back to first hour');
-            const hoursToSearch = sessionHours.length > 0 ? sessionHours : (daylightHours.length > 0 ? daylightHours : [mlHours[0]]);
-            // NEVER allow night hours as best session
-            if (hoursToSearch.length > 0 && !isDaylight(hoursToSearch[0], spot)) {
-                console.warn('Best hour is night!', tzHour(hoursToSearch[0].time), 'for', spot.name);
-            }
+            const bestWindow = getBestSurfWindow(dayHours, spot);
 
-            let bestHour = hoursToSearch[0];
-            let bestScore = -1000;
+            if (bestWindow) {
+                bestHourData = bestWindow.peakHour;
+                displayHeight = bestWindow.waveMax;
+                displayPeriod = bestWindow.displayPeriod;
+                if (Math.abs((bestWindow.waveMax || 0) - (bestWindow.waveMin || 0)) < 0.1) displayRange = `${fmt(bestWindow.waveMax)}`;
+                else displayRange = `${fmt(bestWindow.waveMin)}-${fmt(bestWindow.waveMax)}`;
 
-            hoursToSearch.forEach(h => {
-                const goodness = getBestMomentMlScore(h);
-                if (goodness > bestScore) {
-                    bestScore = goodness;
-                    bestHour = h;
+                bestHourTime = bestWindow.peakHour.time;
+                const startTp = spotLocalParts(bestWindow.startHour.time, spot);
+                const endTp = spotLocalParts(bestWindow.endBoundary.time, spot);
+                const timeLabel = `${String(startTp.hour).padStart(2, '0')}h-${String(endTp.hour).padStart(2, '0')}h`;
+
+                const bestConseil = getNormalizedConseil(bestWindow.peakHour);
+                bestColor = `var(--${getRatingColor(bestWindow.peakHour)})`;
+                if (bestConseil === 'Epic' || bestConseil === 'Good' || bestConseil === 'Fair') {
+                    bestTimeStr = `${bestConseil} &bull; ${timeLabel}`;
+                } else {
+                    bestTimeStr = displayHeight < 0.3 ? 'Flat' : `Poor &bull; ${timeLabel}`;
                 }
-            });
-
-            bestHourData = bestHour;
-            const bestWaveMin = bestHour.ml_wave_height_min;
-            const bestWaveMax = bestHour.ml_wave_height_max;
-            displayHeight = bestWaveMax;
-            displayPeriod = bestHour.peak_period || bestHour.swell_period;
-
-            if (Math.abs(bestWaveMax - bestWaveMin) < 0.1) displayRange = `${fmt(bestWaveMax)}`;
-            else displayRange = `${fmt(bestWaveMin)}-${fmt(bestWaveMax)}`;
-
-            bestHourTime = bestHour.time;
-            const bestTp = spotLocalParts(bestHour.time, spot);
-            const bestHr = bestTp.hour;
-
-            const bestConseil = getNormalizedConseil(bestHour);
-            bestColor = `var(--${getRatingColor(bestHour)})`;
-
-            const timeLabel = String(bestHr).padStart(2, '0') + 'h00';
-            if (bestConseil === 'Epic' || bestConseil === 'Good' || bestConseil === 'Fair') {
-                bestTimeStr = `${bestConseil} &bull; ${timeLabel}`;
             } else {
-                bestTimeStr = displayHeight < 0.3 ? 'Flat' : 'Poor';
+                const sessionHours = [];
+                for (let i = 0; i < dayHours.length; i++) {
+                    const h = dayHours[i];
+                    if (h.ml_wave_height_max == null) continue;
+                    if (isBestMomentSessionStart(dayHours, i, spot)) sessionHours.push(h);
+                }
+                const daylightHours = mlHours.filter(h => isDaylight(h, spot));
+                const hoursToSearch = sessionHours.length > 0 ? sessionHours : (daylightHours.length > 0 ? daylightHours : [mlHours[0]]);
+                let bestHour = hoursToSearch[0];
+                let bestScore = -1000;
+
+                hoursToSearch.forEach(h => {
+                    const goodness = getBestMomentMlScore(h);
+                    if (goodness > bestScore) {
+                        bestScore = goodness;
+                        bestHour = h;
+                    }
+                });
+
+                bestHourData = bestHour;
+                const bestWaveMin = bestHour.ml_wave_height_min;
+                const bestWaveMax = bestHour.ml_wave_height_max;
+                displayHeight = bestWaveMax;
+                displayPeriod = bestHour.peak_period || bestHour.swell_period;
+
+                if (Math.abs(bestWaveMax - bestWaveMin) < 0.1) displayRange = `${fmt(bestWaveMax)}`;
+                else displayRange = `${fmt(bestWaveMin)}-${fmt(bestWaveMax)}`;
+
+                bestHourTime = bestHour.time;
+                const bestTp = spotLocalParts(bestHour.time, spot);
+                const bestHr = bestTp.hour;
+
+                const bestConseil = getNormalizedConseil(bestHour);
+                bestColor = `var(--${getRatingColor(bestHour)})`;
+
+                const timeLabel = String(bestHr).padStart(2, '0') + 'h00';
+                if (bestConseil === 'Epic' || bestConseil === 'Good' || bestConseil === 'Fair') {
+                    bestTimeStr = `${bestConseil} &bull; ${timeLabel}`;
+                } else {
+                    bestTimeStr = displayHeight < 0.3 ? 'Flat' : 'Poor';
+                }
             }
         } else {
             displayHeight = d.best_wave_height || d.max_wave_height;
             displayPeriod = d.best_peak_period || d.mean_peak_period;
             bestHourTime = d.best_time_full || null;
-            bestTimeStr = (d.best_time && (d.best_total_score || 0) > 0) ? 'Best at ' + d.best_time : 'No data';
+            if (d.best_window_start && d.best_window_end && (d.best_total_score || 0) > 0) {
+                bestTimeStr = 'Best ' + d.best_window_start.slice(0, 2) + 'h-' + d.best_window_end.slice(0, 2) + 'h';
+            } else {
+                bestTimeStr = (d.best_time && (d.best_total_score || 0) > 0) ? 'Best at ' + d.best_time : 'No data';
+            }
         }
 
         const heightDisplay = typeof displayRange !== 'undefined' && displayRange ? displayRange : fmt(displayHeight);
@@ -1491,9 +1586,9 @@ function renderDailyCarousel() {
 
                 // Find first daylight hour of that day
                 let morningIdx = _hourlyData.findIndex(hh => {
-                    return tzDateStr(hh.time) === d.date && isDaylight(hh, spot);
+                    return spotLocalDateStr(hh.time, spot) === d.date && isDaylight(hh, spot);
                 });
-                if (morningIdx < 0) morningIdx = _hourlyData.findIndex(hh => tzDateStr(hh.time) === d.date);
+                if (morningIdx < 0) morningIdx = _hourlyData.findIndex(hh => spotLocalDateStr(hh.time, spot) === d.date);
 
                 // Scroll hourly track to that day
                 if (morningIdx >= 0) {
