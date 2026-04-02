@@ -510,7 +510,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402i"></script>
+<script src="data/forecast.js?v=20260402j"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1429,28 +1429,7 @@ function collectBestWindowCandidates(dayHours, spot, length) {
 }
 
 function getBestSurfWindow(dayHours, spot) {
-    const byLength = {
-        3: collectBestWindowCandidates(dayHours, spot, 3),
-        5: collectBestWindowCandidates(dayHours, spot, 5),
-        6: collectBestWindowCandidates(dayHours, spot, 6),
-    };
-
-    const baseWindow = pickBestWindowCandidate(byLength[3]);
-    if (!baseWindow) return null;
-
-    let chosen = baseWindow;
-    [
-        { length: 5, tolerance: 0.15 },
-        { length: 6, tolerance: 0.22 },
-    ].forEach(rule => {
-        const options = byLength[rule.length].filter(candidate => candidate.startIdx <= baseWindow.peakIdx && baseWindow.peakIdx < candidate.startIdx + candidate.length);
-        const candidate = pickBestWindowCandidate(options);
-        if (candidate && candidate.avgScore >= baseWindow.avgScore - rule.tolerance) {
-            chosen = candidate;
-        }
-    });
-
-    return chosen;
+    return pickBestWindowCandidate(collectBestWindowCandidates(dayHours, spot, 3));
 }
 
 function renderDailyCarousel() {
