@@ -510,7 +510,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402j"></script>
+<script src="data/forecast.js?v=20260402k"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1379,6 +1379,19 @@ function getBestMomentMlScore(h) {
     return goodness;
 }
 
+function getBestPeriodSurfaceAdjustment(h) {
+    const surface = (h.ml_surface || '').toLowerCase().trim();
+    const conf = Number(h.ml_surface_conf || 0);
+    if (surface === 'clean') return 0.35 * conf;
+    if (surface === 'textured') return -0.05 * conf;
+    if (surface === 'messy') return -0.60 * conf;
+    return 0;
+}
+
+function getBestPeriodHourScore(h) {
+    return getBestMomentMlScore(h) + getBestPeriodSurfaceAdjustment(h);
+}
+
 function pickBestWindowCandidate(candidates) {
     if (!candidates.length) return null;
     return candidates.reduce((best, candidate) => {
@@ -1400,7 +1413,7 @@ function collectBestWindowCandidates(dayHours, spot, length) {
         if (windowHours.length !== length) continue;
         if (windowHours.some(h => !isDaylight(h, spot) || h.ml_wave_height_max == null)) continue;
 
-        const scores = windowHours.map(getBestMomentMlScore);
+        const scores = windowHours.map(getBestPeriodHourScore);
         let peakOffset = 0;
         for (let i = 1; i < scores.length; i++) {
             if (scores[i] > scores[peakOffset]) peakOffset = i;
@@ -1495,7 +1508,7 @@ function renderDailyCarousel() {
                 let bestScore = -1000;
 
                 hoursToSearch.forEach(h => {
-                    const goodness = getBestMomentMlScore(h);
+                    const goodness = getBestPeriodHourScore(h);
                     if (goodness > bestScore) {
                         bestScore = goodness;
                         bestHour = h;
