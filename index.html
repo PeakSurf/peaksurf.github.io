@@ -602,7 +602,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402p"></script>
+<script src="data/forecast.js?v=20260402q"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1827,11 +1827,12 @@ function renderDailyCarousel() {
                     scroller.scrollTo({ left: Math.max(0, morningIdx * SLOT_W - 20), behavior: 'smooth' });
                 }
 
-                // Update hero with best hour of that day
+                // Focus the selected day's best hour in the hourly forecast
                 const targetIdx = bestHourTime ? _hourlyData.findIndex(hh => hh.time === bestHourTime) : morningIdx;
                 if (targetIdx >= 0 && _hourlyData[targetIdx]) {
-                    updateHero(_hourlyData[targetIdx]);
-                    // Highlight the slot
+                    // Keep "Current Conditions" anchored to now. Day selection
+                    // should drive the spotlight and hourly detail, not the
+                    // live hero card.
                     const waveRow = document.getElementById('wave-bars');
                     if (waveRow) {
                         waveRow.querySelectorAll('.wave-slot').forEach(s => s.classList.remove('active'));
@@ -1841,6 +1842,7 @@ function renderDailyCarousel() {
                             _selectedSlotIdx = targetIdx;
                         }
                     }
+                    showDetailPanel(_hourlyData[targetIdx]);
                 }
             } catch(e) { console.error('Daily card click error:', e); }
         });
