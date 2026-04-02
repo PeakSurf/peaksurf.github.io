@@ -114,6 +114,9 @@
         .hero-val { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); line-height: 1; display: flex; align-items: baseline; gap: 0.2rem; }
         .hero-val-unit { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
         .hero-desc { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+        .direction-inline { display: inline-flex; align-items: center; gap: 0.32rem; flex-wrap: wrap; }
+        .direction-inline svg { flex-shrink: 0; }
+        .direction-inline .deg { color: var(--text-light); font-size: 0.92em; font-weight: 700; }
         .rating-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #000; }
 
         .session-spotlight { margin-bottom: 1.1rem; background: radial-gradient(circle at top right, rgba(26, 192, 198, 0.16), transparent 38%), linear-gradient(135deg, #112341 0%, #091527 100%); border: 1px solid rgba(26, 192, 198, 0.18); border-radius: var(--radius); padding: 1rem 1.1rem; box-shadow: 0 10px 28px rgba(0,0,0,0.22); }
@@ -502,6 +505,10 @@
                     <span class="session-stat-value" id="session-wave-stat">--</span>
                 </div>
                 <div class="session-stat">
+                    <span class="session-stat-label">Swell</span>
+                    <span class="session-stat-value" id="session-swell-stat">--</span>
+                </div>
+                <div class="session-stat">
                     <span class="session-stat-label">Wind</span>
                     <span class="session-stat-value" id="session-wind-stat">--</span>
                 </div>
@@ -602,7 +609,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402q"></script>
+<script src="data/forecast.js?v=20260402r"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -715,6 +722,27 @@ function degToCompass(deg) {
     return dirs[Math.round(deg / 22.5) % 16];
 }
 
+function getDirectionLabel(direction, directionText) {
+    return directionText || degToCompass(direction) || '';
+}
+
+function getDirectionMarkup(direction, directionText, options = {}) {
+    const label = getDirectionLabel(direction, directionText);
+    const showDegrees = options.showDegrees !== false;
+    const prefix = options.prefix || '';
+    const size = options.size || 12;
+    const hasDirection = direction != null && !isNaN(direction);
+    const parts = [];
+    if (prefix) parts.push(prefix);
+    if (label) parts.push(label);
+    if (showDegrees && hasDirection) parts.push(`<span class="deg">${fmt(direction, 0)}&deg;</span>`);
+    if (!parts.length) return '--';
+    const arrow = hasDirection
+        ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`
+        : '';
+    return `<span class="direction-inline">${arrow}<span>${parts.join(' ')}</span></span>`;
+}
+
 /* --- JOUR / NUIT (from Open-Meteo sunrise/sunset in forecast data) --- */
 function isDaylight(h, spot) {
     if (h.is_day !== undefined) return h.is_day === 1;
@@ -823,15 +851,12 @@ function getSessionHours(dailyEntry) {
 function getSessionWaveLabel(sessionHours, fallbackHour) {
     const mins = [];
     const maxs = [];
-    const periods = [];
 
     sessionHours.forEach(h => {
         const minH = h.ml_wave_height_min != null ? h.ml_wave_height_min : (h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height);
         const maxH = h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height;
         if (minH != null) mins.push(minH);
         if (maxH != null) maxs.push(maxH);
-        const period = h.peak_period || h.swell_period;
-        if (period != null) periods.push(period);
     });
 
     if (!mins.length && fallbackHour) {
@@ -839,16 +864,12 @@ function getSessionWaveLabel(sessionHours, fallbackHour) {
         const maxH = fallbackHour.ml_wave_height_max != null ? fallbackHour.ml_wave_height_max : fallbackHour.wave_height;
         if (minH != null) mins.push(minH);
         if (maxH != null) maxs.push(maxH);
-        const period = fallbackHour.peak_period || fallbackHour.swell_period;
-        if (period != null) periods.push(period);
     }
 
     if (!maxs.length) return '--';
     const minWave = Math.min(...mins);
     const maxWave = Math.max(...maxs);
-    const waveLabel = Math.abs(maxWave - minWave) < 0.1 ? `${fmt(maxWave)}m` : `${fmt(minWave)}-${fmt(maxWave)}m`;
-    const periodLabel = periods.length ? ` @ ${fmt(Math.max(...periods), 0)}s` : '';
-    return waveLabel + periodLabel;
+    return Math.abs(maxWave - minWave) < 0.1 ? `${fmt(maxWave)}m` : `${fmt(minWave)}-${fmt(maxWave)}m`;
 }
 
 function renderSessionSpotlight(dateStr) {
@@ -903,6 +924,14 @@ function renderSessionSpotlight(dateStr) {
     const confMeta = getConfidenceMeta(bestHour.ml_conseil_conf);
     const tideText = getTideStatusLabel(bestHour) || '--';
     const windEffect = getWindEffect(bestHour, spot);
+    const swellPeriod = bestHour.peak_period || bestHour.swell_period;
+    const swellDirectionMarkup = getDirectionMarkup(bestHour.swell_direction, bestHour.swell_direction_text, { showDegrees: false, size: 12 });
+    let swellStatMarkup = swellDirectionMarkup;
+    if (swellPeriod != null && swellDirectionMarkup !== '--') {
+        swellStatMarkup = `${fmt(swellPeriod, 0)}s · ${swellDirectionMarkup}`;
+    } else if (swellPeriod != null) {
+        swellStatMarkup = `${fmt(swellPeriod, 0)}s`;
+    }
     const rangeText = dailyEntry.best_window_start && dailyEntry.best_window_end
         ? `${dailyEntry.best_window_start.slice(0, 2)}h-${dailyEntry.best_window_end.slice(0, 2)}h`
         : (dailyEntry.best_time ? `Best at ${dailyEntry.best_time.slice(0, 2)}h` : 'No session');
@@ -912,6 +941,7 @@ function renderSessionSpotlight(dateStr) {
     document.getElementById('session-peak-note').textContent = `Peak around ${String(peakLocal.hour).padStart(2, '0')}h local`;
     document.getElementById('session-subnote').textContent = `${(getNormalizedConseil(bestHour) || bestHour.rating || 'Good')} session with ${windEffect.label.toLowerCase()}`;
     document.getElementById('session-wave-stat').textContent = getSessionWaveLabel(sessionHours, bestHour);
+    document.getElementById('session-swell-stat').innerHTML = swellStatMarkup;
     document.getElementById('session-wind-stat').textContent = windText;
     document.getElementById('session-surface-stat').textContent = surfaceText || '--';
     document.getElementById('session-tide-stat').textContent = tideText;
@@ -1566,6 +1596,8 @@ function _renderHeroWithHour(h, spotData) {
     const skillText = h.ml_skill === 'Confirmés+' ? 'Advanced Only' : 'Friendly for All Levels';
     const windEffect = getWindEffect(h, spotData.spot);
     const tideStatus = getTideStatusLabel(h);
+    const swellChipMarkup = getDirectionMarkup(h.swell_direction, h.swell_direction_text, { showDegrees: false, size: 10, prefix: 'Swell' });
+    const swellDetailMarkup = getDirectionMarkup(h.swell_direction, h.swell_direction_text, { showDegrees: true, size: 12 });
     const localTp = spotLocalParts(h.time, spotData.spot);
     const localTimeLabel = `${localTp.weekday} ${localTp.day}/${localTp.month} · ${String(localTp.hour).padStart(2, '0')}:${String(localTp.minute).padStart(2, '0')} local`;
 
@@ -1574,6 +1606,7 @@ function _renderHeroWithHour(h, spotData) {
         <div class="ai-chip-row">
             <span class="ai-chip">${surfaceText}</span>
             <span class="ai-chip">${skillText}</span>
+            ${swellChipMarkup !== '--' ? `<span class="ai-chip">${swellChipMarkup}</span>` : ''}
             <span class="ai-chip">${windEffect.label}</span>
             ${tideStatus ? `<span class="ai-chip">${tideStatus}</span>` : ''}
         </div>
@@ -1582,7 +1615,7 @@ function _renderHeroWithHour(h, spotData) {
 
     document.getElementById('hero-swell').textContent = fmt(h.wave_height_model);
     document.getElementById('hero-period').textContent = fmt(h.peak_period || h.swell_period, 0);
-    document.getElementById('hero-swell-detail').textContent = `${h.swell_direction_text || ''} ${fmt(h.swell_direction, 0)}\u00B0`;
+    document.getElementById('hero-swell-detail').innerHTML = swellDetailMarkup;
     document.getElementById('hero-wind').textContent = fmt(h.wind_speed_kmh, 0);
     const arrow = h.wind_direction != null ? `<span style="display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>` : '';
     document.getElementById('hero-wind-detail').innerHTML = `${arrow} ${h.wind_direction_text || ''} &middot; ${windEffect.label}${h.wind_gusts_kmh != null ? ' &middot; Gusts ' + fmt(h.wind_gusts_kmh, 0) : ''}`;
