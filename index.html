@@ -102,15 +102,36 @@
         .ai-header { display: flex; align-items: center; gap: 0.75rem; }
         .ai-badge { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); background: rgba(26, 192, 198, 0.1); padding: 0.2rem 0.6rem; border-radius: 20px; }
         .ai-badge svg { width: 14px; height: 14px; }
-        .ai-main-content { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
-        .ai-size-block { display: flex; flex-direction: column; }
+        .ai-main-content { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+        .ai-size-block { display: flex; flex-direction: column; min-width: 170px; }
         .ai-details-block { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; flex: 1; }
+        .ai-context-line { font-size: 0.68rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; }
+        .ai-chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.2rem; }
+        .ai-chip { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.05); font-size: 0.68rem; font-weight: 700; color: var(--text-main); }
+        .ai-helper-line { font-size: 0.78rem; color: var(--text-muted); }
 
         .hero-card-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.05em; }
         .hero-val { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); line-height: 1; display: flex; align-items: baseline; gap: 0.2rem; }
         .hero-val-unit { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
         .hero-desc { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
         .rating-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #000; }
+
+        .session-spotlight { margin-bottom: 1.1rem; background: radial-gradient(circle at top right, rgba(26, 192, 198, 0.16), transparent 38%), linear-gradient(135deg, #112341 0%, #091527 100%); border: 1px solid rgba(26, 192, 198, 0.18); border-radius: var(--radius); padding: 1rem 1.1rem; box-shadow: 0 10px 28px rgba(0,0,0,0.22); }
+        .session-topline { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .session-kicker { font-size: 0.68rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.09em; }
+        .session-day-pill { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); font-size: 0.7rem; font-weight: 700; color: var(--text-dark); }
+        .session-main { display: grid; grid-template-columns: minmax(170px, 250px) 1fr; gap: 1rem 1.2rem; align-items: start; }
+        .session-time-range { font-size: 1.8rem; font-weight: 900; line-height: 1; color: var(--text-dark); letter-spacing: -0.03em; }
+        .session-peak-note { margin-top: 0.28rem; font-size: 0.8rem; color: var(--text-main); font-weight: 600; }
+        .session-subnote { margin-top: 0.2rem; font-size: 0.72rem; color: var(--text-light); }
+        .session-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.55rem; }
+        .session-stat { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 0.55rem 0.65rem; min-height: 64px; }
+        .session-stat-label { display: block; font-size: 0.62rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.28rem; }
+        .session-stat-value { display: block; font-size: 0.88rem; font-weight: 800; color: var(--text-dark); line-height: 1.25; }
+
+        .hourly-guide { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: -0.15rem 0 0.85rem; }
+        .hourly-guide-text { font-size: 0.74rem; color: var(--text-muted); font-weight: 600; }
+        .hourly-guide-chip { display: inline-flex; align-items: center; padding: 0.18rem 0.5rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 0.66rem; font-weight: 700; color: var(--text-main); }
 
         /* ========== DAILY CAROUSEL ========== */
         .daily-carousel { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.75rem; margin-bottom: 0.5rem; scrollbar-width: none; }
@@ -350,11 +371,23 @@
         @media (max-width: 768px) {
             .hero-grid { grid-template-columns: 1fr 1fr; }
             .ai-premium-card { grid-column: 1 / -1; }
+            .session-main { grid-template-columns: 1fr; }
+            .session-time-range { font-size: 1.55rem; }
         }
         @media (max-width: 480px) {
             .hero-grid { grid-template-columns: 1fr; }
             .detail-grid { grid-template-columns: 1fr; }
             .spot-name { font-size: 1.25rem; }
+            .ai-premium-card { padding: 1rem; }
+            .ai-main-content { gap: 0.9rem; }
+            .ai-context-line { font-size: 0.62rem; }
+            .ai-chip { font-size: 0.62rem; }
+            .session-spotlight { padding: 0.9rem; }
+            .session-time-range { font-size: 1.42rem; }
+            .session-peak-note { font-size: 0.75rem; }
+            .session-stat-value { font-size: 0.8rem; }
+            .hourly-guide { gap: 0.35rem; }
+            .hourly-guide-text { width: 100%; font-size: 0.69rem; }
         }
     </style>
 </head>
@@ -449,6 +482,45 @@
         Live Cam
     </a>
 
+    <div class="session-spotlight" id="session-spotlight" style="display:none;">
+        <div class="session-topline">
+            <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
+                <span class="session-kicker">Best 3h Session</span>
+                <span class="session-day-pill" id="session-day-pill">Today</span>
+            </div>
+            <span class="rating-badge" id="session-rating" style="background:var(--flat);width:max-content;">--</span>
+        </div>
+        <div class="session-main">
+            <div>
+                <div class="session-time-range" id="session-time-range">--</div>
+                <div class="session-peak-note" id="session-peak-note">Peak around --</div>
+                <div class="session-subnote" id="session-subnote">Best window for the selected day</div>
+            </div>
+            <div class="session-stats">
+                <div class="session-stat">
+                    <span class="session-stat-label">Surf</span>
+                    <span class="session-stat-value" id="session-wave-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Wind</span>
+                    <span class="session-stat-value" id="session-wind-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Surface</span>
+                    <span class="session-stat-value" id="session-surface-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Tide</span>
+                    <span class="session-stat-value" id="session-tide-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Confidence</span>
+                    <span class="session-stat-value" id="session-confidence-stat">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Daily Carousel -->
     <div class="section-title">7-Day Overview</div>
     <div class="daily-carousel" id="daily-carousel"></div>
@@ -457,6 +529,14 @@
     <div class="section-title" style="margin-top:1.5rem;">
         Hourly Forecast
         <span style="font-size:0.75rem;font-weight:500;color:var(--text-muted);" id="current-day-label"></span>
+    </div>
+    <div class="hourly-guide">
+        <span class="hourly-guide-text">Tap a wave bar for the full breakdown.</span>
+        <span class="hourly-guide-chip">Rating</span>
+        <span class="hourly-guide-chip">Waves</span>
+        <span class="hourly-guide-chip">Swell</span>
+        <span class="hourly-guide-chip">Wind</span>
+        <span class="hourly-guide-chip">Tide</span>
     </div>
 
     <div class="unified-wrapper">
@@ -522,7 +602,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402o"></script>
+<script src="data/forecast.js?v=20260402p"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -535,6 +615,7 @@ let _hourlyData = [];
 let _tideData = [];
 let _dailyData = [];
 let _selectedSlotIdx = -1;
+let _activeSessionDate = null;
 
 function fmt(val, decimals = 1) { return val == null ? '--' : Number(val).toFixed(decimals); }
 
@@ -687,6 +768,158 @@ function getRatingColor(h) {
         if (r.includes('epic') || r.includes('good') || r.includes('fair') || r.includes('poor')) return r;
     }
     return 'flat';
+}
+
+function getConfidenceMeta(conf) {
+    if (conf == null || isNaN(conf)) return { label: '--', color: 'var(--text-light)' };
+    if (conf > 0.5) return { label: 'High', color: '#10b981' };
+    if (conf > 0.3) return { label: 'Medium', color: '#f59e0b' };
+    return { label: 'Low', color: '#ef4444' };
+}
+
+function getTideStatusLabel(h) {
+    return h.tide_issue
+        ? h.tide_issue.charAt(0).toUpperCase() + h.tide_issue.slice(1)
+        : h.tide_quality === 'good'
+            ? 'Tide optimal'
+            : h.tide_quality === 'poor'
+                ? 'Bad tide'
+                : h.tide_quality === 'ok'
+                    ? 'Tide OK'
+                    : h.tide_trend === 'rising'
+                        ? 'Rising'
+                        : h.tide_trend === 'falling'
+                            ? 'Falling'
+                            : h.tide_trend === 'high'
+                                ? 'High tide'
+                                : h.tide_trend === 'low'
+                                    ? 'Low tide'
+                                    : '';
+}
+
+function getLocalDayLabel(dateStr, spot) {
+    const nowLocal = spotLocalParts(new Date(), spot);
+    const todayStr = `${nowLocal.year}-${String(nowLocal.month).padStart(2,'0')}-${String(nowLocal.day).padStart(2,'0')}`;
+    if (dateStr === todayStr) return 'Today';
+    const todayDate = Date.UTC(nowLocal.year, nowLocal.month - 1, nowLocal.day);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const targetDate = Date.UTC(year, month - 1, day);
+    const diffDays = Math.round((targetDate - todayDate) / 86400000);
+    if (diffDays === 1) return 'Tomorrow';
+    const tp = tzParts(dateStr + 'T12:00:00');
+    return `${tp.weekday} ${tp.day}/${tp.month}`;
+}
+
+function getSessionHours(dailyEntry) {
+    if (!dailyEntry || !dailyEntry.best_window_start_full || !dailyEntry.best_window_end_full) return [];
+    const startMs = parseUtcMs(dailyEntry.best_window_start_full);
+    const endMs = parseUtcMs(dailyEntry.best_window_end_full);
+    return _hourlyData.filter(h => {
+        const ms = parseUtcMs(h.time);
+        return ms >= startMs && ms < endMs;
+    });
+}
+
+function getSessionWaveLabel(sessionHours, fallbackHour) {
+    const mins = [];
+    const maxs = [];
+    const periods = [];
+
+    sessionHours.forEach(h => {
+        const minH = h.ml_wave_height_min != null ? h.ml_wave_height_min : (h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height);
+        const maxH = h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height;
+        if (minH != null) mins.push(minH);
+        if (maxH != null) maxs.push(maxH);
+        const period = h.peak_period || h.swell_period;
+        if (period != null) periods.push(period);
+    });
+
+    if (!mins.length && fallbackHour) {
+        const minH = fallbackHour.ml_wave_height_min != null ? fallbackHour.ml_wave_height_min : (fallbackHour.ml_wave_height_max != null ? fallbackHour.ml_wave_height_max : fallbackHour.wave_height);
+        const maxH = fallbackHour.ml_wave_height_max != null ? fallbackHour.ml_wave_height_max : fallbackHour.wave_height;
+        if (minH != null) mins.push(minH);
+        if (maxH != null) maxs.push(maxH);
+        const period = fallbackHour.peak_period || fallbackHour.swell_period;
+        if (period != null) periods.push(period);
+    }
+
+    if (!maxs.length) return '--';
+    const minWave = Math.min(...mins);
+    const maxWave = Math.max(...maxs);
+    const waveLabel = Math.abs(maxWave - minWave) < 0.1 ? `${fmt(maxWave)}m` : `${fmt(minWave)}-${fmt(maxWave)}m`;
+    const periodLabel = periods.length ? ` @ ${fmt(Math.max(...periods), 0)}s` : '';
+    return waveLabel + periodLabel;
+}
+
+function renderSessionSpotlight(dateStr) {
+    const spotlight = document.getElementById('session-spotlight');
+    if (!spotlight || !_dailyData.length) return;
+
+    const spot = _allData.data[_currentSpot].spot;
+    let dailyEntry = _dailyData.find(d => d.date === dateStr) || _dailyData[0];
+    if (!dailyEntry) {
+        spotlight.style.display = 'none';
+        return;
+    }
+
+    let sessionHours = getSessionHours(dailyEntry);
+    let bestHour = dailyEntry.best_time_full ? _hourlyData.find(h => h.time === dailyEntry.best_time_full) : null;
+    if (!bestHour && sessionHours.length) {
+        bestHour = sessionHours.reduce((best, hour) => getBestPeriodHourScore(hour) > getBestPeriodHourScore(best) ? hour : best, sessionHours[0]);
+    }
+    if (!bestHour) {
+        const fallbackEntry = _dailyData.find(candidate => {
+            const candidateHours = getSessionHours(candidate);
+            return (candidate.best_time_full && _hourlyData.some(h => h.time === candidate.best_time_full)) || candidateHours.length;
+        });
+        if (fallbackEntry) {
+            dailyEntry = fallbackEntry;
+            sessionHours = getSessionHours(dailyEntry);
+            bestHour = dailyEntry.best_time_full ? _hourlyData.find(h => h.time === dailyEntry.best_time_full) : null;
+            if (!bestHour && sessionHours.length) {
+                bestHour = sessionHours.reduce((best, hour) => getBestPeriodHourScore(hour) > getBestPeriodHourScore(best) ? hour : best, sessionHours[0]);
+            }
+        }
+    }
+
+    if (!bestHour) {
+        spotlight.style.display = 'none';
+        return;
+    }
+
+    _activeSessionDate = dailyEntry.date;
+    const ratingColor = getRatingColor(bestHour);
+    const sessionRating = document.getElementById('session-rating');
+    sessionRating.textContent = (getNormalizedConseil(bestHour) || bestHour.rating || 'FLAT').toUpperCase();
+    sessionRating.style.background = `var(--${ratingColor})`;
+    sessionRating.style.color = (ratingColor === 'epic' || ratingColor === 'good') ? '#000' : '#fff';
+
+    const peakLocal = spotLocalParts(bestHour.time, spot);
+    const surfaceText = bestHour.ml_surface || getSurfaceTexture(bestHour, spot);
+    const windDir = bestHour.wind_direction_text || degToCompass(bestHour.wind_direction);
+    const windText = bestHour.wind_speed_kmh != null
+        ? `${fmt(bestHour.wind_speed_kmh, 0)} km/h${bestHour.wind_gusts_kmh != null ? ` · G${fmt(bestHour.wind_gusts_kmh, 0)}` : ''}${windDir ? ` · ${windDir}` : ''}`
+        : '--';
+    const confMeta = getConfidenceMeta(bestHour.ml_conseil_conf);
+    const tideText = getTideStatusLabel(bestHour) || '--';
+    const windEffect = getWindEffect(bestHour, spot);
+    const rangeText = dailyEntry.best_window_start && dailyEntry.best_window_end
+        ? `${dailyEntry.best_window_start.slice(0, 2)}h-${dailyEntry.best_window_end.slice(0, 2)}h`
+        : (dailyEntry.best_time ? `Best at ${dailyEntry.best_time.slice(0, 2)}h` : 'No session');
+
+    document.getElementById('session-day-pill').textContent = getLocalDayLabel(dailyEntry.date, spot);
+    document.getElementById('session-time-range').textContent = rangeText;
+    document.getElementById('session-peak-note').textContent = `Peak around ${String(peakLocal.hour).padStart(2, '0')}h local`;
+    document.getElementById('session-subnote').textContent = `${(getNormalizedConseil(bestHour) || bestHour.rating || 'Good')} session with ${windEffect.label.toLowerCase()}`;
+    document.getElementById('session-wave-stat').textContent = getSessionWaveLabel(sessionHours, bestHour);
+    document.getElementById('session-wind-stat').textContent = windText;
+    document.getElementById('session-surface-stat').textContent = surfaceText || '--';
+    document.getElementById('session-tide-stat').textContent = tideText;
+    const confEl = document.getElementById('session-confidence-stat');
+    confEl.textContent = confMeta.label === '--' ? '--' : `${confMeta.label} confidence`;
+    confEl.style.color = confMeta.color;
+
+    spotlight.style.display = '';
 }
 /* ------------------------------------------------ */
 
@@ -1219,6 +1452,7 @@ function renderSpot(spotId) {
     const spotData = _allData.data[spotId];
     if (!spotData) return;
     _currentSpot = spotId;
+    _activeSessionDate = null;
     highlightMapSpot(spotId);
     Object.keys(_spotTimeCache).forEach(key => { delete _spotTimeCache[key]; });
 
@@ -1282,8 +1516,7 @@ function _renderHeroWithHour(h, spotData) {
     const conseil = getNormalizedConseil(h);
     const ratingColor = getRatingColor(h);
     const conf = h.ml_conseil_conf;
-    const confLabel = conf > 0.5 ? 'High' : conf > 0.3 ? 'Medium' : 'Low';
-    const confColor = conf > 0.5 ? '#10b981' : conf > 0.3 ? '#f59e0b' : '#ef4444';
+    const confMeta = getConfidenceMeta(conf);
     rb.textContent = (conseil || h.rating || 'FLAT').toUpperCase();
     rb.style.background = `var(--${ratingColor})`;
 
@@ -1296,8 +1529,8 @@ function _renderHeroWithHour(h, spotData) {
     }
     if (conf != null) {
         confBadge.style.display = 'inline-flex';
-        confBadge.textContent = confLabel + ' Confidence';
-        confBadge.style.cssText = `display:inline-flex;align-items:center;font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:4px;margin-left:0.5rem;border:1.5px solid ${confColor};color:${confColor};background:transparent;`;
+        confBadge.textContent = confMeta.label + ' Confidence';
+        confBadge.style.cssText = `display:inline-flex;align-items:center;font-size:0.65rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:4px;margin-left:0.5rem;border:1.5px solid ${confMeta.color};color:${confMeta.color};background:transparent;`;
     } else {
         confBadge.style.display = 'none';
     }
@@ -1331,41 +1564,32 @@ function _renderHeroWithHour(h, spotData) {
 
     const surfaceText = h.ml_surface || getSurfaceTexture(h, spotData.spot);
     const skillText = h.ml_skill === 'Confirmés+' ? 'Advanced Only' : 'Friendly for All Levels';
+    const windEffect = getWindEffect(h, spotData.spot);
+    const tideStatus = getTideStatusLabel(h);
+    const localTp = spotLocalParts(h.time, spotData.spot);
+    const localTimeLabel = `${localTp.weekday} ${localTp.day}/${localTp.month} · ${String(localTp.hour).padStart(2, '0')}:${String(localTp.minute).padStart(2, '0')} local`;
 
     document.getElementById('hero-ai-detail').innerHTML = `
-        <div style="font-size:0.85rem;">
-            <span style="font-weight:600; color:var(--text-dark);">${surfaceText}</span> &bull; ${skillText}
+        <div class="ai-context-line">${localTimeLabel}</div>
+        <div class="ai-chip-row">
+            <span class="ai-chip">${surfaceText}</span>
+            <span class="ai-chip">${skillText}</span>
+            <span class="ai-chip">${windEffect.label}</span>
+            ${tideStatus ? `<span class="ai-chip">${tideStatus}</span>` : ''}
         </div>
+        <div class="ai-helper-line">Tap any hourly bar below to inspect another moment in the day.</div>
     `;
 
     document.getElementById('hero-swell').textContent = fmt(h.wave_height_model);
     document.getElementById('hero-period').textContent = fmt(h.peak_period || h.swell_period, 0);
     document.getElementById('hero-swell-detail').textContent = `${h.swell_direction_text || ''} ${fmt(h.swell_direction, 0)}\u00B0`;
     document.getElementById('hero-wind').textContent = fmt(h.wind_speed_kmh, 0);
-    const windEffect = getWindEffect(h, spotData.spot);
     const arrow = h.wind_direction != null ? `<span style="display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>` : '';
     document.getElementById('hero-wind-detail').innerHTML = `${arrow} ${h.wind_direction_text || ''} &middot; ${windEffect.label}${h.wind_gusts_kmh != null ? ' &middot; Gusts ' + fmt(h.wind_gusts_kmh, 0) : ''}`;
     document.getElementById('hero-sst').textContent = fmt(h.sst, 1);
     const sst = h.sst || 0;
     document.getElementById('hero-sst-suit').textContent = sst < 14 ? '4/3mm Wetsuit' : sst < 18 ? '3/2mm Wetsuit' : sst < 22 ? 'Shorty / Spring suit' : 'Boardshorts';
     document.getElementById('hero-tide').textContent = h.tide_height != null ? fmt(h.tide_height) : '--';
-    const tideStatus = h.tide_issue
-        ? h.tide_issue.charAt(0).toUpperCase() + h.tide_issue.slice(1)
-        : h.tide_quality === 'good'
-            ? 'Tide optimal'
-            : h.tide_quality === 'poor'
-                ? 'Bad tide'
-                : h.tide_quality === 'ok'
-                    ? 'Tide OK'
-                    : h.tide_trend === 'rising'
-                        ? 'Rising'
-                        : h.tide_trend === 'falling'
-                            ? 'Falling'
-                            : h.tide_trend === 'high'
-                                ? 'High tide'
-                                : h.tide_trend === 'low'
-                                    ? 'Low tide'
-                                    : '';
     document.getElementById('hero-tide-trend').textContent = tideStatus;
 }
 
@@ -1463,6 +1687,7 @@ function renderDailyCarousel() {
     const spot = _allData.data[_currentSpot].spot;
     const nowLocal = spotLocalParts(new Date(), spot);
     const todayStr = `${nowLocal.year}-${String(nowLocal.month).padStart(2,'0')}-${String(nowLocal.day).padStart(2,'0')}`;
+    const activeDate = _activeSessionDate || (_dailyData.some(d => d.date === todayStr) ? todayStr : (_dailyData[0] && _dailyData[0].date));
 
     _dailyData.forEach((d, idx) => {
         const dp = tzParts(d.date + 'T12:00:00');
@@ -1564,7 +1789,7 @@ function renderDailyCarousel() {
         const heightDisplay = typeof displayRange !== 'undefined' && displayRange ? displayRange : fmt(displayHeight);
 
         const card = document.createElement('button');
-        card.className = 'daily-card' + (isToday ? ' active' : '');
+        card.className = 'daily-card' + (d.date === activeDate ? ' active' : '');
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 0.5rem;">
                 <div class="daily-day">${isToday ? 'Today' : dp.weekday} <span style="font-size:0.65rem; color:var(--text-muted); margin-left:4px">${dp.day}/${dp.month}</span></div>
@@ -1584,9 +1809,11 @@ function renderDailyCarousel() {
 
         card.addEventListener('click', () => {
             try {
+                _activeSessionDate = d.date;
                 container.querySelectorAll('.daily-card').forEach(c => c.classList.remove('active'));
                 card.classList.add('active');
                 document.getElementById('current-day-label').textContent = isToday ? 'Today' : dp.weekday + ' ' + dp.day + '/' + dp.month;
+                renderSessionSpotlight(d.date);
 
                 // Find first daylight hour of that day
                 let morningIdx = _hourlyData.findIndex(hh => {
@@ -1622,6 +1849,15 @@ function renderDailyCarousel() {
     // Fallback: if no card is active (today not in data), activate the first one
     if (!container.querySelector('.daily-card.active') && container.firstChild) {
         container.firstChild.classList.add('active');
+    }
+    if (activeDate) {
+        _activeSessionDate = activeDate;
+        renderSessionSpotlight(activeDate);
+        const activeEntry = _dailyData.find(d => d.date === activeDate) || _dailyData[0];
+        if (activeEntry) {
+            const activeTp = tzParts(activeEntry.date + 'T12:00:00');
+            document.getElementById('current-day-label').textContent = activeEntry.date === todayStr ? 'Today' : activeTp.weekday + ' ' + activeTp.day + '/' + activeTp.month;
+        }
     }
 }
 
