@@ -528,6 +528,8 @@ function fmt(val, decimals = 1) { return val == null ? '--' : Number(val).toFixe
 
 /* --- NOUVEAU PARSEUR D'HEURE (ANTI-DÉCALAGE) --- */
 const _tzCache = {};
+const _spotTimeCache = {};
+const _spotFormatterCache = {};
 function tzParts(dateObjOrString) {
     let timeStr = typeof dateObjOrString === 'string' ? dateObjOrString : dateObjOrString.toISOString();
     if (timeStr.includes('T')) {
@@ -563,6 +565,57 @@ function tzDateStr(date) {
     return `${p.year}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`; 
 }
 
+function parseUtcMs(dateObjOrString) {
+    if (dateObjOrString instanceof Date) return dateObjOrString.getTime();
+    return Date.parse(dateObjOrString);
+}
+
+function getSpotFormatter(spot) {
+    const tz = (spot && spot.timezone) || 'UTC';
+    if (!_spotFormatterCache[tz]) {
+        _spotFormatterCache[tz] = new Intl.DateTimeFormat('en-GB', {
+            timeZone: tz,
+            weekday: 'short',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+    }
+    return _spotFormatterCache[tz];
+}
+
+function spotLocalParts(dateObjOrString, spot) {
+    const tz = (spot && spot.timezone) || 'UTC';
+    const cacheKey = `${tz}|${dateObjOrString instanceof Date ? dateObjOrString.toISOString() : String(dateObjOrString)}`;
+    if (_spotTimeCache[cacheKey]) return _spotTimeCache[cacheKey];
+
+    const date = dateObjOrString instanceof Date ? dateObjOrString : new Date(dateObjOrString);
+    const formatted = getSpotFormatter(spot).formatToParts(date);
+    const partMap = {};
+    formatted.forEach(part => {
+        if (part.type !== 'literal') partMap[part.type] = part.value;
+    });
+
+    const result = {
+        year: Number(partMap.year),
+        month: Number(partMap.month),
+        day: Number(partMap.day),
+        hour: Number(partMap.hour),
+        minute: Number(partMap.minute),
+        weekday: partMap.weekday,
+    };
+    _spotTimeCache[cacheKey] = result;
+    return result;
+}
+
+function spotLocalDateStr(dateObjOrString, spot) {
+    const p = spotLocalParts(dateObjOrString, spot);
+    return `${p.year}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`;
+}
+
 function degToCompass(deg) {
     if (deg == null || isNaN(deg)) return '';
     const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
@@ -572,9 +625,9 @@ function degToCompass(deg) {
 /* --- JOUR / NUIT (from Open-Meteo sunrise/sunset in forecast data) --- */
 function isDaylight(h, spot) {
     if (h.is_day !== undefined) return h.is_day === 1;
-    // Fallback: assume day for hours 6-20 UTC
-    const utcHour = tzParts(h.time).hour;
-    return utcHour >= 6 && utcHour <= 20;
+    // Fallback: if is_day is missing, use the spot's local hour.
+    const localHour = spotLocalParts(h.time, spot).hour;
+    return localHour >= 6 && localHour <= 20;
 }
 
 function getUtcOffset(spot, tp) {
@@ -688,8 +741,7 @@ function _getHourAtIndex(spotData, idx) {
         const nowMs = Date.now();
         let best = hourly[0], bestD = Infinity;
         for (const h of hourly) {
-            let ts = h.time; if (ts.includes('T')) ts = ts.split('Z')[0].split('+')[0];
-            const d = Math.abs(new Date(ts).getTime() - nowMs);
+            const d = Math.abs(parseUtcMs(h.time) - nowMs);
             if (d < bestD) { bestD = d; best = h; }
         }
         return best;
@@ -838,8 +890,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
         const nowMs = Date.now();
         let bestD = Infinity;
         for (let i = 0; i < hourly.length; i++) {
-            let ts = hourly[i].time; if (ts.includes('T')) ts = ts.split('Z')[0].split('+')[0];
-            const d = Math.abs(new Date(ts).getTime() - nowMs);
+            const d = Math.abs(parseUtcMs(hourly[i].time) - nowMs);
             if (d < bestD) { bestD = d; startIdx = i; }
         }
     }
@@ -1151,6 +1202,7 @@ function renderSpot(spotId) {
     if (!spotData) return;
     _currentSpot = spotId;
     highlightMapSpot(spotId);
+    Object.keys(_spotTimeCache).forEach(key => { delete _spotTimeCache[key]; });
 
     const webcamEl = document.getElementById('webcam-link');
     const webcamUrl = spotData.spot.webcam;
@@ -1164,9 +1216,7 @@ function renderSpot(spotId) {
 
     // Workaround to not break previous date objects during filtering
     _hourlyData = (spotData.hourly || []).filter(h => {
-        let timeStr = h.time;
-        if (timeStr.includes('T')) timeStr = timeStr.split('Z')[0].split('+')[0];
-        return new Date(timeStr).getTime() >= cutoff;
+        return parseUtcMs(h.time) >= cutoff;
     });
 
     _tideData = spotData.tides || [];
@@ -1191,9 +1241,7 @@ function findClosest(data) {
     const now = Date.now();
     let closest = data.hourly[0], minDiff = Infinity;
     for (const h of data.hourly) {
-        let timeStr = h.time;
-        if (timeStr.includes('T')) timeStr = timeStr.split('Z')[0].split('+')[0];
-        const diff = Math.abs(new Date(timeStr).getTime() - now);
+        const diff = Math.abs(parseUtcMs(h.time) - now);
         if (diff < minDiff) { minDiff = diff; closest = h; }
     }
     return closest;
@@ -1377,16 +1425,9 @@ function renderDailyCarousel() {
             if (Math.abs(bestWaveMax - bestWaveMin) < 0.1) displayRange = `${fmt(bestWaveMax)}`;
             else displayRange = `${fmt(bestWaveMin)}-${fmt(bestWaveMax)}`;
 
-            const bestHrUTC = tzHour(bestHour.time);
             bestHourTime = bestHour.time;
-            // Convert to spot local time
-            const _btp = tzParts(bestHour.time);
-            const _bd = new Date(Date.UTC(_btp.year, _btp.month - 1, _btp.day));
-            const _bm = _bd.getUTCMonth(), _bdd = _bd.getUTCDate(), _bdw = _bd.getUTCDay();
-            const _bdst = (_bm > 2 && _bm < 9) || (_bm === 2 && _bdd - _bdw >= 25) || (_bm === 9 && _bdd - _bdw < 25);
-            const _btz = spot.timezone || '';
-            const _boff = _btz === 'Africa/Casablanca' ? 1 : (_btz === 'Europe/Lisbon' || _btz === 'Europe/London' || _btz === 'Europe/Dublin') ? (_bdst ? 1 : 0) : (_bdst ? 2 : 1);
-            const bestHr = (bestHrUTC + _boff) % 24;
+            const bestTp = spotLocalParts(bestHour.time, spot);
+            const bestHr = bestTp.hour;
 
             const bestConseil = getNormalizedConseil(bestHour);
             bestColor = `var(--${getRatingColor(bestHour)})`;
@@ -1485,30 +1526,21 @@ function renderUnifiedTrack() {
     const spot = _allData.data[_currentSpot].spot;
     const maxWave = Math.max(..._hourlyData.map(h => h.ml_wave_height_max || h.wave_height || 0), 0.5);
     const BAR_MAX = 100;
-    const _now = new Date();
-    const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+    const nowLocal = spotLocalParts(new Date(), spot);
+    const todayStr = `${nowLocal.year}-${String(nowLocal.month).padStart(2,'0')}-${String(nowLocal.day).padStart(2,'0')}`;
     let prevDay = '';
-    const nowHour = tzHour(new Date());
+    const nowHour = nowLocal.hour;
     const nowDayStr = todayStr;
 
-    // UTC offset for display labels only (spot local time)
-    const _tz = spot.timezone || '';
-    const _tp0 = tzParts(_hourlyData[0].time);
-    const _d0 = new Date(Date.UTC(_tp0.year, _tp0.month - 1, _tp0.day));
-    const _m0 = _d0.getUTCMonth(), _dd0 = _d0.getUTCDate(), _dw0 = _d0.getUTCDay();
-    const _dst = (_m0 > 2 && _m0 < 9) || (_m0 === 2 && _dd0 - _dw0 >= 25) || (_m0 === 9 && _dd0 - _dw0 < 25);
-    const _off = _tz === 'Africa/Casablanca' ? 1 : (_tz === 'Europe/Lisbon' || _tz === 'Europe/London' || _tz === 'Europe/Dublin') ? (_dst ? 1 : 0) : (_dst ? 2 : 1);
-
     _hourlyData.forEach((h, i) => {
-        const tp = tzParts(h.time);
-        const hour = tp.hour;
-        const localH = (hour + _off) % 24;
+        const tp = spotLocalParts(h.time, spot);
+        const localH = tp.hour;
         const isNight = !isDaylight(h, spot);
 
         const ratingColor = getRatingColor(h);
         const conseilLabel = getNormalizedConseil(h) || h.rating || 'flat';
 
-        const dayStr = tzDateStr(h.time);
+        const dayStr = spotLocalDateStr(h.time, spot);
         const isDayStart = dayStr !== prevDay;
         prevDay = dayStr;
 
@@ -1516,7 +1548,7 @@ function renderUnifiedTrack() {
 
         const showLabel = localH % 3 === 0;
         const isToday = dayStr === todayStr;
-        const isNow = dayStr === nowDayStr && hour === nowHour;
+        const isNow = dayStr === nowDayStr && localH === nowHour;
         const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
         timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localH + 'h' : ''}</div>`;
 
@@ -1530,7 +1562,7 @@ function renderUnifiedTrack() {
         const slot = document.createElement('button');
         slot.className = 'wave-slot' + nightClass + (i === _selectedSlotIdx ? ' active' : '');
         const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : fmt(h.wave_height);
-        slot.setAttribute('aria-label', `${hour}h: ${waveLabel}m, ${conseilLabel}`);
+        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m, ${conseilLabel}`);
         slot.innerHTML = `
             ${showLabel ? `<span class="wave-label">${waveLabel}</span>` : ''}
             <div class="wave-bar" style="height:${barH}px"></div>
@@ -1575,9 +1607,7 @@ function renderUnifiedTrack() {
     const now = Date.now();
     let closestIdx = 0, closestDiff = Infinity;
     _hourlyData.forEach((h, i) => {
-        let timeStr = h.time;
-        if (timeStr.includes('T')) timeStr = timeStr.split('Z')[0].split('+')[0];
-        const diff = Math.abs(new Date(timeStr).getTime() - now);
+        const diff = Math.abs(parseUtcMs(h.time) - now);
         if (diff < closestDiff) { closestDiff = diff; closestIdx = i; }
     });
     if (_selectedSlotIdx < 0) {
@@ -1623,18 +1653,9 @@ function showDetailPanel(h) {
     const panel = document.getElementById('detail-panel');
     panel.classList.add('open');
 
-    const tp = tzParts(h.time);
     const spotData = _allData.data[_currentSpot];
-    const _sp = spotData.spot;
-    // Convert to spot local time for display
-    const _tz2 = _sp.timezone || '';
-    const _d2 = new Date(Date.UTC(tp.year, tp.month - 1, tp.day));
-    const _m2 = _d2.getUTCMonth(), _dd2 = _d2.getUTCDate(), _dw2 = _d2.getUTCDay();
-    const _dst2 = (_m2 > 2 && _m2 < 9) || (_m2 === 2 && _dd2 - _dw2 >= 25) || (_m2 === 9 && _dd2 - _dw2 < 25);
-    const _off2 = _tz2 === 'Africa/Casablanca' ? 1 : (_tz2 === 'Europe/Lisbon' || _tz2 === 'Europe/London' || _tz2 === 'Europe/Dublin') ? (_dst2 ? 1 : 0) : (_dst2 ? 2 : 1);
-    const localDate = new Date(Date.UTC(tp.year, tp.month - 1, tp.day, tp.hour + _off2));
-    const wkd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const timeStr = wkd[localDate.getUTCDay()] + ' ' + localDate.getUTCDate() + '/' + (localDate.getUTCMonth()+1) + ' ' + String(localDate.getUTCHours()).padStart(2,'0') + ':00';
+    const localTp = spotLocalParts(h.time, spotData.spot);
+    const timeStr = `${localTp.weekday} ${localTp.day}/${localTp.month} ${String(localTp.hour).padStart(2,'0')}:${String(localTp.minute).padStart(2,'0')}`;
     const offshoreHs = h.wave_height_model != null ? fmt(h.wave_height_model) + 'm' : '--';
     const surfaceTexture = getSurfaceTexture(h, spotData.spot);
 
@@ -1740,16 +1761,10 @@ function renderTideCanvas() {
 
     const sortedTides = [..._tideData]
         .filter(t => { 
-            let timeStr = t.datetime;
-            if (timeStr.includes('T')) timeStr = timeStr.split('Z')[0].split('+')[0];
-            const tt = new Date(timeStr).getTime(); 
+            const tt = parseUtcMs(t.datetime);
             return tt >= tMin - 12*3600000 && tt <= tMax + 12*3600000; 
         })
-        .sort((a, b) => {
-            let tA = a.datetime; if(tA.includes('T')) tA = tA.split('Z')[0].split('+')[0];
-            let tB = b.datetime; if(tB.includes('T')) tB = tB.split('Z')[0].split('+')[0];
-            return new Date(tA) - new Date(tB);
-        });
+        .sort((a, b) => parseUtcMs(a.datetime) - parseUtcMs(b.datetime));
 
     if (sortedTides.length < 2) return;
 
@@ -1764,9 +1779,7 @@ function renderTideCanvas() {
     function interpolateTide(time) {
         let before = null, after = null;
         for (let i = 0; i < sortedTides.length; i++) {
-            let tStr = sortedTides[i].datetime;
-            if (tStr.includes('T')) tStr = tStr.split('Z')[0].split('+')[0];
-            const tt = new Date(tStr).getTime();
+            const tt = parseUtcMs(sortedTides[i].datetime);
             if (tt <= time) before = { h: sortedTides[i].height, t: tt };
             if (tt > time && !after) after = { h: sortedTides[i].height, t: tt };
         }
@@ -1808,9 +1821,7 @@ function renderTideCanvas() {
     ctx.stroke();
 
     for (const tide of sortedTides) {
-        let tStr = tide.datetime;
-        if (tStr.includes('T')) tStr = tStr.split('Z')[0].split('+')[0];
-        const tt = new Date(tStr).getTime();
+        const tt = parseUtcMs(tide.datetime);
         if (tt < tMin || tt > tMax) continue;
         
         const frac = (tt - tMin) / (tMax - tMin - 3600000);
@@ -1826,7 +1837,7 @@ function renderTideCanvas() {
         ctx.stroke();
 
         const labelY = tide.type === 'high' ? y - 7 : y + 13;
-        const tideTp = tzParts(tide.datetime);
+        const tideTp = spotLocalParts(tide.datetime, _allData.data[_currentSpot].spot);
         const tideTimeStr = String(tideTp.hour).padStart(2,'0') + ':' + String(tideTp.minute).padStart(2,'0');
 
         ctx.fillStyle = '#8ba0b9';
