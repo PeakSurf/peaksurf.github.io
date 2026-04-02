@@ -616,7 +616,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402s"></script>
+<script src="data/forecast.js?v=20260402t"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -2066,9 +2066,28 @@ function showDetailPanel(h) {
     const mlWaveMax = h.ml_wave_height_max;
     const mlWaveSets = h.ml_wave_height_sets;
     const mlProba = h.ml_conseil_proba || {};
+    const primarySwellHeight = h.swell_height_model != null ? h.swell_height_model : h.swell_height;
+    const secondarySwellHeight = h.swell2_height_model != null ? h.swell2_height_model : h.swell2_height;
+    const windWaveHeight = h.wind_wave_height_model != null ? h.wind_wave_height_model : h.wind_wave_height;
 
     const displayWaveText = mlWaveMin != null ? (Math.abs(mlWaveMax - mlWaveMin) < 0.1 ? `${fmt(mlWaveMax)}m` : `${fmt(mlWaveMin)}-${fmt(mlWaveMax)}m`) : `${fmt(h.wave_height)}m`;
     const displaySetsText = mlWaveSets != null ? `Sets: ${fmt(mlWaveSets)}m` : '';
+
+    const formatOceanComponent = (height, period, direction, directionText) => {
+        if (height == null) return '--';
+        const parts = [`${fmt(height)}m`];
+        if (period != null) parts.push(`${fmt(period, 0)}s`);
+        const directionMarkup = getDirectionMarkup(direction, directionText, { size: 12 });
+        if (directionMarkup !== '--') parts.push(directionMarkup);
+        return parts.join(' · ');
+    };
+
+    const secondarySwellRow = secondarySwellHeight != null && secondarySwellHeight > 0.1
+        ? `<div class="d-row"><span class="d-label">Secondary swell</span><span class="d-val">${formatOceanComponent(secondarySwellHeight, h.swell2_period, h.swell2_direction, h.swell2_direction_text)}</span></div>`
+        : '';
+    const windWaveRow = windWaveHeight != null && windWaveHeight > 0.1
+        ? `<div class="d-row"><span class="d-label">Wind wave</span><span class="d-val">${formatOceanComponent(windWaveHeight, h.wind_wave_period, h.wind_wave_direction, h.wind_wave_direction_text)}</span></div>`
+        : '';
 
     const getP = (key) => mlProba[key] || mlProba[key.toLowerCase()] || mlProba[key.charAt(0).toUpperCase() + key.slice(1)] || 0;
     const topProba = h.ml_conseil_conf || getP(conseilLabel) || 0;
@@ -2099,9 +2118,9 @@ function showDetailPanel(h) {
             <div class="detail-block">
                 <div class="detail-block-title">Ocean (offshore)</div>
                 <div class="d-row"><span class="d-label">Total Hs</span><span class="d-val" style="font-weight:700">${h.wave_height_model != null ? fmt(h.wave_height_model) + 'm' : '--'}</span></div>
-                <div class="d-row"><span class="d-label">Primary swell</span><span class="d-val">${h.swell_height_model != null ? fmt(h.swell_height_model) : fmt(h.swell_height)}m · ${fmt(h.swell_period, 0)}s · <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;transform:rotate(${h.swell_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> ${h.swell_direction_text || ''} ${fmt(h.swell_direction, 0)}&deg;</span></div>
-                ${h.swell2_height_model != null && h.swell2_height_model > 0.1 || (h.swell2_height != null && h.swell2_height_model == null && h.swell2_height > 0.1) ? `
-                <div class="d-row"><span class="d-label">Secondary swell</span><span class="d-val">${fmt(h.swell2_height_model != null ? h.swell2_height_model : h.swell2_height)}m · ${h.swell2_period != null ? fmt(h.swell2_period, 0) + 's · ' : ''}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;transform:rotate(${h.swell2_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> ${h.swell2_direction_text || ''} ${fmt(h.swell2_direction, 0)}&deg;</span></div>` : ''}
+                <div class="d-row"><span class="d-label">Primary swell</span><span class="d-val">${formatOceanComponent(primarySwellHeight, h.swell_period, h.swell_direction, h.swell_direction_text)}</span></div>
+                ${secondarySwellRow}
+                ${windWaveRow}
                 <div class="d-row" style="margin-top:0.25rem;border-top:1px dashed var(--border-light);padding-top:0.4rem;"><span class="d-label">Tide</span><span class="d-val">${h.tide_height != null ? fmt(h.tide_height) + 'm' : '--'}</span></div>
             </div>
             <div class="detail-block">
