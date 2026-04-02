@@ -1288,15 +1288,17 @@ function _renderHeroWithHour(h, spotData) {
             ? 'Tide optimal'
             : h.tide_quality === 'poor'
                 ? 'Bad tide'
-                : h.tide_trend === 'rising'
-                    ? 'Rising'
-                    : h.tide_trend === 'falling'
-                        ? 'Falling'
-                        : h.tide_trend === 'high'
-                            ? 'High tide'
-                            : h.tide_trend === 'low'
-                                ? 'Low tide'
-                                : '';
+                : h.tide_quality === 'ok'
+                    ? 'Tide OK'
+                    : h.tide_trend === 'rising'
+                        ? 'Rising'
+                        : h.tide_trend === 'falling'
+                            ? 'Falling'
+                            : h.tide_trend === 'high'
+                                ? 'High tide'
+                                : h.tide_trend === 'low'
+                                    ? 'Low tide'
+                                    : '';
     document.getElementById('hero-tide-trend').textContent = tideStatus;
 }
 
@@ -1658,7 +1660,7 @@ function showDetailPanel(h) {
             <div style="display:flex;align-items:center;gap:0.75rem;">
                 <span class="detail-time">${timeStr}</span>
                 <span class="rating-badge bg-${ratingColor}">${conseilLabel.toUpperCase()}</span>
-                ${h.tide_quality && h.tide_quality !== 'ok' ? `<span style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:4px;${h.tide_quality === 'good' ? 'color:#16a34a;border:1px solid #16a34a;' : 'color:#dc2626;border:1px solid #dc2626;'}">${h.tide_quality === 'good' ? 'Tide +' : 'Tide -'}</span>` : ''}
+                ${h.tide_quality ? `<span style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:4px;${h.tide_quality === 'good' ? 'color:#16a34a;border:1px solid #16a34a;' : h.tide_quality === 'poor' ? 'color:#dc2626;border:1px solid #dc2626;' : 'color:#94a3b8;border:1px solid #94a3b8;'}">${h.tide_quality === 'good' ? 'Tide +' : h.tide_quality === 'poor' ? 'Tide -' : 'Tide OK'}</span>` : ''}
                 ${h.ml_conseil && topProba > 0 ? `<span style="font-size:0.65rem;color:${confColor};font-weight:700;border:1px solid ${confColor};padding:0.1rem 0.4rem;border-radius:4px;">${confLabel} Confidence</span>` : ''}
             </div>
             <button class="detail-close" id="detail-close-btn" aria-label="Close">&times;</button>
@@ -1690,7 +1692,7 @@ function showDetailPanel(h) {
             </div>
             <div class="detail-block">
                 <div class="detail-block-title">AI Engine Insights</div>
-                <div class="d-row"><span class="d-label">Rating</span><span class="d-val"><span class="rating-badge bg-${ratingColor}" style="font-size:0.6rem;padding:0.1rem 0.4rem;">${conseilLabel.toUpperCase()}</span>${h.tide_quality ? ` <span style="font-size:0.55rem;font-weight:600;color:${h.tide_quality === 'good' ? '#16a34a' : h.tide_quality === 'poor' ? '#dc2626' : '#94a3b8'};">${h.tide_quality === 'good' ? 'Tide optimal' : h.tide_quality === 'poor' ? 'Bad tide' : ''}</span>` : ''}</span></div>
+                <div class="d-row"><span class="d-label">Rating</span><span class="d-val"><span class="rating-badge bg-${ratingColor}" style="font-size:0.6rem;padding:0.1rem 0.4rem;">${conseilLabel.toUpperCase()}</span>${h.tide_quality ? ` <span style="font-size:0.55rem;font-weight:600;color:${h.tide_quality === 'good' ? '#16a34a' : h.tide_quality === 'poor' ? '#dc2626' : '#94a3b8'};">${h.tide_quality === 'good' ? 'Tide optimal' : h.tide_quality === 'poor' ? 'Bad tide' : 'Tide OK'}</span>` : ''}</span></div>
                 <div class="d-row"><span class="d-label">Surface</span><span class="d-val">${mlSurface || surfaceTexture}</span></div>
                 <div class="d-row"><span class="d-label">Level</span><span class="d-val">${(h.ml_skill === 'Confirmés+' ? 'Advanced' : 'All levels')}</span></div>
                 ${h.ml_conseil_proba ? `<div class="d-row" style="margin-top:0.25rem;border-top:1px dashed var(--border-light);padding-top:0.4rem;">
