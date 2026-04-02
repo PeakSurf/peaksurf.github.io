@@ -172,15 +172,17 @@
 
         .row-label { position: sticky; left: 0; z-index: 5; width: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.03em; background: var(--bg-surface); border-right: 1px solid var(--border); }
 
-        .wind-row { display: flex; height: 66px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; }
-        .wind-slot { width: 56px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding-top: 2px; }
+        .wind-row { display: flex; height: 72px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; }
+        .wind-slot { width: 56px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding-top: 2px; }
+        .wind-head { display: flex; align-items: center; justify-content: center; gap: 3px; }
         .wind-arrow { display: inline-flex; align-items: center; justify-content: center; color: var(--text-dark); }
+        .wind-dir-badge { padding: 1px 4px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: var(--text-dark); font-size: 0.52rem; font-weight: 800; line-height: 1.1; letter-spacing: 0.03em; }
         .wind-value-stack { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 1px; }
         .wind-speed, .wind-gust { min-width: 28px; padding: 1px 5px; border-radius: 999px; line-height: 1.1; text-align: center; border: 1px solid transparent; }
         .wind-speed { font-size: 0.72rem; font-weight: 800; color: var(--text-dark); background: rgba(26, 192, 198, 0.12); border-color: rgba(26, 192, 198, 0.25); }
         .wind-gust { font-size: 0.55rem; font-weight: 800; color: #ffd59d; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.28); }
         .wind-gust.is-strong { color: #ffd7d7; background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.3); }
-        .wind-dir-text { font-size: 0.48rem; font-weight: 700; color: var(--text-muted); }
+        .wind-dir-text { display: none; }
 
         .swell-dir-row { display: flex; height: 54px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; }
         .swell-dir-slot { width: 56px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 0; padding-top: 4px; }
@@ -316,8 +318,10 @@
             .time-slot { font-size: 0.65rem; padding: 0.3rem 0; }
             .wave-slot { padding-bottom: 4px; }
             .wave-label { font-size: 0.6rem; }
-            .wind-row { height: 62px; }
+            .wind-row { height: 68px; }
             .wind-slot { font-size: 0.55rem; gap: 1px; }
+            .wind-head { gap: 2px; }
+            .wind-dir-badge { font-size: 0.42rem; padding: 1px 3px; }
             .wind-speed, .wind-gust { min-width: 24px; padding: 1px 4px; }
             .wind-speed { font-size: 0.62rem; }
             .wind-gust { font-size: 0.48rem; }
@@ -518,7 +522,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402m"></script>
+<script src="data/forecast.js?v=20260402n"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1706,13 +1710,16 @@ function renderUnifiedTrack() {
             const gustClass = h.wind_gusts_kmh != null && h.wind_gusts_kmh >= 35 ? 'wind-gust is-strong' : 'wind-gust';
             const windOpacity = Math.max(0.2, Math.min(1, (h.wind_speed_kmh || 0) / 30));
             const windSize = 10 + Math.min(8, (h.wind_speed_kmh || 0) / 4);
+            const windDirLabel = h.wind_direction_text || degToCompass(h.wind_direction);
             ws.innerHTML = `
-                <span class="wind-arrow" style="opacity:${windOpacity.toFixed(2)};"><svg width="${Math.round(windSize)}" height="${Math.round(windSize)}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>
+                <div class="wind-head">
+                    <span class="wind-arrow" style="opacity:${windOpacity.toFixed(2)};"><svg width="${Math.round(windSize)}" height="${Math.round(windSize)}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>
+                    <span class="wind-dir-badge" title="Wind direction ${windDirLabel}">${windDirLabel}</span>
+                </div>
                 <div class="wind-value-stack">
                     <span class="wind-speed" title="Wind ${fmt(h.wind_speed_kmh, 0)} km/h">${fmt(h.wind_speed_kmh, 0)}</span>
                     <span class="${gustClass}" title="Gusts ${gustValue} km/h">G${gustValue}</span>
                 </div>
-                <span class="wind-dir-text">${h.wind_direction_text || degToCompass(h.wind_direction)}</span>
             `;
         }
         windRow.appendChild(ws);
