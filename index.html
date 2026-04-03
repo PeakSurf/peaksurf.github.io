@@ -616,7 +616,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260402u"></script>
+<script src="data/forecast.js?v=20260403a"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1268,6 +1268,9 @@ function updateMapMarkers() {
         m.marker.setStyle({ fillColor: props.color, radius: r });
         // Update tooltip with value
         m.marker.setTooltipContent(`${m.spotInfo.name}: ${props.label}`);
+        if (m.marker.isPopupOpen()) {
+            _buildMapPopup(m.marker, m.sid, m.spotInfo, m.spotData, h);
+        }
     }
     // Keep highlight on current spot
     if (_currentSpot) highlightMapSpot(_currentSpot);
@@ -2518,6 +2521,9 @@ function updateMobileMarkers() {
         const props = _getMarkerProps(h, _mapVariable);
         m.marker.setStyle({ fillColor: props.color, radius: Math.max(3, props.radius * 0.7) });
         m.marker.setTooltipContent(`${m.spotInfo.name}: ${props.label}`);
+        if (m.marker.isPopupOpen()) {
+            _buildMapPopup(m.marker, m.sid, m.spotInfo, m.spotData, h);
+        }
     }
 }
 
