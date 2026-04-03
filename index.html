@@ -616,7 +616,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260403a"></script>
+<script src="data/forecast.js?v=20260403b"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -1044,6 +1044,21 @@ function _getHourAtIndex(spotData, idx) {
     return idx < hourly.length ? hourly[idx] : hourly[hourly.length - 1];
 }
 
+function _getClosestMapTimeIndex() {
+    if (!_mapHourlyTimes.length) return 0;
+    const nowMs = Date.now();
+    let bestIdx = 0;
+    let bestDiff = Infinity;
+    for (let i = 0; i < _mapHourlyTimes.length; i++) {
+        const diff = Math.abs(parseUtcMs(_mapHourlyTimes[i]) - nowMs);
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            bestIdx = i;
+        }
+    }
+    return bestIdx;
+}
+
 function _getMarkerProps(h, variable) {
     if (!h) return { color: '#1e2e45', radius: 4, label: '--', arrow: null };
     const rc = RATING_COLORS;
@@ -1114,9 +1129,12 @@ function initConditionsMap(rawData) {
     const firstSid = rawData.spot_order[0];
     const firstHourly = rawData.data[firstSid]?.hourly || [];
     _mapHourlyTimes = firstHourly.map(h => h.time);
+    const currentIdx = _getClosestMapTimeIndex();
     const slider = document.getElementById('map-time-slider');
-    if (slider) { slider.max = _mapHourlyTimes.length - 1; slider.value = 0; }
-    _mapTimeIdx = -1;
+    if (slider) { slider.max = _mapHourlyTimes.length - 1; slider.value = currentIdx; }
+    const mobileSlider = document.getElementById('mobile-map-slider');
+    if (mobileSlider) { mobileSlider.max = _mapHourlyTimes.length - 1; mobileSlider.value = currentIdx; }
+    _mapTimeIdx = currentIdx;
 
     for (const sid of rawData.spot_order) {
         const spotInfo = rawData.spots[sid];
@@ -1146,6 +1164,8 @@ function initConditionsMap(rawData) {
     }
 
     updateMapMarkers();
+    updateMapTimeDisplay();
+    updateMobileTimeDisplay();
     updateMapLegend();
 
     // Wire controls
