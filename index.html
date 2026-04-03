@@ -82,108 +82,6 @@
         .spot-btn.fav::before { content: '\2605 '; color: var(--accent); }
         .spot-fav-toggle { background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--text-light); padding: 0.2rem; transition: color var(--transition); }
         .spot-fav-toggle:hover, .spot-fav-toggle.is-fav { color: var(--accent); }
-        .app-view[hidden] { display: none !important; }
-
-        .filter-chip-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-        .filter-chip { display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; padding: 0.45rem 0.8rem; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text-main); font-size: 0.74rem; font-weight: 700; cursor: pointer; transition: all var(--transition); font-family: var(--font); }
-        .filter-chip:hover { border-color: rgba(26, 192, 198, 0.5); color: var(--text-dark); }
-        .filter-chip.active { background: rgba(26, 192, 198, 0.14); color: var(--text-dark); border-color: rgba(26, 192, 198, 0.45); }
-        .reason-chip-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-        .reason-chip { display: inline-flex; align-items: center; padding: 0.22rem 0.6rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.05); color: var(--text-main); font-size: 0.67rem; font-weight: 700; }
-
-        .home-hero { margin-bottom: 1.4rem; padding: 1.2rem 1.25rem; border-radius: 22px; border: 1px solid rgba(26, 192, 198, 0.18); background: radial-gradient(circle at top right, rgba(26, 192, 198, 0.16), transparent 32%), linear-gradient(135deg, #102340 0%, #071222 100%); box-shadow: 0 16px 40px rgba(0,0,0,0.18); }
-        .home-kicker { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.45rem; }
-        .home-hero-main { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
-        .home-title { font-size: clamp(1.9rem, 4vw, 3rem); line-height: 0.98; color: var(--text-dark); letter-spacing: -0.04em; max-width: 11ch; }
-        .home-copy { margin-top: 0.65rem; max-width: 58ch; color: var(--text-main); font-size: 0.92rem; }
-        .home-trust-box { display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: flex-end; max-width: 320px; }
-        .home-meta-chip { display: inline-flex; align-items: center; padding: 0.34rem 0.68rem; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: var(--text-dark); font-size: 0.7rem; font-weight: 700; }
-        .home-search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; margin-top: 1rem; align-items: center; }
-        .home-search-wrap { margin-bottom: 0; }
-        .home-search-wrap .spot-search { background: rgba(4, 10, 19, 0.45); }
-        .home-region-wrap { margin-top: 0.75rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; }
-        .home-region-label { font-size: 0.7rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.08em; }
-        .home-top-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; margin-bottom: 1.35rem; }
-        .home-pick-card { position: relative; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(180deg, rgba(13,30,54,0.98) 0%, rgba(7,18,34,0.96) 100%); padding: 1rem; display: flex; flex-direction: column; gap: 0.7rem; cursor: pointer; transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; min-height: 265px; }
-        .home-pick-card:hover { transform: translateY(-2px); border-color: rgba(26, 192, 198, 0.4); box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
-        .home-pick-rank { position: absolute; top: 0.9rem; right: 0.9rem; width: 32px; height: 32px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(26, 192, 198, 0.12); color: var(--accent); font-size: 0.9rem; font-weight: 900; }
-        .home-pick-topline { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding-right: 2.2rem; }
-        .home-pick-location { display: flex; flex-direction: column; gap: 0.08rem; }
-        .home-pick-name { font-size: 1rem; font-weight: 800; color: var(--text-dark); }
-        .home-pick-region { font-size: 0.72rem; color: var(--text-muted); }
-        .home-pick-window { font-size: 1.45rem; font-weight: 900; color: var(--text-dark); letter-spacing: -0.04em; }
-        .home-pick-wave { font-size: 0.92rem; color: var(--accent); font-weight: 700; }
-        .home-pick-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-        .home-pick-stat { padding: 0.55rem 0.62rem; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); min-height: 58px; }
-        .home-pick-stat-label { display: block; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.06em; margin-bottom: 0.2rem; }
-        .home-pick-stat-value { display: block; font-size: 0.78rem; font-weight: 800; color: var(--text-dark); line-height: 1.2; }
-        .home-pick-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.55rem; }
-        .home-pick-why { font-size: 0.76rem; color: var(--text-main); }
-        .home-pick-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-        .home-link-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.52rem 0.8rem; border-radius: 999px; background: var(--accent); color: #031019; font-size: 0.74rem; font-weight: 800; border: none; cursor: pointer; font-family: var(--font); }
-        .fav-chip-btn { width: 34px; height: 34px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: var(--text-light); font-size: 0.95rem; cursor: pointer; }
-        .fav-chip-btn.is-fav { color: var(--accent); border-color: rgba(26, 192, 198, 0.35); }
-        .home-compare-wrap { border-radius: 20px; border: 1px solid var(--border); background: rgba(13, 30, 54, 0.72); overflow: hidden; margin-bottom: 1.35rem; }
-        .home-compare-head { display: grid; grid-template-columns: minmax(180px, 1.3fr) minmax(120px, 0.9fr) minmax(110px, 0.7fr) minmax(120px, 0.8fr) minmax(95px, 0.6fr) minmax(95px, 0.6fr) minmax(160px, 1fr) auto; gap: 0.75rem; padding: 0.8rem 1rem; background: rgba(255,255,255,0.04); border-bottom: 1px solid var(--border); color: var(--text-light); font-size: 0.64rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-        .home-compare-list { display: flex; flex-direction: column; }
-        .home-compare-row { display: grid; grid-template-columns: minmax(180px, 1.3fr) minmax(120px, 0.9fr) minmax(110px, 0.7fr) minmax(120px, 0.8fr) minmax(95px, 0.6fr) minmax(95px, 0.6fr) minmax(160px, 1fr) auto; gap: 0.75rem; align-items: center; padding: 0.82rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background var(--transition); }
-        .home-compare-row:last-child { border-bottom: none; }
-        .home-compare-row:hover { background: rgba(255,255,255,0.03); }
-        .home-compare-main { display: flex; flex-direction: column; gap: 0.08rem; }
-        .home-compare-name { font-size: 0.88rem; font-weight: 800; color: var(--text-dark); }
-        .home-compare-sub { font-size: 0.72rem; color: var(--text-muted); }
-        .home-compare-value { font-size: 0.78rem; font-weight: 800; color: var(--text-dark); }
-        .home-compare-note { font-size: 0.74rem; color: var(--text-main); }
-        .home-empty-state { padding: 1rem 1.1rem; border-radius: 18px; border: 1px dashed rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); color: var(--text-muted); font-size: 0.82rem; }
-        .home-trust-strip { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.9fr); gap: 0.9rem; margin-bottom: 1.35rem; }
-        .home-trust-card { border-radius: 18px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); padding: 1rem 1.05rem; }
-        .home-trust-title { font-size: 0.78rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.08em; }
-        .home-trust-card p { font-size: 0.82rem; color: var(--text-main); }
-        .beta-pill { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(26, 192, 198, 0.12); color: var(--accent); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.45rem; }
-
-        .spot-page-topbar { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .back-link { display: inline-flex; align-items: center; gap: 0.42rem; background: none; border: none; color: var(--accent); font-size: 0.8rem; font-weight: 800; cursor: pointer; font-family: var(--font); padding: 0; }
-        .spot-switcher-card { padding: 0.95rem 1rem; border: 1px solid var(--border); border-radius: 20px; background: rgba(255,255,255,0.03); margin-bottom: 1rem; }
-        .spot-switcher-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.65rem; }
-        .spot-switcher-title { font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dark); }
-        .spot-switcher-copy { font-size: 0.74rem; color: var(--text-muted); }
-        .spot-verdict-card { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.8fr); gap: 1rem; align-items: stretch; margin-bottom: 1rem; padding: 1rem 1.1rem; border-radius: 22px; border: 1px solid rgba(255,255,255,0.08); background: linear-gradient(135deg, #101f37 0%, #081120 100%); box-shadow: 0 12px 30px rgba(0,0,0,0.18); }
-        .spot-verdict-kicker { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.35rem; display: block; }
-        .spot-verdict-row { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
-        .verdict-badge { display: inline-flex; align-items: center; justify-content: center; padding: 0.28rem 0.72rem; border-radius: 999px; font-size: 0.78rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
-        .verdict-go { background: rgba(16, 185, 129, 0.18); color: #7ef0c4; }
-        .verdict-maybe { background: rgba(245, 158, 11, 0.18); color: #ffd18a; }
-        .verdict-skip { background: rgba(239, 68, 68, 0.18); color: #ffb2b2; }
-        .spot-verdict-summary { color: var(--text-dark); font-size: 1.02rem; font-weight: 800; }
-        .spot-verdict-window { font-size: 1.75rem; font-weight: 900; color: var(--text-dark); letter-spacing: -0.04em; margin: 0.3rem 0; }
-        .spot-verdict-subline { color: var(--text-main); font-size: 0.82rem; margin-bottom: 0.5rem; }
-        .spot-verdict-side { display: grid; gap: 0.55rem; }
-        .spot-verdict-stat { padding: 0.62rem 0.72rem; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); }
-        .spot-verdict-stat-label { display: block; font-size: 0.6rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.18rem; }
-        .spot-verdict-stat-value { display: block; font-size: 0.84rem; font-weight: 800; color: var(--text-dark); }
-        .spot-hero-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); }
-        .hero-card-stack { gap: 0.8rem; }
-        .hero-stack-list { display: grid; gap: 0.62rem; }
-        .hero-stack-item { padding: 0.6rem 0.65rem; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.05); }
-        .hero-stack-label { display: block; font-size: 0.6rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.18rem; }
-        .hero-stack-value { display: block; font-size: 0.9rem; font-weight: 800; color: var(--text-dark); line-height: 1.2; }
-        .hero-stack-sub { display: block; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
-        .spot-discovery-card { margin-top: 1.25rem; padding: 0.95rem 1rem; border: 1px solid var(--border); border-radius: 20px; background: rgba(255,255,255,0.03); }
-        .spot-discovery-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
-        .spot-discovery-copy { color: var(--text-muted); font-size: 0.8rem; max-width: 58ch; }
-        .map-inline-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 0.9rem; border-radius: 999px; border: 1px solid rgba(26, 192, 198, 0.35); background: rgba(26, 192, 198, 0.12); color: var(--text-dark); font-size: 0.76rem; font-weight: 800; cursor: pointer; font-family: var(--font); }
-        .spot-map-section[hidden] { display: none !important; }
-        .spot-map-section { margin-top: 0.95rem; }
-
-        .map-module { display: block; width: 100%; padding: 1rem 1.05rem; border-radius: 22px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(13,30,54,0.96) 0%, rgba(7,18,34,0.96) 100%); box-shadow: 0 12px 28px rgba(0,0,0,0.18); }
-        .map-module[hidden] { display: none !important; }
-        .map-module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-        .map-module-title { font-size: 1rem; font-weight: 800; color: var(--text-dark); }
-        .map-module-copy { margin-top: 0.18rem; color: var(--text-muted); font-size: 0.8rem; max-width: 60ch; }
-        .map-module .map-controls { position: static; display: flex; flex-wrap: wrap; gap: 0.55rem 0.9rem; align-items: center; padding: 0; background: transparent; border-bottom: none; margin-bottom: 0.8rem; }
-        .map-module .map-widget-body { position: relative; width: 100%; height: auto; }
-        .map-module #conditions-map { width: 100%; height: 500px; border-radius: 18px; overflow: hidden; background: #061121; border: 1px solid rgba(255,255,255,0.06); }
-        .map-module .map-legend, .map-module .map-scale-bar { background: rgba(6,17,33,0.9); }
 
         /* ========== TAGLINE BANNER ========== */
         .tagline-banner { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem 0.55rem; }
@@ -196,15 +94,6 @@
             .logo-icon-wrap img { height: 40px; width: 40px; }
             .tagline-banner { padding: 0 1rem 0.45rem; }
             .tagline-banner p { font-size: 0.58rem; line-height: 1.35; max-width: none; }
-            .home-search-row { grid-template-columns: 1fr; }
-            .home-top-picks { grid-template-columns: 1fr; }
-            .home-compare-head, .home-compare-row { grid-template-columns: 1fr; }
-            .home-compare-head { display: none; }
-            .home-compare-row { gap: 0.3rem; }
-            .home-trust-strip { grid-template-columns: 1fr; }
-            .spot-verdict-card { grid-template-columns: 1fr; }
-            .spot-hero-grid { grid-template-columns: 1fr; }
-            .map-module #conditions-map { height: 360px; }
         }
 
         /* ========== HERO / CURRENT CONDITIONS ========== */
@@ -516,7 +405,7 @@
 
 <header class="header">
     <div class="header-inner">
-        <a class="logo" href="#/">
+        <a class="logo" href="#">
             <span class="logo-icon-wrap"><img src="logo-icon.png" alt="PeakSurf"></span>
             PeakSurf
         </a>
@@ -531,282 +420,164 @@
 </header>
 
 <main class="container">
-    <section class="app-view" id="home-view">
-        <div class="home-hero">
-            <div class="home-kicker">Where</div>
-            <div class="home-hero-main">
-                <div>
-                    <h1 class="home-title">Where should you surf today?</h1>
-                    <p class="home-copy">PeakSurf compares spot-level surf sessions across your coast so you can decide where to go before the drive. The main ML rating stays independent, with tide shown separately as context.</p>
+
+    <!-- Spot Search + Favorites -->
+    <div class="spot-search-wrap">
+        <svg class="spot-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" class="spot-search" id="spot-search" placeholder="Search spots..." autocomplete="off">
+    </div>
+    <nav class="spot-nav" id="spot-nav"></nav>
+
+    <!-- Spot Header -->
+    <div class="spot-header">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+            <h1 class="spot-name" id="spot-name">Loading...</h1>
+            <button class="spot-fav-toggle" id="fav-toggle" title="Add to favorites">&#9734;</button>
+        </div>
+        <div class="spot-sub" id="spot-desc"></div>
+    </div>
+
+    <!-- Hero Cards -->
+    <div class="section-title" style="margin-bottom:0.5rem;">Current Conditions <span style="background:rgba(255,255,255,0.1);color:var(--text-dark);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.65rem;font-weight:700;vertical-align:middle;margin-left:0.5rem;text-transform:uppercase;">Live</span></div>
+    <div class="hero-grid">
+        <!-- AI Premium Banner -->
+        <div class="ai-premium-card">
+            <div class="ai-header">
+                <div class="ai-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    AI Spot Forecast
                 </div>
-                <div class="home-trust-box">
-                    <span class="home-meta-chip" id="home-update-chip">Updated --</span>
-                    <span class="home-meta-chip" id="home-confidence-chip">Confidence varies by spot and hour</span>
+                <span class="rating-badge" id="hero-rating" style="background:var(--flat);width:max-content;">--</span>
+            </div>
+            <div class="ai-main-content">
+                <div class="ai-size-block">
+                    <div class="hero-val" style="font-size:2rem;"><span id="hero-height">--</span><span class="hero-val-unit" style="font-size:1rem; margin-left:2px;">m</span></div>
+                    <span class="hero-desc" id="hero-wave-detail" style="color:var(--accent); font-weight:600; margin-top:0.2rem;">--</span>
                 </div>
-            </div>
-            <div class="home-search-row">
-                <div class="spot-search-wrap home-search-wrap">
-                    <svg class="spot-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" class="spot-search" id="home-search" placeholder="Search spots or regions..." autocomplete="off">
-                </div>
-                <button class="filter-chip" id="home-favorites-toggle" type="button">Favorites only</button>
-            </div>
-            <div class="home-region-wrap">
-                <span class="home-region-label">Filter</span>
-                <div class="filter-chip-row" id="home-region-chips"></div>
-            </div>
-        </div>
-
-        <div class="section-title">Top 3 Sessions Today <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);" id="home-active-filter-label"></span></div>
-        <div class="home-top-picks" id="home-top-picks"></div>
-
-        <div class="section-title">Compare Spots</div>
-        <div class="home-compare-wrap">
-            <div class="home-compare-head">
-                <span>Spot</span>
-                <span>Best 3h</span>
-                <span>Waves</span>
-                <span>Wind</span>
-                <span>Tide</span>
-                <span>Confidence</span>
-                <span>Why</span>
-                <span></span>
-            </div>
-            <div class="home-compare-list" id="home-compare-list"></div>
-        </div>
-
-        <div class="home-trust-strip">
-            <div class="home-trust-card">
-                <div class="home-trust-title">How PeakSurf Works</div>
-                <p>PeakSurf turns offshore swell into spot-level surf windows. The ML rating stays untouched, tide stays separate, and best sessions are restricted to daylight windows with enough time to actually surf.</p>
-            </div>
-            <div class="home-trust-card">
-                <span class="beta-pill">Soft beta</span>
-                <div class="home-trust-title" style="margin-bottom:0.25rem;">Public beta, feedback welcome</div>
-                <p>We are polishing the public launch. Save favorites, compare spots, and use the best-session guidance as a decision aid rather than a black box.</p>
-            </div>
-        </div>
-
-        <div id="home-map-anchor"></div>
-    </section>
-
-    <section class="app-view" id="spot-view" hidden>
-        <div class="spot-page-topbar">
-            <button class="back-link" id="back-home-btn" type="button">&#8592; Back to homepage</button>
-            <a id="webcam-link" href="#" target="_blank" style="display:none;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:20px;border:none;background:var(--accent);color:#000;font-size:0.8rem;font-weight:700;text-decoration:none;transition:all var(--transition);font-family:var(--font);width:max-content;box-shadow:0 2px 8px rgba(26,192,198,0.3);">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                Live Cam
-            </a>
-        </div>
-
-        <div class="spot-switcher-card">
-            <div class="spot-switcher-head">
-                <div>
-                    <div class="spot-switcher-title">Spot Forecast</div>
-                    <div class="spot-switcher-copy">Switch spots fast without losing your favorites.</div>
+                <div class="ai-details-block" id="hero-ai-detail">
+                    <div id="hero-ai-surface" style="font-size:0.85rem;"></div>
+                    <div id="hero-ai-helper" style="font-size:0.75rem;color:var(--text-muted);"></div>
                 </div>
             </div>
-            <div class="spot-search-wrap">
-                <svg class="spot-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" class="spot-search" id="spot-search" placeholder="Search spots..." autocomplete="off">
-            </div>
-            <nav class="spot-nav" id="spot-nav"></nav>
         </div>
-
-        <div class="spot-header">
-            <div style="display:flex;align-items:center;gap:0.75rem;">
-                <h1 class="spot-name" id="spot-name">Loading...</h1>
-                <button class="spot-fav-toggle" id="fav-toggle" title="Add to favorites">&#9734;</button>
-            </div>
-            <div class="spot-sub" id="spot-desc"></div>
+        <!-- WIND -->
+        <div class="hero-card">
+            <span class="hero-card-title">Wind</span>
+            <div class="hero-val"><span id="hero-wind">--</span><span class="hero-val-unit">km/h</span></div>
+            <span class="hero-desc" id="hero-wind-detail">--</span>
         </div>
+        <!-- OFFSHORE -->
+        <div class="hero-card">
+            <span class="hero-card-title">Offshore</span>
+            <div class="hero-val"><span id="hero-swell">--</span><span class="hero-val-unit">m</span> <span style="font-size:0.7em;color:var(--text-muted);">@</span> <span id="hero-period">--</span><span class="hero-val-unit">s</span></div>
+            <span class="hero-desc" id="hero-swell-detail">--</span>
+        </div>
+        <!-- TIDE -->
+        <div class="hero-card">
+            <span class="hero-card-title">Tide</span>
+            <div class="hero-val"><span id="hero-tide">--</span><span class="hero-val-unit">m</span></div>
+            <span class="hero-desc" id="hero-tide-trend">--</span>
+        </div>
+        <!-- WATER TEMP -->
+        <div class="hero-card">
+            <span class="hero-card-title">Water Temp</span>
+            <div class="hero-val"><span id="hero-sst">--</span><span class="hero-val-unit">&deg;C</span></div>
+            <span class="hero-desc" id="hero-sst-suit"></span>
+        </div>
+    </div>
 
-        <div class="spot-verdict-card" id="spot-verdict-card">
+    <!-- Webcam link -->
+    <a id="webcam-link" href="#" target="_blank" style="display:none;align-items:center;gap:0.5rem;padding:0.5rem 1.2rem;border-radius:20px;border:none;background:var(--accent);color:#000;font-size:0.8rem;font-weight:700;text-decoration:none;transition:all var(--transition);font-family:var(--font);margin-bottom:1rem;width:max-content;box-shadow:0 2px 8px rgba(26,192,198,0.3);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+        Live Cam
+    </a>
+
+    <div class="session-spotlight" id="session-spotlight" style="display:none;">
+        <div class="session-topline">
+            <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
+                <span class="session-kicker">Best 3h Session</span>
+                <span class="session-day-pill" id="session-day-pill">Today</span>
+            </div>
+            <span class="rating-badge" id="session-rating" style="background:var(--flat);width:max-content;">--</span>
+        </div>
+        <div class="session-main">
             <div>
-                <span class="spot-verdict-kicker">When</span>
-                <div class="spot-verdict-row">
-                    <span class="verdict-badge verdict-maybe" id="spot-verdict-badge">Maybe</span>
-                    <span class="spot-verdict-summary" id="spot-verdict-summary">Scanning the next surfable session.</span>
-                </div>
-                <div class="spot-verdict-window" id="spot-verdict-window">--</div>
-                <div class="spot-verdict-subline" id="spot-verdict-subline">Best 3h session for the selected day.</div>
-                <div class="reason-chip-row" id="spot-verdict-reasons"></div>
+                <div class="session-time-range" id="session-time-range">--</div>
+                <div class="session-peak-note" id="session-peak-note">Peak around --</div>
+                <div class="session-subnote" id="session-subnote">Best window for the selected day</div>
             </div>
-            <div class="spot-verdict-side">
-                <div class="spot-verdict-stat">
-                    <span class="spot-verdict-stat-label">Confidence</span>
-                    <span class="spot-verdict-stat-value" id="spot-verdict-confidence">--</span>
+            <div class="session-stats">
+                <div class="session-stat">
+                    <span class="session-stat-label">Surf</span>
+                    <span class="session-stat-value" id="session-wave-stat">--</span>
                 </div>
-                <div class="spot-verdict-stat">
-                    <span class="spot-verdict-stat-label">Why</span>
-                    <span class="spot-verdict-stat-value" id="spot-verdict-oneliner">--</span>
+                <div class="session-stat">
+                    <span class="session-stat-label">Swell</span>
+                    <span class="session-stat-value" id="session-swell-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Wind</span>
+                    <span class="session-stat-value" id="session-wind-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Surface</span>
+                    <span class="session-stat-value" id="session-surface-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Tide</span>
+                    <span class="session-stat-value" id="session-tide-stat">--</span>
+                </div>
+                <div class="session-stat">
+                    <span class="session-stat-label">Confidence</span>
+                    <span class="session-stat-value" id="session-confidence-stat">--</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="session-spotlight" id="session-spotlight" style="display:none;">
-            <div class="session-topline">
-                <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
-                    <span class="session-kicker">Best 3h Session</span>
-                    <span class="session-day-pill" id="session-day-pill">Today</span>
-                </div>
-                <span class="rating-badge" id="session-rating" style="background:var(--flat);width:max-content;">--</span>
-            </div>
-            <div class="session-main">
-                <div>
-                    <div class="session-time-range" id="session-time-range">--</div>
-                    <div class="session-peak-note" id="session-peak-note">Peak around --</div>
-                    <div class="session-subnote" id="session-subnote">Best window for the selected day</div>
-                    <div class="reason-chip-row" id="session-reasons" style="margin-top:0.65rem;"></div>
-                </div>
-                <div class="session-stats">
-                    <div class="session-stat">
-                        <span class="session-stat-label">At the spot</span>
-                        <span class="session-stat-value" id="session-wave-stat">--</span>
-                    </div>
-                    <div class="session-stat">
-                        <span class="session-stat-label">Offshore swell</span>
-                        <span class="session-stat-value" id="session-swell-stat">--</span>
-                    </div>
-                    <div class="session-stat">
-                        <span class="session-stat-label">Wind</span>
-                        <span class="session-stat-value" id="session-wind-stat">--</span>
-                    </div>
-                    <div class="session-stat">
-                        <span class="session-stat-label">Surface</span>
-                        <span class="session-stat-value" id="session-surface-stat">--</span>
-                    </div>
-                    <div class="session-stat">
-                        <span class="session-stat-label">Tide</span>
-                        <span class="session-stat-value" id="session-tide-stat">--</span>
-                    </div>
-                    <div class="session-stat">
-                        <span class="session-stat-label">Confidence</span>
-                        <span class="session-stat-value" id="session-confidence-stat">--</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Daily Carousel -->
+    <div class="section-title">7-Day Overview</div>
+    <div class="daily-carousel" id="daily-carousel"></div>
 
-        <div class="hero-grid spot-hero-grid">
-            <div class="ai-premium-card">
-                <div class="ai-header">
-                    <div class="ai-badge">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                        At the Spot
-                    </div>
-                    <span class="rating-badge" id="hero-rating" style="background:var(--flat);width:max-content;">--</span>
-                </div>
-                <div class="ai-main-content">
-                    <div class="ai-size-block">
-                        <div class="hero-val" style="font-size:2rem;"><span id="hero-height">--</span><span class="hero-val-unit" style="font-size:1rem; margin-left:2px;">m</span></div>
-                        <span class="hero-desc" id="hero-wave-detail" style="color:var(--accent); font-weight:600; margin-top:0.2rem;">--</span>
-                    </div>
-                    <div class="ai-details-block" id="hero-ai-detail"></div>
-                </div>
-            </div>
-            <div class="hero-card hero-card-stack">
-                <span class="hero-card-title">Conditions</span>
-                <div class="hero-stack-list">
-                    <div class="hero-stack-item">
-                        <span class="hero-stack-label">Wind</span>
-                        <span class="hero-stack-value"><span id="hero-wind">--</span> km/h</span>
-                        <span class="hero-stack-sub" id="hero-wind-detail">--</span>
-                    </div>
-                    <div class="hero-stack-item">
-                        <span class="hero-stack-label">Surface</span>
-                        <span class="hero-stack-value" id="hero-surface-now">--</span>
-                        <span class="hero-stack-sub" id="hero-surface-detail">--</span>
-                    </div>
-                    <div class="hero-stack-item">
-                        <span class="hero-stack-label">Tide</span>
-                        <span class="hero-stack-value"><span id="hero-tide">--</span> m</span>
-                        <span class="hero-stack-sub" id="hero-tide-trend">--</span>
-                    </div>
-                    <div class="hero-stack-item">
-                        <span class="hero-stack-label">Water</span>
-                        <span class="hero-stack-value"><span id="hero-sst">--</span>&deg;C</span>
-                        <span class="hero-stack-sub" id="hero-sst-suit"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="hero-card hero-card-stack">
-                <span class="hero-card-title">Offshore Swell</span>
-                <div class="hero-stack-list">
-                    <div class="hero-stack-item">
-                        <span class="hero-stack-label">Primary</span>
-                        <span class="hero-stack-value"><span id="hero-swell">--</span>m @ <span id="hero-period">--</span>s</span>
-                        <span class="hero-stack-sub" id="hero-swell-detail">--</span>
-                    </div>
-                    <div class="hero-stack-item">
-                        <span class="hero-stack-label">Secondary</span>
-                        <span class="hero-stack-value" id="hero-secondary-swell">--</span>
-                        <span class="hero-stack-sub" id="hero-secondary-swell-detail">Supporting swell component</span>
-                    </div>
-                    <div class="hero-stack-item">
-                        <span class="hero-stack-label">Wind sea</span>
-                        <span class="hero-stack-value" id="hero-wind-wave">--</span>
-                        <span class="hero-stack-sub" id="hero-wind-wave-detail">Separate wind-wave energy offshore</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Unified Forecast -->
+    <div class="section-title" style="margin-top:1.5rem;">
+        Hourly Forecast
+        <span style="font-size:0.75rem;font-weight:500;color:var(--text-muted);" id="current-day-label"></span>
+    </div>
+    <div class="hourly-guide">
+        <span class="hourly-guide-text">Tap a wave bar for the full breakdown.</span>
+        <span class="hourly-guide-chip">Rating</span>
+        <span class="hourly-guide-chip">Waves</span>
+        <span class="hourly-guide-chip">Swell</span>
+        <span class="hourly-guide-chip">Wind</span>
+        <span class="hourly-guide-chip">Tide</span>
+    </div>
 
-        <div class="section-title">7-Day Overview</div>
-        <div class="daily-carousel" id="daily-carousel"></div>
-
-        <div class="section-title" style="margin-top:1.5rem;">
-            Hourly Forecast
-            <span style="font-size:0.75rem;font-weight:500;color:var(--text-muted);" id="current-day-label"></span>
-        </div>
-        <div class="hourly-guide">
-            <span class="hourly-guide-text">Tap a wave bar for the full breakdown.</span>
-            <span class="hourly-guide-chip">Rating</span>
-            <span class="hourly-guide-chip">Waves</span>
-            <span class="hourly-guide-chip">Swell</span>
-            <span class="hourly-guide-chip">Wind</span>
-            <span class="hourly-guide-chip">Tide</span>
-        </div>
-
-        <div class="unified-wrapper">
-            <div class="scroll-fade left"></div>
-            <div class="scroll-fade right"></div>
-            <button class="scroll-btn left" id="scroll-left" aria-label="Scroll left">&#8249;</button>
-            <button class="scroll-btn right" id="scroll-right" aria-label="Scroll right">&#8250;</button>
-            <div class="unified-scroller" id="unified-scroll">
-                <div class="unified-track" id="unified-track">
-                    <div class="night-shade-container" id="night-shades"></div>
-                    <div class="time-row" id="time-row"></div>
-                    <div class="rating-strip" id="rating-strip"></div>
-                    <div class="waves-row" id="wave-bars"></div>
-                    <div class="swell-dir-row" id="swell-dir-row"></div>
-                    <div class="wind-row" id="wind-row"></div>
-                    <div class="canvas-row">
-                        <div class="canvas-title">Tide (m)</div>
-                        <div class="canvas-wrap" style="height:90px;"><canvas id="tide-canvas" role="img" aria-label="Tide curve"></canvas></div>
-                    </div>
+    <div class="unified-wrapper">
+        <div class="scroll-fade left"></div>
+        <div class="scroll-fade right"></div>
+        <button class="scroll-btn left" id="scroll-left" aria-label="Scroll left">&#8249;</button>
+        <button class="scroll-btn right" id="scroll-right" aria-label="Scroll right">&#8250;</button>
+        <div class="unified-scroller" id="unified-scroll">
+            <div class="unified-track" id="unified-track">
+                <div class="night-shade-container" id="night-shades"></div>
+                <div class="time-row" id="time-row"></div>
+                <div class="rating-strip" id="rating-strip"></div>
+                <div class="waves-row" id="wave-bars"></div>
+                <div class="swell-dir-row" id="swell-dir-row"></div>
+                <div class="wind-row" id="wind-row"></div>
+                <div class="canvas-row">
+                    <div class="canvas-title">Tide (m)</div>
+                    <div class="canvas-wrap" style="height:90px;"><canvas id="tide-canvas" role="img" aria-label="Tide curve"></canvas></div>
                 </div>
             </div>
-            <div class="detail-panel" id="detail-panel"></div>
         </div>
-
-        <div class="spot-discovery-card">
-            <div class="spot-discovery-top">
-                <div>
-                    <div class="section-title" style="margin-bottom:0.25rem;">Compare On Map</div>
-                    <p class="spot-discovery-copy">Use the same forecast hour across nearby spots to decide if another option looks cleaner, bigger, or easier.</p>
-                </div>
-                <button class="map-inline-btn" id="spot-map-toggle-btn" type="button">Show map</button>
-            </div>
-            <div class="spot-map-section" id="spot-map-section" hidden>
-                <div id="spot-map-anchor"></div>
-            </div>
-        </div>
-    </section>
+        <div class="detail-panel" id="detail-panel"></div>
+    </div>
 
 </main>
 
-<div class="rating-legend" id="rating-legend">
+<div class="rating-legend">
     <div class="rating-legend-title">Rating Definitions</div>
     <div class="rating-legend-list">
         <div class="rating-legend-item">
@@ -845,7 +616,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260403e"></script>
+<script src="data/forecast.js?v=20260403d"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -859,13 +630,6 @@ let _tideData = [];
 let _dailyData = [];
 let _selectedSlotIdx = -1;
 let _activeSessionDate = null;
-let _currentView = 'home';
-let _homeSearchQuery = '';
-let _homeRegionFilter = 'all';
-let _homeFavoritesOnly = false;
-let _routeListenerBound = false;
-let _pendingSpotTime = null;
-let _spotMapVisible = false;
 
 function fmt(val, decimals = 1) { return val == null ? '--' : Number(val).toFixed(decimals); }
 
@@ -963,145 +727,6 @@ function viewerLocalParts(dateObjOrString) {
 function formatViewerDateTime(dateObjOrString) {
     const p = viewerLocalParts(dateObjOrString);
     return `${p.weekday} ${String(p.day).padStart(2, '0')}/${String(p.month).padStart(2, '0')}/${p.year} ${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
-}
-
-function getTodayDateStrForSpot(spot) {
-    const nowLocal = spotLocalParts(new Date(), spot);
-    return `${nowLocal.year}-${String(nowLocal.month).padStart(2,'0')}-${String(nowLocal.day).padStart(2,'0')}`;
-}
-
-function uniqueLocalDays(hours, spot) {
-    return Array.from(new Set(hours.map(h => spotLocalDateStr(h.time, spot)))).sort();
-}
-
-function findClosestHourFromList(hours) {
-    if (!hours || !hours.length) return null;
-    const now = Date.now();
-    let closest = hours[0];
-    let minDiff = Infinity;
-    hours.forEach(h => {
-        const diff = Math.abs(parseUtcMs(h.time) - now);
-        if (diff < minDiff) {
-            minDiff = diff;
-            closest = h;
-        }
-    });
-    return closest;
-}
-
-function createReasonChipMarkup(reasons) {
-    if (!reasons || !reasons.length) return '';
-    return reasons.map(reason => `<span class="reason-chip">${reason}</span>`).join('');
-}
-
-function getRouteBaseUrl(hash) {
-    return `${window.location.pathname}${window.location.search}${hash}`;
-}
-
-function parseRouteHash() {
-    const rawHash = window.location.hash || '#/';
-    const trimmed = rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
-    const normalized = trimmed || '/';
-    const [pathPart, queryString = ''] = normalized.split('?');
-    const path = pathPart || '/';
-    const params = new URLSearchParams(queryString);
-
-    if (path.startsWith('/spot/')) {
-        const spotId = decodeURIComponent(path.slice('/spot/'.length));
-        return {
-            view: 'spot',
-            spotId,
-            day: params.get('day') || null,
-            mapIdx: params.get('mapIdx') != null ? Number(params.get('mapIdx')) : null,
-            mapVar: params.get('mapVar') || null,
-            compare: params.get('compare') === '1',
-        };
-    }
-
-    return {
-        view: 'home',
-        mapIdx: params.get('mapIdx') != null ? Number(params.get('mapIdx')) : null,
-        mapVar: params.get('mapVar') || null,
-    };
-}
-
-function buildRouteHash(route) {
-    const params = new URLSearchParams();
-    if (route.mapVar && route.mapVar !== 'rating') params.set('mapVar', route.mapVar);
-    if (route.mapIdx != null && !Number.isNaN(route.mapIdx)) params.set('mapIdx', String(route.mapIdx));
-
-    if (route.view === 'spot' && route.spotId) {
-        if (route.day) params.set('day', route.day);
-        if (route.compare) params.set('compare', '1');
-        const query = params.toString();
-        return `#/spot/${encodeURIComponent(route.spotId)}${query ? `?${query}` : ''}`;
-    }
-
-    const query = params.toString();
-    return `#/${query ? `?${query}` : ''}`;
-}
-
-function getCurrentRouteState(overrides = {}) {
-    const base = _currentView === 'spot'
-        ? { view: 'spot', spotId: _currentSpot, day: _activeSessionDate, compare: _spotMapVisible, mapIdx: _mapTimeIdx, mapVar: _mapVariable }
-        : { view: 'home', mapIdx: _mapTimeIdx, mapVar: _mapVariable };
-    return { ...base, ...overrides };
-}
-
-function syncRouteState(replace = true, overrides = {}) {
-    const hash = buildRouteHash(getCurrentRouteState(overrides));
-    if (replace) {
-        history.replaceState(null, '', getRouteBaseUrl(hash));
-    } else if (window.location.hash !== hash) {
-        window.location.hash = hash;
-    }
-}
-
-function navigateToHome(options = {}) {
-    _pendingSpotTime = null;
-    syncRouteState(false, { view: 'home', mapIdx: _mapTimeIdx, mapVar: _mapVariable });
-}
-
-function navigateToSpot(spotId, options = {}) {
-    if (options.time) _pendingSpotTime = options.time;
-    const hash = buildRouteHash({
-        view: 'spot',
-        spotId,
-        day: options.day || null,
-        compare: options.compare || false,
-        mapIdx: _mapTimeIdx,
-        mapVar: _mapVariable,
-    });
-    if (options.replace) history.replaceState(null, '', getRouteBaseUrl(hash));
-    else if (window.location.hash !== hash) window.location.hash = hash;
-    else handleRouteChange();
-}
-
-function showView(viewName) {
-    _currentView = viewName;
-    const homeView = document.getElementById('home-view');
-    const spotView = document.getElementById('spot-view');
-    const ratingLegend = document.getElementById('rating-legend');
-    if (homeView) homeView.hidden = viewName !== 'home';
-    if (spotView) spotView.hidden = viewName !== 'spot';
-    if (ratingLegend) ratingLegend.hidden = viewName !== 'spot';
-}
-
-function mountMapModule(anchorId, title, copy) {
-    const module = document.getElementById('map-module');
-    const anchor = document.getElementById(anchorId);
-    if (!module || !anchor) return;
-    document.getElementById('map-module-title').textContent = title;
-    document.getElementById('map-module-copy').textContent = copy;
-    anchor.appendChild(module);
-    module.hidden = false;
-    setTimeout(() => {
-        if (_map) {
-            _map.invalidateSize();
-            updateMapMarkers();
-            updateMapTimeDisplay();
-        }
-    }, 40);
 }
 
 function getSpotFormatter(spot) {
@@ -1243,7 +868,7 @@ function getTideStatusLabel(h) {
     return h.tide_issue
         ? h.tide_issue.charAt(0).toUpperCase() + h.tide_issue.slice(1)
         : h.tide_quality === 'good'
-            ? 'Tide good'
+            ? 'Tide optimal'
             : h.tide_quality === 'poor'
                 ? 'Bad tide'
                 : h.tide_quality === 'ok'
@@ -1356,7 +981,7 @@ function renderSessionSpotlight(dateStr) {
         ? `${fmt(bestHour.wind_speed_kmh, 0)} km/h${bestHour.wind_gusts_kmh != null ? ` · G${fmt(bestHour.wind_gusts_kmh, 0)}` : ''}${windDir ? ` · ${windDir}` : ''}`
         : '--';
     const confMeta = getConfidenceMeta(bestHour.ml_conseil_conf);
-    const tideText = getSessionTideLabel(bestHour) || '--';
+    const tideText = getTideStatusLabel(bestHour) || '--';
     const windEffect = getWindEffect(bestHour, spot);
     const swellPeriod = bestHour.peak_period || bestHour.swell_period;
     const swellDirectionMarkup = getDirectionMarkup(bestHour.swell_direction, bestHour.swell_direction_text, { showDegrees: false, size: 12 });
@@ -1379,8 +1004,6 @@ function renderSessionSpotlight(dateStr) {
     document.getElementById('session-wind-stat').textContent = windText;
     document.getElementById('session-surface-stat').textContent = surfaceText || '--';
     document.getElementById('session-tide-stat').textContent = tideText;
-    const reasonsEl = document.getElementById('session-reasons');
-    if (reasonsEl) reasonsEl.innerHTML = createReasonChipMarkup(getSessionReasonChips(bestHour, spot, 3));
     const confEl = document.getElementById('session-confidence-stat');
     confEl.textContent = confMeta.label === '--' ? '--' : `${confMeta.label} confidence`;
     confEl.style.color = confMeta.color;
@@ -1388,20 +1011,6 @@ function renderSessionSpotlight(dateStr) {
     spotlight.style.display = '';
 }
 /* ------------------------------------------------ */
-
-function renderSpotVerdict() {
-    const summary = buildSpotSummary(_currentSpot, _activeSessionDate);
-    if (!summary) return;
-    const badge = document.getElementById('spot-verdict-badge');
-    badge.textContent = summary.verdict.label;
-    badge.className = `verdict-badge ${summary.verdict.className}`;
-    document.getElementById('spot-verdict-summary').textContent = `${summary.spot.name}: ${summary.reasonLine}`;
-    document.getElementById('spot-verdict-window').textContent = summary.windowLabel;
-    document.getElementById('spot-verdict-subline').textContent = `${summary.dayLabel} · ${summary.waveLabel}${summary.period ? ` · ${fmt(summary.period, 0)}s` : ''}`;
-    document.getElementById('spot-verdict-confidence').textContent = summary.confidence.label;
-    document.getElementById('spot-verdict-oneliner').textContent = summary.reasonLine;
-    document.getElementById('spot-verdict-reasons').innerHTML = createReasonChipMarkup(summary.reasons);
-}
 
 const DEFAULT_FAVS = [
     'hossegor-centrale', 'la-centrale-capbreton', 'biarritz-grande-plage', 'hendaye',
@@ -1417,21 +1026,11 @@ function initApp(rawData) {
         if (validDefaults.length) setFavorites(validDefaults);
         localStorage.setItem('alaia_fav_v2', '1');
     }
-    if (rawData.generated_at) {
-        const generatedLabel = formatViewerDateTime(rawData.generated_at);
-        const updateEl = document.getElementById('update-time');
-        if (updateEl) updateEl.textContent = `Updated ${generatedLabel}`;
-    }
-    const ibiInfo = document.getElementById('ibi-info');
-    if (ibiInfo && rawData.ibi_latest_time) ibiInfo.textContent = `Forecast horizon to ${formatViewerDateTime(rawData.ibi_latest_time)}`;
-    renderRegionChips();
-    mountMapModule('home-map-anchor', 'Conditions Map', 'Compare the same forecast hour across spots before you commit to the drive.');
+    renderSpotNav();
+    const favs = getFavorites();
+    const startSpot = (favs.length > 0 && rawData.spots[favs[0]]) ? favs[0] : rawData.spot_order[0];
+    renderSpot(startSpot);
     initConditionsMap(rawData);
-    if (!_routeListenerBound) {
-        window.addEventListener('hashchange', handleRouteChange);
-        _routeListenerBound = true;
-    }
-    handleRouteChange();
 }
 
 /* --- CONDITIONS MAP (Leaflet) --- */
@@ -1591,9 +1190,7 @@ function initConditionsMap(rawData) {
     const firstSid = rawData.spot_order[0];
     const firstHourly = getVisibleForecastHours(rawData.data[firstSid]);
     _mapHourlyTimes = firstHourly.map(h => h.time);
-    const currentIdx = (_mapTimeIdx != null && _mapTimeIdx >= 0 && _mapTimeIdx < _mapHourlyTimes.length)
-        ? _mapTimeIdx
-        : _getClosestMapTimeIndex();
+    const currentIdx = _getClosestMapTimeIndex();
     const slider = document.getElementById('map-time-slider');
     if (slider) { slider.max = _mapHourlyTimes.length - 1; slider.value = currentIdx; }
     const mobileSlider = document.getElementById('mobile-map-slider');
@@ -1638,13 +1235,11 @@ function initConditionsMap(rawData) {
         _mapVariable = e.target.value;
         updateMapMarkers();
         updateMapLegend();
-        syncRouteState(true);
     });
     if (slider) slider.addEventListener('input', (e) => {
         _mapTimeIdx = parseInt(e.target.value);
         updateMapTimeDisplay();
         updateMapMarkers();
-        syncRouteState(true);
     });
     const playBtn = document.getElementById('map-play');
     if (playBtn) playBtn.addEventListener('click', toggleMapPlay);
@@ -1714,7 +1309,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     marker.bindPopup(`
         <div class="map-spot-popup">
             <div class="popup-header">
-                <span class="popup-name" onclick="navigateToSpot('${sid}')" style="cursor:pointer;">${spotInfo.name}</span>
+                <span class="popup-name" onclick="renderSpot('${sid}');renderSpotNav();updateFavToggle();window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer;">${spotInfo.name}</span>
                 <span class="popup-best" style="background:${ratingColor};color:${conseil==='Poor'?'#fff':'#000'}">${(conseil||'--').toUpperCase()}</span>
             </div>
             <div style="font-size:0.7rem;color:#94a3b8;padding:0 0 0.25rem;">${selDateTime}</div>
@@ -1731,8 +1326,27 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
 }
 
 function _switchToSpotAtTime(sid, time) {
-    const dayStr = spotLocalDateStr(time, _allData.data[sid].spot);
-    navigateToSpot(sid, { day: dayStr, time });
+    renderSpot(sid);
+    renderSpotNav();
+    updateFavToggle();
+    // Find and click the hourly slot matching the map time
+    setTimeout(() => {
+        const idx = _hourlyData.findIndex(h => h.time === time);
+        if (idx >= 0) {
+            const waveRow = document.getElementById('wave-bars');
+            if (waveRow && waveRow.children[idx]) {
+                waveRow.children[idx].click();
+                const scroller = document.getElementById('unified-scroll');
+                if (scroller) scroller.scrollLeft = Math.max(0, idx * SLOT_W - scroller.clientWidth / 2);
+            }
+        }
+        // Also highlight the correct day in 7-day carousel
+        const dayStr = spotLocalDateStr(time, _allData.data[sid].spot);
+        document.querySelectorAll('.daily-card').forEach((card, i) => {
+            card.classList.remove('active');
+            if (_dailyData[i] && _dailyData[i].date === dayStr) card.classList.add('active');
+        });
+    }, 200);
 }
 
 function updateMapMarkers() {
@@ -1892,8 +1506,6 @@ function toggleFavorite(spotId) {
     setFavorites(favs);
     renderSpotNav();
     updateFavToggle();
-    if (_currentView === 'home') renderHomepage();
-    else renderSpotVerdict();
 }
 function updateFavToggle() {
     const btn = document.getElementById('fav-toggle');
@@ -1946,7 +1558,11 @@ function renderSpotNav() {
         btn.addEventListener('click', () => {
             if (id === _currentSpot) return;
             _selectedSlotIdx = -1;
-            navigateToSpot(id);
+            renderSpot(id);
+            renderSpotNav();
+            updateFavToggle();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Clear search and blur to dismiss keyboard / dezoom on mobile
             const searchInput = document.getElementById('spot-search');
             if (searchInput) { searchInput.value = ''; _searchQuery = ''; searchInput.blur(); }
         });
@@ -1959,11 +1575,11 @@ function renderSpotNav() {
     }
 }
 
-function renderSpot(spotId, options = {}) {
+function renderSpot(spotId) {
     const spotData = _allData.data[spotId];
     if (!spotData) return;
     _currentSpot = spotId;
-    _activeSessionDate = options.selectedDate || null;
+    _activeSessionDate = null;
     highlightMapSpot(spotId);
     Object.keys(_spotTimeCache).forEach(key => { delete _spotTimeCache[key]; });
 
@@ -1982,20 +1598,10 @@ function renderSpot(spotId, options = {}) {
     document.getElementById('spot-name').textContent = spotData.spot.name;
     document.getElementById('spot-desc').innerHTML = (spotData.spot.region || '') + (spotData.spot.bathy_info ? ' &mdash; ' + spotData.spot.bathy_info : '');
 
-    renderSpotNav();
     renderHero(spotData);
     renderDailyCarousel();
-    renderSpotVerdict();
     renderUnifiedTrack();
     updateFavToggle();
-    renderSpotMapSection();
-    if (_activeSessionDate) {
-        const selectedSummary = buildSpotSummary(spotId, _activeSessionDate);
-        if (selectedSummary?.bestHour?.time) {
-            setTimeout(() => { selectHourlyTime(selectedSummary.bestHour.time); }, 80);
-        }
-    }
-    syncRouteState(true, { view: 'spot', spotId, day: _activeSessionDate, compare: _spotMapVisible });
     setTimeout(() => { renderTideCanvas(); }, 60);
     // Force scroll to top AFTER all rendering (tide canvas etc) is done
     setTimeout(() => { window.scrollTo(0, 0); }, 150);
@@ -2004,7 +1610,13 @@ function renderSpot(spotId, options = {}) {
 }
 
 function findClosest(data) {
-    return findClosestHourFromList(getVisibleForecastHours(data));
+    const now = Date.now();
+    let closest = data.hourly[0], minDiff = Infinity;
+    for (const h of data.hourly) {
+        const diff = Math.abs(parseUtcMs(h.time) - now);
+        if (diff < minDiff) { minDiff = diff; closest = h; }
+    }
+    return closest;
 }
 
 function updateHero(h) {
@@ -2072,7 +1684,7 @@ function _renderHeroWithHour(h, spotData) {
     const surfaceText = h.ml_surface || getSurfaceTexture(h, spotData.spot);
     const skillText = h.ml_skill === 'Confirmés+' ? 'Advanced Only' : 'Friendly for All Levels';
     const windEffect = getWindEffect(h, spotData.spot);
-    const tideStatus = getSessionTideLabel(h);
+    const tideStatus = getTideStatusLabel(h);
     const swellChipMarkup = getDirectionMarkup(h.swell_direction, h.swell_direction_text, { showDegrees: false, size: 10, prefix: 'Swell' });
     const swellDetailMarkup = getDirectionMarkup(h.swell_direction, h.swell_direction_text, { showDegrees: true, size: 12 });
     const localTp = spotLocalParts(h.time, spotData.spot);
@@ -2096,27 +1708,11 @@ function _renderHeroWithHour(h, spotData) {
     document.getElementById('hero-wind').textContent = fmt(h.wind_speed_kmh, 0);
     const arrow = h.wind_direction != null ? `<span style="display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>` : '';
     document.getElementById('hero-wind-detail').innerHTML = `${arrow} ${h.wind_direction_text || ''} &middot; ${windEffect.label}${h.wind_gusts_kmh != null ? ' &middot; Gusts ' + fmt(h.wind_gusts_kmh, 0) : ''}`;
-    document.getElementById('hero-surface-now').textContent = simplifySurfaceLabel(surfaceText);
-    document.getElementById('hero-surface-detail').textContent = skillText;
     document.getElementById('hero-sst').textContent = fmt(h.sst, 1);
     const sst = h.sst || 0;
     document.getElementById('hero-sst-suit').textContent = sst < 14 ? '4/3mm Wetsuit' : sst < 18 ? '3/2mm Wetsuit' : sst < 22 ? 'Shorty / Spring suit' : 'Boardshorts';
     document.getElementById('hero-tide').textContent = h.tide_height != null ? fmt(h.tide_height) : '--';
     document.getElementById('hero-tide-trend').textContent = tideStatus;
-    const secondarySwellHeight = h.swell2_height_model != null ? h.swell2_height_model : h.swell2_height;
-    const windWaveHeight = h.wind_wave_height_model != null ? h.wind_wave_height_model : h.wind_wave_height;
-    document.getElementById('hero-secondary-swell').innerHTML = secondarySwellHeight != null && secondarySwellHeight > 0.05
-        ? `${fmt(secondarySwellHeight)}m${h.swell2_period != null ? ` @ ${fmt(h.swell2_period, 0)}s` : ''}`
-        : '--';
-    document.getElementById('hero-secondary-swell-detail').innerHTML = secondarySwellHeight != null && secondarySwellHeight > 0.05
-        ? getDirectionMarkup(h.swell2_direction, h.swell2_direction_text, { showDegrees: false, size: 12 })
-        : 'No meaningful secondary swell';
-    document.getElementById('hero-wind-wave').innerHTML = windWaveHeight != null && windWaveHeight > 0.05
-        ? `${fmt(windWaveHeight)}m${h.wind_wave_period != null ? ` @ ${fmt(h.wind_wave_period, 0)}s` : ''}`
-        : '--';
-    document.getElementById('hero-wind-wave-detail').innerHTML = windWaveHeight != null && windWaveHeight > 0.05
-        ? getDirectionMarkup(h.wind_wave_direction, h.wind_wave_direction_text, { showDegrees: false, size: 12 })
-        : 'No meaningful wind sea';
 }
 
 function getWindEffect(h, spot) {
@@ -2205,353 +1801,6 @@ function collectBestWindowCandidates(dayHours, spot, length) {
 
 function getBestSurfWindow(dayHours, spot) {
     return pickBestWindowCandidate(collectBestWindowCandidates(dayHours, spot, 3));
-}
-
-function getSessionTideLabel(h) {
-    if (!h) return '--';
-    if (h.tide_quality === 'good') return 'Tide good';
-    if (h.tide_quality === 'poor') return 'Bad tide';
-    if (h.tide_quality === 'ok') return 'Tide OK';
-    return getTideStatusLabel(h) || 'Tide OK';
-}
-
-function simplifySurfaceLabel(surface) {
-    if (!surface) return '--';
-    if (surface.toLowerCase().includes('clean')) return 'Clean';
-    if (surface.toLowerCase().includes('messy') || surface.toLowerCase().includes('blown')) return 'Messy';
-    if (surface.toLowerCase().includes('glassy')) return 'Glassy';
-    if (surface.toLowerCase().includes('textured') || surface.toLowerCase().includes('chop')) return 'Textured';
-    return surface;
-}
-
-function getSessionReasonChips(h, spot, limit = 3) {
-    if (!h) return ['No strong daylight session'];
-    const reasons = [];
-    const waveMax = h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height || 0;
-    const surface = simplifySurfaceLabel(h.ml_surface || getSurfaceTexture(h, spot));
-    const wind = getWindEffect(h, spot).label;
-    const windLower = wind.toLowerCase();
-    const tide = getSessionTideLabel(h);
-    const conf = getConfidenceMeta(h.ml_conseil_conf).label;
-
-    if (waveMax < 0.35) reasons.push('Too small');
-    else if (waveMax < 0.8) reasons.push('Playable size');
-    else reasons.push('Enough size');
-
-    if (surface === 'Clean' || surface === 'Glassy') reasons.push('Clean surface');
-    else if (surface === 'Messy') reasons.push('Messy surface');
-    else reasons.push('Textured surface');
-
-    if (wind === 'Offshore' || wind === 'Cross-offshore' || wind === 'Glassy') reasons.push('Favorable wind');
-    else if (windLower.includes('onshore')) reasons.push('Onshore wind');
-    else reasons.push(wind);
-
-    if (tide) reasons.push(tide);
-    if (conf === 'Low') reasons.push('Low confidence');
-
-    return Array.from(new Set(reasons)).slice(0, limit);
-}
-
-function getSessionOneLiner(h, spot) {
-    if (!h) return 'No strong daylight session';
-    const waveMax = h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height || 0;
-    const surface = simplifySurfaceLabel(h.ml_surface || getSurfaceTexture(h, spot));
-    const wind = getWindEffect(h, spot).label.toLowerCase();
-
-    if (waveMax < 0.35) return surface === 'Clean' || surface === 'Glassy' ? 'Clean but weak' : 'Too small';
-    if (surface === 'Messy' || wind.includes('onshore')) return 'Good size, messy surface';
-    if (getSessionTideLabel(h) === 'Bad tide') return 'Fun surf, but tide is limiting it';
-    if (surface === 'Clean' || surface === 'Glassy') return 'Clean, surfable session';
-    return 'Worth a look';
-}
-
-function getVerdictMeta(h) {
-    if (!h) return { label: 'Skip', className: 'verdict-skip' };
-    const rating = getNormalizedConseil(h);
-    const waveMax = h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height || 0;
-    const conf = h.ml_conseil_conf || 0;
-    if (waveMax < 0.3 || rating === 'Poor') return { label: 'Skip', className: 'verdict-skip' };
-    if ((rating === 'Epic' || rating === 'Good') && conf >= 0.28) return { label: 'Go', className: 'verdict-go' };
-    return { label: 'Maybe', className: 'verdict-maybe' };
-}
-
-function buildSpotSummary(spotId, forcedDate = null) {
-    const spotData = _allData?.data?.[spotId];
-    if (!spotData) return null;
-    const spot = spotData.spot;
-    const hours = getVisibleForecastHours(spotData);
-    if (!hours.length) return null;
-
-    const localDays = uniqueLocalDays(hours, spot);
-    const todayStr = getTodayDateStrForSpot(spot);
-    const targetDate = forcedDate && localDays.includes(forcedDate)
-        ? forcedDate
-        : (localDays.includes(todayStr) ? todayStr : localDays[0]);
-    const dayHours = hours.filter(h => spotLocalDateStr(h.time, spot) === targetDate);
-    const dailyEntry = (spotData.daily || []).find(d => d.date === targetDate) || { date: targetDate };
-    const currentHour = findClosestHourFromList(hours);
-    const bestWindow = getBestSurfWindow(dayHours, spot);
-    const daylightHours = dayHours.filter(h => isDaylight(h, spot) && h.ml_wave_height_max != null);
-    const fallbackHour = daylightHours.length
-        ? daylightHours.reduce((best, hour) => getBestPeriodHourScore(hour) > getBestPeriodHourScore(best) ? hour : best, daylightHours[0])
-        : (dayHours.find(h => h.ml_wave_height_max != null) || currentHour);
-
-    const bestHour = bestWindow ? bestWindow.peakHour : fallbackHour;
-    const sessionHours = bestWindow
-        ? dayHours.slice(bestWindow.startIdx, bestWindow.startIdx + bestWindow.length)
-        : (bestHour ? [bestHour] : []);
-    const waveLabel = getSessionWaveLabel(sessionHours, bestHour);
-    const period = bestWindow?.displayPeriod || bestHour?.peak_period || bestHour?.swell_period || null;
-    const startHour = bestWindow?.startHour || bestHour;
-    const endBoundary = bestWindow?.endBoundary || dayHours[Math.min(dayHours.length - 1, (dayHours.indexOf(bestHour) + 1))] || bestHour;
-    const startTp = startHour ? spotLocalParts(startHour.time, spot) : null;
-    const endTp = endBoundary ? spotLocalParts(endBoundary.time, spot) : null;
-    const windowLabel = startTp && endTp
-        ? `${String(startTp.hour).padStart(2, '0')}h-${String(endTp.hour).padStart(2, '0')}h`
-        : 'No session';
-    const confidence = getConfidenceMeta(bestHour?.ml_conseil_conf);
-    const surface = simplifySurfaceLabel(bestHour?.ml_surface || (bestHour ? getSurfaceTexture(bestHour, spot) : ''));
-    const windEffect = bestHour ? getWindEffect(bestHour, spot).label : '--';
-    const tideLabel = getSessionTideLabel(bestHour);
-    const verdict = getVerdictMeta(bestHour);
-    const reasonLine = getSessionOneLiner(bestHour, spot);
-    const reasons = getSessionReasonChips(bestHour, spot, 3);
-    const bestDayLabel = getLocalDayLabel(targetDate, spot);
-    const peakTp = bestHour ? spotLocalParts(bestHour.time, spot) : null;
-    const peakLabel = peakTp ? `${String(peakTp.hour).padStart(2, '0')}h` : '--';
-    const rating = bestHour ? (getNormalizedConseil(bestHour) || 'Flat') : 'Flat';
-    const rankScore = bestWindow ? bestWindow.avgScore : (bestHour ? getBestPeriodHourScore(bestHour) - 0.25 : -999);
-
-    return {
-        spotId,
-        spot,
-        day: targetDate,
-        dayLabel: bestDayLabel,
-        currentHour,
-        bestHour,
-        sessionHours,
-        waveLabel,
-        period,
-        windowLabel,
-        confidence,
-        surface,
-        windEffect,
-        tideLabel,
-        verdict,
-        reasonLine,
-        reasons,
-        peakLabel,
-        rating,
-        ratingColor: bestHour ? getRatingColor(bestHour) : 'flat',
-        rankScore,
-        bestWindow,
-        dailyEntry,
-    };
-}
-
-function getFilteredSpotSummaries() {
-    const favs = getFavorites();
-    return _allData.spot_order
-        .map(spotId => buildSpotSummary(spotId))
-        .filter(Boolean)
-        .filter(summary => {
-            const region = (summary.spot.region || '').toLowerCase();
-            const matchesRegion = _homeRegionFilter === 'all' || region === _homeRegionFilter;
-            const search = _homeSearchQuery.trim().toLowerCase();
-            const matchesSearch = !search
-                || summary.spot.name.toLowerCase().includes(search)
-                || region.includes(search)
-                || summary.spotId.toLowerCase().includes(search);
-            const matchesFavs = !_homeFavoritesOnly || favs.includes(summary.spotId);
-            return matchesRegion && matchesSearch && matchesFavs;
-        })
-        .sort((a, b) => b.rankScore - a.rankScore);
-}
-
-function renderRegionChips() {
-    const container = document.getElementById('home-region-chips');
-    if (!container || !_allData) return;
-    const regions = Array.from(new Set(_allData.spot_order
-        .map(id => (_allData.data[id]?.spot?.region || 'Other').trim())
-        .filter(Boolean)))
-        .sort((a, b) => a.localeCompare(b));
-
-    container.innerHTML = '';
-    const allBtn = document.createElement('button');
-    allBtn.className = 'filter-chip' + (_homeRegionFilter === 'all' ? ' active' : '');
-    allBtn.type = 'button';
-    allBtn.textContent = 'All regions';
-    allBtn.addEventListener('click', () => {
-        _homeRegionFilter = 'all';
-        renderRegionChips();
-        renderHomepage();
-    });
-    container.appendChild(allBtn);
-
-    regions.forEach(region => {
-        const btn = document.createElement('button');
-        const regionKey = region.toLowerCase();
-        btn.className = 'filter-chip' + (_homeRegionFilter === regionKey ? ' active' : '');
-        btn.type = 'button';
-        btn.textContent = region;
-        btn.addEventListener('click', () => {
-            _homeRegionFilter = regionKey;
-            renderRegionChips();
-            renderHomepage();
-        });
-        container.appendChild(btn);
-    });
-}
-
-function renderHomepage() {
-    if (!_allData) return;
-    showView('home');
-    const homeSummaries = getFilteredSpotSummaries();
-    const topContainer = document.getElementById('home-top-picks');
-    const compareContainer = document.getElementById('home-compare-list');
-    const filterLabel = document.getElementById('home-active-filter-label');
-    const favoritesToggle = document.getElementById('home-favorites-toggle');
-    const updateChip = document.getElementById('home-update-chip');
-    const homeSearchInput = document.getElementById('home-search');
-
-    if (favoritesToggle) favoritesToggle.classList.toggle('active', _homeFavoritesOnly);
-    if (updateChip && _allData.generated_at) updateChip.textContent = `Updated ${formatViewerDateTime(_allData.generated_at)}`;
-    if (filterLabel) filterLabel.textContent = `${homeSummaries.length} spots`;
-    if (homeSearchInput && homeSearchInput.value !== _homeSearchQuery) homeSearchInput.value = _homeSearchQuery;
-
-    topContainer.innerHTML = '';
-    compareContainer.innerHTML = '';
-
-    const topThree = homeSummaries.slice(0, 3);
-    if (!topThree.length) {
-        topContainer.innerHTML = `<div class="home-empty-state">No spots match the current filters. Try clearing search, region, or favorites-only mode.</div>`;
-    } else {
-        topThree.forEach((summary, index) => {
-            const article = document.createElement('article');
-            article.className = 'home-pick-card';
-            article.innerHTML = `
-                <span class="home-pick-rank">${index + 1}</span>
-                <div class="home-pick-topline">
-                    <div class="home-pick-location">
-                        <span class="home-pick-name">${summary.spot.name}</span>
-                        <span class="home-pick-region">${summary.spot.region || 'Spot forecast'}</span>
-                    </div>
-                    <span class="rating-badge bg-${summary.ratingColor}" style="width:max-content;">${summary.rating.toUpperCase()}</span>
-                </div>
-                <div>
-                    <div class="home-pick-window">${summary.windowLabel}</div>
-                    <div class="home-pick-wave">${summary.waveLabel} at the spot${summary.period ? ` · ${fmt(summary.period, 0)}s` : ''}</div>
-                </div>
-                <div class="reason-chip-row">${createReasonChipMarkup(summary.reasons)}</div>
-                <div class="home-pick-grid">
-                    <div class="home-pick-stat"><span class="home-pick-stat-label">Wind</span><span class="home-pick-stat-value">${summary.windEffect}</span></div>
-                    <div class="home-pick-stat"><span class="home-pick-stat-label">Surface</span><span class="home-pick-stat-value">${summary.surface}</span></div>
-                    <div class="home-pick-stat"><span class="home-pick-stat-label">Tide</span><span class="home-pick-stat-value">${summary.tideLabel}</span></div>
-                    <div class="home-pick-stat"><span class="home-pick-stat-label">Confidence</span><span class="home-pick-stat-value">${summary.confidence.label}</span></div>
-                </div>
-                <div class="home-pick-footer">
-                    <div class="home-pick-why">${summary.reasonLine}</div>
-                    <div class="home-pick-actions">
-                        <button class="home-link-btn" type="button">Open spot forecast</button>
-                        <button class="fav-chip-btn${getFavorites().includes(summary.spotId) ? ' is-fav' : ''}" type="button" aria-label="Toggle favorite">${getFavorites().includes(summary.spotId) ? '&#9733;' : '&#9734;'}</button>
-                    </div>
-                </div>
-            `;
-            article.addEventListener('click', () => navigateToSpot(summary.spotId));
-            article.querySelector('.home-link-btn').addEventListener('click', (event) => {
-                event.stopPropagation();
-                navigateToSpot(summary.spotId);
-            });
-            article.querySelector('.fav-chip-btn').addEventListener('click', (event) => {
-                event.stopPropagation();
-                toggleFavorite(summary.spotId);
-            });
-            topContainer.appendChild(article);
-        });
-    }
-
-    if (!homeSummaries.length) {
-        compareContainer.innerHTML = `<div class="home-empty-state">No comparison rows to show for the current filter state.</div>`;
-    } else {
-        homeSummaries.slice(0, 18).forEach(summary => {
-            const row = document.createElement('div');
-            row.className = 'home-compare-row';
-            row.innerHTML = `
-                <div class="home-compare-main">
-                    <span class="home-compare-name">${summary.spot.name}</span>
-                    <span class="home-compare-sub">${summary.spot.region || 'Spot forecast'} · ${summary.dayLabel}</span>
-                </div>
-                <span class="home-compare-value">${summary.windowLabel}</span>
-                <span class="home-compare-value">${summary.waveLabel}</span>
-                <span class="home-compare-value">${summary.windEffect} · ${summary.surface}</span>
-                <span class="home-compare-value">${summary.tideLabel}</span>
-                <span class="home-compare-value">${summary.confidence.label}</span>
-                <span class="home-compare-note">${summary.reasonLine}</span>
-                <button class="home-link-btn" type="button">View</button>
-            `;
-            row.addEventListener('click', () => navigateToSpot(summary.spotId));
-            row.querySelector('.home-link-btn').addEventListener('click', (event) => {
-                event.stopPropagation();
-                navigateToSpot(summary.spotId);
-            });
-            compareContainer.appendChild(row);
-        });
-    }
-
-    mountMapModule('home-map-anchor', 'Conditions Map', 'Compare the same forecast hour across spots before you commit to the drive.');
-}
-
-function renderSpotMapSection() {
-    const toggleBtn = document.getElementById('spot-map-toggle-btn');
-    const section = document.getElementById('spot-map-section');
-    if (!toggleBtn || !section) return;
-    section.hidden = !_spotMapVisible;
-    toggleBtn.textContent = _spotMapVisible ? 'Hide map' : 'Show map';
-    if (_spotMapVisible) {
-        mountMapModule('spot-map-anchor', 'Compare Nearby Spots', 'Same forecast hour, same map state, so you can compare alternatives without leaving this spot page.');
-    }
-}
-
-function selectHourlyTime(time) {
-    if (!time || !_hourlyData.length) return;
-    const idx = _hourlyData.findIndex(h => h.time === time);
-    if (idx < 0) return;
-    const waveRow = document.getElementById('wave-bars');
-    const scroller = document.getElementById('unified-scroll');
-    if (waveRow && waveRow.children[idx]) {
-        waveRow.children[idx].click();
-        if (scroller) scroller.scrollLeft = Math.max(0, idx * SLOT_W - scroller.clientWidth / 2);
-    }
-}
-
-function handleRouteChange() {
-    if (!_allData) return;
-    const route = parseRouteHash();
-    if (route.mapVar) _mapVariable = route.mapVar;
-    if (route.mapIdx != null && !Number.isNaN(route.mapIdx)) _mapTimeIdx = Math.max(0, Math.min(route.mapIdx, Math.max(0, _mapHourlyTimes.length - 1)));
-
-    const mapVariable = document.getElementById('map-variable');
-    if (mapVariable) mapVariable.value = _mapVariable;
-    const mapSlider = document.getElementById('map-time-slider');
-    if (mapSlider && _mapTimeIdx >= 0) mapSlider.value = _mapTimeIdx;
-    updateMapLegend();
-    updateMapMarkers();
-    updateMapTimeDisplay();
-
-    if (route.view === 'spot' && route.spotId && _allData.spots[route.spotId]) {
-        showView('spot');
-        _spotMapVisible = !!route.compare;
-        renderSpot(route.spotId, { selectedDate: route.day });
-        if (_pendingSpotTime) {
-            const pendingTime = _pendingSpotTime;
-            _pendingSpotTime = null;
-            setTimeout(() => { selectHourlyTime(pendingTime); }, 100);
-        }
-        return;
-    }
-
-    _spotMapVisible = false;
-    renderHomepage();
 }
 
 function renderDailyCarousel() {
@@ -2660,7 +1909,6 @@ function renderDailyCarousel() {
         }
 
         const heightDisplay = typeof displayRange !== 'undefined' && displayRange ? displayRange : fmt(displayHeight);
-        const dailyNote = getSessionOneLiner(bestHourData, spot);
 
         const card = document.createElement('button');
         card.className = 'daily-card' + (d.date === activeDate ? ' active' : '');
@@ -2678,7 +1926,6 @@ function renderDailyCarousel() {
                 ${bestHourData.swell_direction ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${bestHourData.swell_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>` : ''}
                 ${fmt(displayPeriod, 0)}s
             </div>
-            <div style="margin-top:0.28rem; font-size:0.68rem; color:var(--text-main); line-height:1.3;">${dailyNote}</div>
             <div class="daily-rating-strip">${samples.map(r => `<div class="bg-${r}"></div>`).join('')}</div>
         `;
 
@@ -2689,8 +1936,6 @@ function renderDailyCarousel() {
                 card.classList.add('active');
                 document.getElementById('current-day-label').textContent = isToday ? 'Today' : dp.weekday + ' ' + dp.day + '/' + dp.month;
                 renderSessionSpotlight(d.date);
-                renderSpotVerdict();
-                syncRouteState(true);
 
                 // Find first daylight hour of that day
                 let morningIdx = _hourlyData.findIndex(hh => {
@@ -2732,7 +1977,6 @@ function renderDailyCarousel() {
     if (activeDate) {
         _activeSessionDate = activeDate;
         renderSessionSpotlight(activeDate);
-        renderSpotVerdict();
         const activeEntry = _dailyData.find(d => d.date === activeDate) || _dailyData[0];
         if (activeEntry) {
             const activeTp = tzParts(activeEntry.date + 'T12:00:00');
@@ -2937,7 +2181,7 @@ function showDetailPanel(h) {
             <div style="display:flex;align-items:center;gap:0.75rem;">
                 <span class="detail-time">${timeStr}</span>
                 <span class="rating-badge bg-${ratingColor}">${conseilLabel.toUpperCase()}</span>
-                ${h.tide_quality ? `<span style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:4px;${h.tide_quality === 'good' ? 'color:#16a34a;border:1px solid #16a34a;' : h.tide_quality === 'poor' ? 'color:#dc2626;border:1px solid #dc2626;' : 'color:#94a3b8;border:1px solid #94a3b8;'}">${h.tide_quality === 'good' ? 'Tide good' : h.tide_quality === 'poor' ? 'Bad tide' : 'Tide OK'}</span>` : ''}
+                ${h.tide_quality ? `<span style="font-size:0.6rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:4px;${h.tide_quality === 'good' ? 'color:#16a34a;border:1px solid #16a34a;' : h.tide_quality === 'poor' ? 'color:#dc2626;border:1px solid #dc2626;' : 'color:#94a3b8;border:1px solid #94a3b8;'}">${h.tide_quality === 'good' ? 'Tide +' : h.tide_quality === 'poor' ? 'Tide -' : 'Tide OK'}</span>` : ''}
                 ${h.ml_conseil && topProba > 0 ? `<span style="font-size:0.65rem;color:${confColor};font-weight:700;border:1px solid ${confColor};padding:0.1rem 0.4rem;border-radius:4px;">${confLabel} Confidence</span>` : ''}
             </div>
             <button class="detail-close" id="detail-close-btn" aria-label="Close">&times;</button>
@@ -2954,7 +2198,7 @@ function showDetailPanel(h) {
 
         <div class="detail-grid">
             <div class="detail-block">
-                <div class="detail-block-title">Offshore Swell And Wind Sea</div>
+                <div class="detail-block-title">Ocean (offshore)</div>
                 <div class="d-row"><span class="d-label">Total Hs</span><span class="d-val" style="font-weight:700">${h.wave_height_model != null ? fmt(h.wave_height_model) + 'm' : '--'}</span></div>
                 <div class="d-row"><span class="d-label">Primary swell</span><span class="d-val">${formatOceanComponent(primarySwellHeight, h.swell_period, h.swell_direction, h.swell_direction_text)}</span></div>
                 ${secondarySwellRow}
@@ -2968,8 +2212,8 @@ function showDetailPanel(h) {
                 <div class="d-row"><span class="d-label">Direction</span><span class="d-val">${h.wind_direction != null ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;transform:rotate(' + h.wind_direction + 'deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> ' + (h.wind_direction_text || '') + ' ' + fmt(h.wind_direction, 0) + '&deg;' : '--'}</span></div>
             </div>
             <div class="detail-block">
-                <div class="detail-block-title">At The Spot</div>
-                <div class="d-row"><span class="d-label">Rating</span><span class="d-val"><span class="rating-badge bg-${ratingColor}" style="font-size:0.6rem;padding:0.1rem 0.4rem;">${conseilLabel.toUpperCase()}</span>${h.tide_quality ? ` <span style="font-size:0.55rem;font-weight:600;color:${h.tide_quality === 'good' ? '#16a34a' : h.tide_quality === 'poor' ? '#dc2626' : '#94a3b8'};">${h.tide_quality === 'good' ? 'Tide good' : h.tide_quality === 'poor' ? 'Bad tide' : 'Tide OK'}</span>` : ''}</span></div>
+                <div class="detail-block-title">AI Engine Insights</div>
+                <div class="d-row"><span class="d-label">Rating</span><span class="d-val"><span class="rating-badge bg-${ratingColor}" style="font-size:0.6rem;padding:0.1rem 0.4rem;">${conseilLabel.toUpperCase()}</span>${h.tide_quality ? ` <span style="font-size:0.55rem;font-weight:600;color:${h.tide_quality === 'good' ? '#16a34a' : h.tide_quality === 'poor' ? '#dc2626' : '#94a3b8'};">${h.tide_quality === 'good' ? 'Tide optimal' : h.tide_quality === 'poor' ? 'Bad tide' : 'Tide OK'}</span>` : ''}</span></div>
                 <div class="d-row"><span class="d-label">Surface</span><span class="d-val">${mlSurface || surfaceTexture}</span></div>
                 <div class="d-row"><span class="d-label">Level</span><span class="d-val">${(h.ml_skill === 'Confirmés+' ? 'Advanced' : 'All levels')}</span></div>
                 ${h.ml_conseil_proba ? `<div class="d-row" style="margin-top:0.25rem;border-top:1px dashed var(--border-light);padding-top:0.4rem;">
@@ -3127,30 +2371,16 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const spotSearchInput = document.getElementById('spot-search');
-    if (spotSearchInput) {
-        spotSearchInput.addEventListener('input', (e) => {
+    // Wire search input
+    const searchInput = document.getElementById('spot-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
             _searchQuery = e.target.value;
             renderSpotNav();
         });
     }
 
-    const homeSearchInput = document.getElementById('home-search');
-    if (homeSearchInput) {
-        homeSearchInput.addEventListener('input', (e) => {
-            _homeSearchQuery = e.target.value;
-            renderHomepage();
-        });
-    }
-
-    const favoritesToggle = document.getElementById('home-favorites-toggle');
-    if (favoritesToggle) {
-        favoritesToggle.addEventListener('click', () => {
-            _homeFavoritesOnly = !_homeFavoritesOnly;
-            renderHomepage();
-        });
-    }
-
+    // Wire favorite toggle
     const favBtn = document.getElementById('fav-toggle');
     if (favBtn) {
         favBtn.addEventListener('click', () => {
@@ -3158,17 +2388,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const backBtn = document.getElementById('back-home-btn');
-    if (backBtn) backBtn.addEventListener('click', () => navigateToHome());
-
-    const spotMapToggleBtn = document.getElementById('spot-map-toggle-btn');
-    if (spotMapToggleBtn) {
-        spotMapToggleBtn.addEventListener('click', () => {
-            _spotMapVisible = !_spotMapVisible;
-            renderSpotMapSection();
-            syncRouteState(true);
-        });
-    }
+    // Wire map expand/collapse
+    const mapToggle = document.getElementById('map-toggle');
+    if (mapToggle) mapToggle.addEventListener('click', toggleMapSize);
 
     if (typeof FORECAST_DATA !== 'undefined') {
         try {
@@ -3189,12 +2411,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<section id="map-module" class="map-module" hidden>
-    <div class="map-module-header">
-        <div>
-            <div class="map-module-title" id="map-module-title">Conditions Map</div>
-            <div class="map-module-copy" id="map-module-copy">Compare the same forecast hour across spots before you commit to the drive.</div>
-        </div>
+<!-- Floating Map Widget -->
+<div id="map-widget" class="map-widget map-widget-mini">
+    <div class="map-widget-header" id="map-toggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span>Conditions Map</span>
+        <span class="map-expand-icon" id="map-expand-icon">&#x26F6;</span>
     </div>
     <div class="map-widget-body">
         <div class="map-controls">
@@ -3226,7 +2448,41 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="map-scale-labels" id="map-scale-labels"></div>
         </div>
     </div>
-</section>
+</div>
+
+<!-- Mobile Map View (full screen, hidden on desktop) -->
+<div class="mobile-map-view" id="mobile-map-view">
+    <div class="mobile-map-controls">
+        <select id="mobile-map-variable" style="font-size:0.65rem;">
+            <option value="rating">Rating</option>
+            <option value="wave_range">Wave Range</option>
+            <option value="wave_sets">Max Sets</option>
+            <option value="surface">Surface</option>
+            <option value="wave_period">Period</option>
+            <option value="wind_speed">Wind</option>
+            <option value="wind_gust">Gusts</option>
+            <option value="wind_dir">Wind Dir</option>
+            <option value="hs_offshore">Hs Offshore</option>
+            <option value="swell_dir">Swell Dir</option>
+        </select>
+        <button class="map-play-btn" id="mobile-map-play">&#9654;</button>
+        <input type="range" id="mobile-map-slider" min="0" max="168" value="0">
+        <span class="map-time-display" id="mobile-map-time">Now</span>
+    </div>
+    <div id="mobile-map"></div>
+</div>
+
+<!-- Mobile Tab Bar -->
+<nav class="mobile-tab-bar" id="mobile-tab-bar">
+    <button class="mobile-tab active" id="tab-forecast" onclick="switchMobileTab('forecast')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15c2-4 4-8 9-8s7 4 9 8"/><circle cx="12" cy="12" r="1"/></svg>
+        Forecast
+    </button>
+    <button class="mobile-tab" id="tab-map" onclick="switchMobileTab('map')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Map
+    </button>
+</nav>
 
 <script>
 /* ========== MOBILE MAP TAB ========== */
