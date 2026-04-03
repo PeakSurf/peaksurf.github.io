@@ -274,7 +274,7 @@
         .map-time-slider { flex: 1; min-width: 120px; -webkit-appearance: none; appearance: none; height: 4px; background: var(--border); border-radius: 2px; outline: none; cursor: pointer; }
         .map-time-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg-main); cursor: pointer; }
         .map-time-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg-main); cursor: pointer; }
-        .map-time-display { font-size: 0.75rem; font-weight: 700; color: var(--accent); min-width: 90px; text-align: center; white-space: nowrap; }
+        .map-time-display { font-size: 0.72rem; font-weight: 700; color: var(--accent); min-width: 150px; text-align: center; white-space: nowrap; }
         .map-play-btn { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--accent); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.8rem; }
         .map-play-btn:hover { background: var(--bg-main); }
         /* Color scale bar */
@@ -340,7 +340,7 @@
             }
             .mobile-map-controls select { background: var(--bg-surface); color: var(--text-dark); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; font-size: 0.65rem; font-family: var(--font); }
             .mobile-map-controls input[type="range"] { flex: 1; min-width: 80px; }
-            .mobile-map-controls .map-time-display { font-size: 0.65rem; color: var(--text-dark); font-weight: 600; min-width: 60px; }
+            .mobile-map-controls .map-time-display { font-size: 0.62rem; color: var(--text-dark); font-weight: 600; min-width: 145px; }
             .mobile-map-controls .map-play-btn { background: var(--bg-surface); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; width: 26px; height: 26px; font-size: 0.7rem; cursor: pointer; }
             body { padding-bottom: 56px; } /* space for tab bar */
             .footer { margin-bottom: 56px; }
@@ -616,7 +616,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260403c"></script>
+<script src="data/forecast.js?v=20260403d"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -687,6 +687,20 @@ function parseUtcMs(dateObjOrString) {
     return Date.parse(dateObjOrString);
 }
 
+function getForecastCutoffMs() {
+    const currentHourStart = new Date();
+    currentHourStart.setMinutes(0, 0, 0);
+    return currentHourStart.getTime();
+}
+
+function getVisibleForecastHours(spotData) {
+    const hourly = (spotData && spotData.hourly) || [];
+    if (!hourly.length) return [];
+    const cutoff = getForecastCutoffMs();
+    const visible = hourly.filter(h => parseUtcMs(h.time) >= cutoff);
+    return visible.length ? visible : hourly;
+}
+
 function viewerLocalParts(dateObjOrString) {
     const cacheKey = dateObjOrString instanceof Date ? dateObjOrString.toISOString() : String(dateObjOrString);
     if (_viewerTimeCache[cacheKey]) return _viewerTimeCache[cacheKey];
@@ -708,6 +722,11 @@ function viewerLocalParts(dateObjOrString) {
     };
     _viewerTimeCache[cacheKey] = result;
     return result;
+}
+
+function formatViewerDateTime(dateObjOrString) {
+    const p = viewerLocalParts(dateObjOrString);
+    return `${p.weekday} ${String(p.day).padStart(2, '0')}/${String(p.month).padStart(2, '0')}/${p.year} ${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
 }
 
 function getSpotFormatter(spot) {
@@ -1055,7 +1074,7 @@ function _dirColor(deg) {
 }
 
 function _getHourAtIndex(spotData, idx) {
-    const hourly = spotData.hourly || [];
+    const hourly = getVisibleForecastHours(spotData);
     if (!hourly.length) return null;
     if (idx < 0) {
         // Current time — find closest
@@ -1070,9 +1089,18 @@ function _getHourAtIndex(spotData, idx) {
     // Match by time string from the shared time axis (indices may differ per spot)
     if (_mapHourlyTimes[idx]) {
         const targetTime = _mapHourlyTimes[idx];
+        let best = hourly[0];
+        let bestDiff = Infinity;
+        const targetMs = parseUtcMs(targetTime);
         for (const h of hourly) {
             if (h.time === targetTime) return h;
+            const diff = Math.abs(parseUtcMs(h.time) - targetMs);
+            if (diff < bestDiff) {
+                bestDiff = diff;
+                best = h;
+            }
         }
+        return best;
     }
     return idx < hourly.length ? hourly[idx] : hourly[hourly.length - 1];
 }
@@ -1160,7 +1188,7 @@ function initConditionsMap(rawData) {
 
     // Build shared time axis from first spot
     const firstSid = rawData.spot_order[0];
-    const firstHourly = rawData.data[firstSid]?.hourly || [];
+    const firstHourly = getVisibleForecastHours(rawData.data[firstSid]);
     _mapHourlyTimes = firstHourly.map(h => h.time);
     const currentIdx = _getClosestMapTimeIndex();
     const slider = document.getElementById('map-time-slider');
@@ -1218,14 +1246,23 @@ function initConditionsMap(rawData) {
 }
 
 function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
-    const hourly = spotData.hourly || [];
+    const hourly = getVisibleForecastHours(spotData);
     // Determine the start index: slider position or closest to now
     let startIdx = 0;
     if (_mapTimeIdx >= 0) {
         // Use the slider hour — find matching index in this spot's hourly
         const targetTime = _mapHourlyTimes[_mapTimeIdx];
-        for (let i = 0; i < hourly.length; i++) {
-            if (hourly[i].time === targetTime) { startIdx = i; break; }
+        if (targetTime) {
+            const targetMs = parseUtcMs(targetTime);
+            let bestDiff = Infinity;
+            for (let i = 0; i < hourly.length; i++) {
+                if (hourly[i].time === targetTime) { startIdx = i; break; }
+                const diff = Math.abs(parseUtcMs(hourly[i].time) - targetMs);
+                if (diff < bestDiff) {
+                    bestDiff = diff;
+                    startIdx = i;
+                }
+            }
         }
     } else {
         const nowMs = Date.now();
@@ -1250,8 +1287,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     const windSpd = sel.wind_speed_kmh != null ? Math.round(sel.wind_speed_kmh) + ' km/h' : '--';
     const windGust = sel.wind_gusts_kmh != null ? Math.round(sel.wind_gusts_kmh) + ' km/h' : '';
     const windDir = sel.wind_direction_text || '';
-    const tp = viewerLocalParts(sel.time);
-    const selTime = String(tp.hour).padStart(2,'0') + ':00';
+    const selDateTime = formatViewerDateTime(sel.time);
 
     // Hourly mini bars
     let hourlyHtml = '';
@@ -1276,6 +1312,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
                 <span class="popup-name" onclick="renderSpot('${sid}');renderSpotNav();updateFavToggle();window.scrollTo({top:0,behavior:'smooth'});" style="cursor:pointer;">${spotInfo.name}</span>
                 <span class="popup-best" style="background:${ratingColor};color:${conseil==='Poor'?'#fff':'#000'}">${(conseil||'--').toUpperCase()}</span>
             </div>
+            <div style="font-size:0.7rem;color:#94a3b8;padding:0 0 0.25rem;">${selDateTime}</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.8rem;font-size:0.7rem;padding:0.3rem 0;color:#64748b;">
                 <div><span style="color:#94a3b8;">Waves:</span> <b style="color:#1e293b;">${waveText}</b> ${setsText ? '<span style="color:#64748b;">'+setsText+'</span>' : ''}</div>
                 <div><span style="color:#94a3b8;">Surface:</span> <b style="color:#1e293b;">${surface}</b></div>
@@ -1335,8 +1372,7 @@ function updateMapTimeDisplay() {
     if (_mapTimeIdx < 0 || !_mapHourlyTimes[_mapTimeIdx]) {
         el.textContent = 'Now';
     } else {
-        const tp = viewerLocalParts(_mapHourlyTimes[_mapTimeIdx]);
-        el.textContent = `${tp.weekday} ${String(tp.hour).padStart(2,'0')}:00`;
+        el.textContent = formatViewerDateTime(_mapHourlyTimes[_mapTimeIdx]);
     }
 }
 
@@ -1552,15 +1588,7 @@ function renderSpot(spotId) {
     if (webcamUrl) { webcamEl.href = webcamUrl; webcamEl.style.display = 'inline-flex'; }
     else { webcamEl.style.display = 'none'; }
 
-    const nowMs = Date.now();
-    const currentHourStart = new Date(nowMs);
-    currentHourStart.setMinutes(0, 0, 0);
-    const cutoff = currentHourStart.getTime();
-
-    // Workaround to not break previous date objects during filtering
-    _hourlyData = (spotData.hourly || []).filter(h => {
-        return parseUtcMs(h.time) >= cutoff;
-    });
+    _hourlyData = getVisibleForecastHours(spotData);
 
     _tideData = spotData.tides || [];
     const dailyByDate = new Map((spotData.daily || []).map(d => [d.date, d]));
@@ -2584,8 +2612,7 @@ function updateMobileTimeDisplay() {
     if (_mapTimeIdx < 0 || !_mapHourlyTimes[_mapTimeIdx]) {
         el.textContent = 'Now';
     } else {
-        const tp = viewerLocalParts(_mapHourlyTimes[_mapTimeIdx]);
-        el.textContent = tp.weekday + ' ' + String(tp.hour).padStart(2,'0') + ':00';
+        el.textContent = formatViewerDateTime(_mapHourlyTimes[_mapTimeIdx]);
     }
 }
 </script>
