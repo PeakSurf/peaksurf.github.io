@@ -616,7 +616,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260403b"></script>
+<script src="data/forecast.js?v=20260403c"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -637,6 +637,16 @@ function fmt(val, decimals = 1) { return val == null ? '--' : Number(val).toFixe
 const _tzCache = {};
 const _spotTimeCache = {};
 const _spotFormatterCache = {};
+const _viewerTimeCache = {};
+const _viewerFormatter = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'short',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+});
 function tzParts(dateObjOrString) {
     let timeStr = typeof dateObjOrString === 'string' ? dateObjOrString : dateObjOrString.toISOString();
     if (timeStr.includes('T')) {
@@ -675,6 +685,29 @@ function tzDateStr(date) {
 function parseUtcMs(dateObjOrString) {
     if (dateObjOrString instanceof Date) return dateObjOrString.getTime();
     return Date.parse(dateObjOrString);
+}
+
+function viewerLocalParts(dateObjOrString) {
+    const cacheKey = dateObjOrString instanceof Date ? dateObjOrString.toISOString() : String(dateObjOrString);
+    if (_viewerTimeCache[cacheKey]) return _viewerTimeCache[cacheKey];
+
+    const date = dateObjOrString instanceof Date ? dateObjOrString : new Date(dateObjOrString);
+    const formatted = _viewerFormatter.formatToParts(date);
+    const partMap = {};
+    formatted.forEach(part => {
+        if (part.type !== 'literal') partMap[part.type] = part.value;
+    });
+
+    const result = {
+        year: Number(partMap.year),
+        month: Number(partMap.month),
+        day: Number(partMap.day),
+        hour: Number(partMap.hour),
+        minute: Number(partMap.minute),
+        weekday: partMap.weekday,
+    };
+    _viewerTimeCache[cacheKey] = result;
+    return result;
 }
 
 function getSpotFormatter(spot) {
@@ -1217,7 +1250,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     const windSpd = sel.wind_speed_kmh != null ? Math.round(sel.wind_speed_kmh) + ' km/h' : '--';
     const windGust = sel.wind_gusts_kmh != null ? Math.round(sel.wind_gusts_kmh) + ' km/h' : '';
     const windDir = sel.wind_direction_text || '';
-    const tp = tzParts(sel.time);
+    const tp = viewerLocalParts(sel.time);
     const selTime = String(tp.hour).padStart(2,'0') + ':00';
 
     // Hourly mini bars
@@ -1227,7 +1260,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     const barScale = maxWv > 0 ? 30 / maxWv : 1;
     for (let i = 0; i < displayHours.length; i++) {
         const hr = displayHours[i];
-        const htp = tzParts(hr.time);
+        const htp = viewerLocalParts(hr.time);
         const hh = String(htp.hour).padStart(2,'0');
         const c = getNormalizedConseil(hr);
         const rc = RATING_COLORS[c] || '#334155';
@@ -1302,10 +1335,8 @@ function updateMapTimeDisplay() {
     if (_mapTimeIdx < 0 || !_mapHourlyTimes[_mapTimeIdx]) {
         el.textContent = 'Now';
     } else {
-        const tp = tzParts(_mapHourlyTimes[_mapTimeIdx]);
-        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        const d = new Date(_mapHourlyTimes[_mapTimeIdx].split('Z')[0].split('+')[0]);
-        el.textContent = `${dayNames[d.getDay()]} ${String(tp.hour).padStart(2,'0')}:00`;
+        const tp = viewerLocalParts(_mapHourlyTimes[_mapTimeIdx]);
+        el.textContent = `${tp.weekday} ${String(tp.hour).padStart(2,'0')}:00`;
     }
 }
 
@@ -2553,10 +2584,8 @@ function updateMobileTimeDisplay() {
     if (_mapTimeIdx < 0 || !_mapHourlyTimes[_mapTimeIdx]) {
         el.textContent = 'Now';
     } else {
-        const tp = tzParts(_mapHourlyTimes[_mapTimeIdx]);
-        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        const d = new Date(_mapHourlyTimes[_mapTimeIdx].split('Z')[0].split('+')[0]);
-        el.textContent = dayNames[d.getDay()] + ' ' + String(tp.hour).padStart(2,'0') + ':00';
+        const tp = viewerLocalParts(_mapHourlyTimes[_mapTimeIdx]);
+        el.textContent = tp.weekday + ' ' + String(tp.hour).padStart(2,'0') + ':00';
     }
 }
 </script>
