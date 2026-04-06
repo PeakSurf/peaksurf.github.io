@@ -58,11 +58,11 @@
 
         /* ========== HEADER ========== */
         .header { background: var(--bg-surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; }
         /* ========== HEADER LOGO FIX ========== */
-        .logo { font-size: 1.52rem; font-weight: 800; color: var(--text-dark); text-decoration: none; display: flex; align-items: center; gap: 0.72rem; letter-spacing: 0.04em; line-height: 1; }
-        .logo-icon-wrap { display: inline-flex; align-items: center; justify-content: center; background: #fff; border-radius: 12px; padding: 4px; flex-shrink: 0; box-shadow: 0 0 16px rgba(26, 192, 198, 0.28); }
-        .logo-icon-wrap img { height: 46px; width: 46px; object-fit: contain; display: block; }
+        .logo { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); text-decoration: none; display: flex; align-items: center; gap: 0.6rem; letter-spacing: 0.05em; }
+        .logo-icon-wrap { display: inline-flex; align-items: center; justify-content: center; background: #fff; border-radius: 10px; padding: 3px; flex-shrink: 0; box-shadow: 0 0 12px rgba(26, 192, 198, 0.3); }
+        .logo-icon-wrap img { height: 38px; width: 38px; object-fit: contain; display: block; }
         .header-update { font-size: 0.7rem; color: var(--text-light); }
 
         .container { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
@@ -84,17 +84,10 @@
         .spot-fav-toggle:hover, .spot-fav-toggle.is-fav { color: var(--accent); }
 
         /* ========== TAGLINE BANNER ========== */
-        .tagline-banner { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem 0.55rem; }
-        .tagline-banner p { font-size: 0.68rem; color: var(--text-muted); line-height: 1.35; margin: 0; max-width: 560px; font-weight: 600; }
+        .tagline-banner { max-width: 1280px; margin: 0 auto; padding: 0.4rem 1.5rem 0.5rem; }
+        .tagline-banner p { font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; margin: 0; max-width: 720px; }
         .tagline-banner strong { color: var(--accent); }
-        @media (max-width: 600px) {
-            .header-inner { min-height: 60px; padding: 0 1rem; }
-            .logo { font-size: 1.34rem; gap: 0.55rem; }
-            .logo-icon-wrap { border-radius: 11px; padding: 3px; }
-            .logo-icon-wrap img { height: 40px; width: 40px; }
-            .tagline-banner { padding: 0 1rem 0.45rem; }
-            .tagline-banner p { font-size: 0.58rem; line-height: 1.35; max-width: none; }
-        }
+        @media (max-width: 600px) { .tagline-banner p { font-size: 0.55rem; line-height: 1.4; } }
 
         /* ========== HERO / CURRENT CONDITIONS ========== */
         .spot-header { margin-bottom: 1.25rem; }
@@ -109,8 +102,8 @@
         .ai-header { display: flex; align-items: center; gap: 0.75rem; }
         .ai-badge { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); background: rgba(26, 192, 198, 0.1); padding: 0.2rem 0.6rem; border-radius: 20px; }
         .ai-badge svg { width: 14px; height: 14px; }
-        .ai-main-content { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
-        .ai-size-block { display: flex; flex-direction: column; min-width: 170px; }
+        .ai-main-content { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        .ai-size-block { display: flex; flex-direction: column; }
         .ai-details-block { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; flex: 1; }
         .ai-context-line { font-size: 0.68rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; }
         .ai-chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.2rem; }
@@ -126,7 +119,7 @@
         .direction-inline .deg { color: var(--text-light); font-size: 0.92em; font-weight: 700; }
         .rating-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #000; }
 
-        .session-spotlight { margin-bottom: 1.1rem; background: radial-gradient(circle at top right, rgba(26, 192, 198, 0.16), transparent 38%), linear-gradient(135deg, #112341 0%, #091527 100%); border: 1px solid rgba(26, 192, 198, 0.18); border-radius: var(--radius); padding: 1rem 1.1rem; box-shadow: 0 10px 28px rgba(0,0,0,0.22); }
+        .session-spotlight { display: none !important; }
         .session-topline { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
         .session-kicker { font-size: 0.68rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.09em; }
         .session-day-pill { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); font-size: 0.7rem; font-weight: 700; color: var(--text-dark); }
@@ -139,7 +132,7 @@
         .session-stat-label { display: block; font-size: 0.62rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.28rem; }
         .session-stat-value { display: block; font-size: 0.88rem; font-weight: 800; color: var(--text-dark); line-height: 1.25; }
 
-        .hourly-guide { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: -0.15rem 0 0.85rem; }
+        .hourly-guide { display: none !important; }
         .hourly-guide-text { font-size: 0.74rem; color: var(--text-muted); font-weight: 600; }
         .hourly-guide-chip { display: inline-flex; align-items: center; padding: 0.18rem 0.5rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); font-size: 0.66rem; font-weight: 700; color: var(--text-main); }
 
@@ -415,7 +408,7 @@
         </div>
     </div>
     <div class="tagline-banner">
-        <p><strong>PeakSurf</strong> turns offshore swell into spot-level surf sessions.</p>
+        <p>Offshore swells are easy to predict. What happens when they hit surf spots isn't. <strong>PeakSurf</strong> leverages high-resolution European coastal models, then uses AI to forecast how each spot transforms raw swell into rideable waves &mdash; based on offshore swell conditions, local wind, seafloor, tide, and beach geometry.</p>
     </div>
 </header>
 
@@ -1685,21 +1678,12 @@ function _renderHeroWithHour(h, spotData) {
     const skillText = h.ml_skill === 'Confirmés+' ? 'Advanced Only' : 'Friendly for All Levels';
     const windEffect = getWindEffect(h, spotData.spot);
     const tideStatus = getTideStatusLabel(h);
-    const swellChipMarkup = getDirectionMarkup(h.swell_direction, h.swell_direction_text, { showDegrees: false, size: 10, prefix: 'Swell' });
     const swellDetailMarkup = getDirectionMarkup(h.swell_direction, h.swell_direction_text, { showDegrees: true, size: 12 });
-    const localTp = spotLocalParts(h.time, spotData.spot);
-    const localTimeLabel = `${localTp.weekday} ${localTp.day}/${localTp.month} · ${String(localTp.hour).padStart(2, '0')}:${String(localTp.minute).padStart(2, '0')} local`;
 
     document.getElementById('hero-ai-detail').innerHTML = `
-        <div class="ai-context-line">${localTimeLabel}</div>
-        <div class="ai-chip-row">
-            <span class="ai-chip">${surfaceText}</span>
-            <span class="ai-chip">${skillText}</span>
-            ${swellChipMarkup !== '--' ? `<span class="ai-chip">${swellChipMarkup}</span>` : ''}
-            <span class="ai-chip">${windEffect.label}</span>
-            ${tideStatus ? `<span class="ai-chip">${tideStatus}</span>` : ''}
+        <div style="font-size:0.85rem;">
+            <span style="font-weight:600; color:var(--text-dark);">${surfaceText}</span> &bull; ${skillText}
         </div>
-        <div class="ai-helper-line">Tap any hourly bar below to inspect another moment in the day.</div>
     `;
 
     document.getElementById('hero-swell').textContent = fmt(h.wave_height_model);
