@@ -2067,10 +2067,15 @@ function renderUnifiedTrack() {
         const sd = document.createElement('div');
         sd.className = 'swell-dir-slot' + nightClass;
         if (showLabel && h.swell_direction != null) {
+            const offshoreHs = h.wave_height_model != null ? `${fmt(h.wave_height_model)}<span style="font-size:0.5rem;font-weight:600;color:var(--text-light);margin-right:2px;">m</span> ` : '';
             sd.innerHTML = `
-                <span class="swell-period">${fmt(h.peak_period || h.swell_period, 0)}s</span>
-                <span class="swell-dir-arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.swell_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>
-                <span class="swell-dir-text">${h.swell_direction_text || degToCompass(h.swell_direction)}</span>
+                <div style="font-size:0.7rem; font-weight:800; color:var(--text-dark); margin-bottom:1px; display:flex; align-items:baseline; justify-content:center;">
+                    ${offshoreHs}<span class="swell-period" style="font-size:0.6rem; font-weight:700; color:var(--text-muted);">${fmt(h.peak_period || h.swell_period, 0)}s</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:2px; font-size:0.55rem; color:var(--text-muted); font-weight:700;">
+                    <span style="display:inline-flex; color:var(--accent);"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.swell_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>
+                    <span>${h.swell_direction_text || degToCompass(h.swell_direction)}</span>
+                </div>
             `;
         }
         swellDirRow.appendChild(sd);
