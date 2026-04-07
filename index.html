@@ -8,6 +8,10 @@
     <meta http-equiv="Expires" content="0">
     <title>PeakSurf — AI Surf Forecast</title>
     <link rel="icon" type="image/png" href="logo-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -2340,7 +2344,10 @@ function renderTideCanvas() {
     }
     ctx.lineTo(W, H);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(26, 192, 198, 0.05)';
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, 'rgba(26, 192, 198, 0.35)');
+    grad.addColorStop(1, 'rgba(26, 192, 198, 0.0)');
+    ctx.fillStyle = grad;
     ctx.fill();
 
     ctx.beginPath();
@@ -2389,14 +2396,27 @@ function renderTideCanvas() {
     if (now >= tMin && now <= tMax) {
         const frac = (now - tMin) / (tMax - tMin - 3600000);
         const nx = getX(frac * (_hourlyData.length - 1));
+        const ny = yScale(interpolateTide(now));
+        
         ctx.strokeStyle = 'rgba(255,255,255,0.15)';
         ctx.lineWidth = 1;
         ctx.setLineDash([3, 3]);
         ctx.beginPath();
-        ctx.moveTo(nx, 0);
+        ctx.moveTo(nx, ny);
         ctx.lineTo(nx, H);
         ctx.stroke();
         ctx.setLineDash([]);
+
+        ctx.shadowColor = '#1ac0c6';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(nx, ny, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#1ac0c6';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
     }
 }
 
