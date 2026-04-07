@@ -1071,6 +1071,15 @@ const DEFAULT_FAVS = [
 
 function initApp(rawData) {
     _allData = rawData;
+    // Show last update time in header
+    if (rawData.generated_at) {
+        const d = new Date(rawData.generated_at);
+        const timeStr = d.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+        document.getElementById('update-time').textContent = 'Updated ' + timeStr;
+    }
+    if (rawData.ibi_run_date) {
+        document.getElementById('ibi-info').textContent = 'IBI run ' + rawData.ibi_run_date;
+    }
     // Set default favorites on first visit or after favorites upgrade (v2)
     if (!localStorage.getItem('alaia_fav_v2')) {
         const validDefaults = DEFAULT_FAVS.filter(id => rawData.spots[id]);
