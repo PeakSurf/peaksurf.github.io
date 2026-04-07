@@ -2386,6 +2386,7 @@ function renderTideCanvas() {
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
+    let lastRenderedX = -999;
     for (const tide of sortedTides) {
         const tt = parseUtcMs(tide.datetime);
         if (tt < tMin || tt > tMax) continue;
@@ -2393,6 +2394,10 @@ function renderTideCanvas() {
         const frac = (tt - tMin) / (tMax - tMin - 3600000);
         const x = getX(frac * (_hourlyData.length - 1));
         const y = yScale(tide.height);
+
+        // Prevent overlapping closely-timed duplicate tides
+        if (Math.abs(x - lastRenderedX) < 30) continue;
+        lastRenderedX = x;
 
         ctx.beginPath();
         ctx.arc(x, y, 3, 0, Math.PI * 2);
@@ -2402,17 +2407,18 @@ function renderTideCanvas() {
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        const labelY = tide.type === 'high' ? y - 7 : y + 13;
+        const labelY = tide.type === 'high' ? y - 8 : y + 14;
         const tideTp = spotLocalParts(tide.datetime, _allData.data[_currentSpot].spot);
         const tideTimeStr = String(tideTp.hour).padStart(2,'0') + ':' + String(tideTp.minute).padStart(2,'0');
 
-        ctx.fillStyle = '#8ba0b9';
-        ctx.font = '7px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(tideTimeStr, x, labelY + (tide.type === 'high' ? -9 : 9));
         ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 8px Inter, sans-serif';
+        ctx.font = 'bold 8.5px Inter, sans-serif';
+        ctx.textAlign = 'center';
         ctx.fillText(tide.height.toFixed(1) + 'm', x, labelY);
+
+        ctx.fillStyle = '#8ba0b9';
+        ctx.font = '7.5px Inter, sans-serif';
+        ctx.fillText(tideTimeStr, x, labelY + (tide.type === 'high' ? -10.5 : 10.5));
     }
 
     const now = Date.now();
