@@ -384,8 +384,8 @@
             .wind-dir-text { font-size: 0.43rem; }
             .swell-dir-slot { font-size: 0.55rem; }
             .rating-dot { width: 34px; }
-            .canvas-row { min-height: 70px; }
-            .canvas-wrap { height: 70px !important; }
+            .canvas-row { min-height: 100px; }
+            .canvas-wrap { height: 100px !important; }
         }
 
         /* ========== RATING LEGEND ========== */
@@ -593,7 +593,7 @@
                 <div class="wind-row" id="wind-row"></div>
                 <div class="canvas-row">
                     <div class="canvas-title">Tide (m)</div>
-                    <div class="canvas-wrap" style="height:90px;"><canvas id="tide-canvas" role="img" aria-label="Tide curve"></canvas></div>
+                    <div class="canvas-wrap" style="height:110px;"><canvas id="tide-canvas" role="img" aria-label="Tide curve"></canvas></div>
                 </div>
             </div>
         </div>
@@ -2317,7 +2317,7 @@ function renderTideCanvas() {
     const c = setupCanvas('tide-canvas');
     if (!c || _tideData.length < 2) return;
     const { ctx, W, H } = c;
-    const pad = { top: 12, bottom: 10 };
+    const pad = { top: 25, bottom: 25 };
 
     const tMin = new Date(_hourlyData[0].time).getTime();
     const tMax = new Date(_hourlyData[_hourlyData.length - 1].time).getTime() + 3600000;
