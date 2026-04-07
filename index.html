@@ -2077,7 +2077,7 @@ function renderUnifiedTrack() {
 
         const ws = document.createElement('div');
         ws.className = 'wind-slot' + nightClass;
-        if (showLabel && h.wind_speed_kmh != null) {
+        if (h.wind_speed_kmh != null) {
             const speed = h.wind_speed_kmh || 0;
             const gust = h.wind_gusts_kmh != null ? h.wind_gusts_kmh : speed;
             const delta = Math.max(0, gust - speed);
