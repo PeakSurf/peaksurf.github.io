@@ -203,7 +203,18 @@
 
         .row-label { position: sticky; left: 0; z-index: 5; width: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.03em; background: var(--bg-surface); border-right: 1px solid var(--border); }
 
-        .wind-row { display: flex; height: 76px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; }
+        .wind-row { display: flex; height: 100px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; }
+        .wind-bar-container { display: flex; align-items: flex-end; justify-content: center; height: 36px; width: 8px; margin: 4px auto 0; border-radius: 4px; background: rgba(255,255,255,0.05); overflow: hidden; }
+        .wind-bar-base { width: 100%; border-radius: 2px; transition: height 0.3s; }
+        .wind-bar-gust { width: 100%; opacity: 0.6; background: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.8) 2px, rgba(255,255,255,0.8) 4px); transition: height 0.3s; }
+        .wind-align-offshore { background: #10b981; }
+        .wind-align-onshore { background: #ef4444; }
+        .wind-align-cross { background: #94a3b8; }
+        .wind-align-glassy { background: #1ac0c6; }
+        .wind-text-offshore { color: #10b981; }
+        .wind-text-onshore { color: #ef4444; }
+        .wind-text-cross { color: #94a3b8; }
+        .wind-text-glassy { color: #1ac0c6; }
         .wind-slot { width: 56px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding-top: 2px; }
         .wind-head { display: flex; align-items: center; justify-content: center; gap: 3px; }
         .wind-arrow { display: inline-flex; align-items: center; justify-content: center; color: var(--text-dark); }
@@ -358,7 +369,8 @@
             .time-slot { font-size: 0.65rem; padding: 0.3rem 0; }
             .wave-slot { padding-bottom: 4px; }
             .wave-label { font-size: 0.6rem; }
-            .wind-row { height: 72px; }
+            .wind-row { height: 90px; }
+            .wind-bar-container { height: 28px; width: 6px; }
             .wind-slot { font-size: 0.55rem; gap: 1px; }
             .wind-head { gap: 2px; }
             .wind-dir-badge { font-size: 0.52rem; padding: 2px 4px; }
@@ -2066,19 +2078,38 @@ function renderUnifiedTrack() {
         const ws = document.createElement('div');
         ws.className = 'wind-slot' + nightClass;
         if (showLabel && h.wind_speed_kmh != null) {
-            const gustValue = h.wind_gusts_kmh != null ? fmt(h.wind_gusts_kmh, 0) : '--';
-            const gustClass = h.wind_gusts_kmh != null && h.wind_gusts_kmh >= 35 ? 'wind-gust is-strong' : 'wind-gust';
-            const windOpacity = Math.max(0.2, Math.min(1, (h.wind_speed_kmh || 0) / 30));
-            const windSize = 10 + Math.min(8, (h.wind_speed_kmh || 0) / 4);
+            const speed = h.wind_speed_kmh || 0;
+            const gust = h.wind_gusts_kmh != null ? h.wind_gusts_kmh : speed;
+            const delta = Math.max(0, gust - speed);
+            const showGustText = delta > 8;
+            const effectLabel = getWindEffect(h, spot).label.toLowerCase();
+            
+            let alignClass = 'wind-align-cross';
+            let textColorClass = 'wind-text-cross';
+            if (effectLabel.includes('offshore')) { alignClass = 'wind-align-offshore'; textColorClass = 'wind-text-offshore'; }
+            else if (effectLabel.includes('onshore') || effectLabel.includes('blown')) { alignClass = 'wind-align-onshore'; textColorClass = 'wind-text-onshore'; }
+            else if (effectLabel === 'glassy' || speed < 5) { alignClass = 'wind-align-glassy'; textColorClass = 'wind-text-glassy'; }
+            
+            const maxW = 50; 
+            const speedH = Math.min(100, (speed / maxW) * 100);
+            const gustH = Math.min(100, (delta / maxW) * 100);
+            
+            const windSize = 13;
             const windDirLabel = h.wind_direction_text || degToCompass(h.wind_direction);
+            
             ws.innerHTML = `
-                <div class="wind-head">
-                    <span class="wind-arrow" style="opacity:${windOpacity.toFixed(2)};"><svg width="${Math.round(windSize)}" height="${Math.round(windSize)}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>
-                    <span class="wind-dir-badge" title="Wind direction ${windDirLabel}">${windDirLabel}</span>
+                <div class="wind-head" style="margin-bottom:2px;" title="${windDirLabel} - ${getWindEffect(h, spot).label}">
+                    <span class="wind-arrow ${textColorClass}"><svg width="${windSize}" height="${windSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>
                 </div>
-                <div class="wind-value-stack">
-                    <span class="wind-speed" title="Wind ${fmt(h.wind_speed_kmh, 0)} km/h">${fmt(h.wind_speed_kmh, 0)}</span>
-                    <span class="${gustClass}" title="Gusts ${gustValue} km/h">G${gustValue}</span>
+                <div class="wind-value-stack" style="gap:0;">
+                    <span class="wind-speed" style="background:transparent; border-color:transparent; padding:0; font-size:0.75rem; color:var(--text-dark);" title="Wind ${fmt(speed, 0)} km/h">${fmt(speed, 0)}</span>
+                    ${showGustText ? `<span class="wind-gust" style="background:transparent; border-color:transparent; padding:0; color:#cbd5e1; font-size:0.55rem; line-height:1;" title="Gusts ${fmt(gust, 0)} km/h">G${fmt(gust, 0)}</span>` : '<span style="height:0.55rem;display:block;"></span>'}
+                </div>
+                <div class="wind-bar-container" title="${fmt(speed, 0)} km/h (Gusts ${fmt(gust, 0)}) - ${getWindEffect(h, spot).label}">
+                    <div style="width:100%; display:flex; flex-direction:column; justify-content:flex-end; height:100%; align-items:center;">
+                        <div class="wind-bar-gust ${alignClass}" style="height:${gustH}%;"></div>
+                        <div class="wind-bar-base ${alignClass}" style="height:${speedH}%;"></div>
+                    </div>
                 </div>
             `;
         }
