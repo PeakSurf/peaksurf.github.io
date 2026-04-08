@@ -2170,11 +2170,14 @@ function renderUnifiedTrack() {
         const scroller = document.getElementById('unified-scroll');
         scroller.scrollLeft = Math.max(0, closestIdx * SLOT_W - scroller.clientWidth / 2);
     }
-    // Auto-open detail panel for current hour
+    // Highlight current hour slot
     _selectedSlotIdx = closestIdx;
     const activeSlot = waveRow.children[closestIdx];
     if (activeSlot) activeSlot.classList.add('active');
-    showDetailPanel(_hourlyData[closestIdx]);
+    // Auto-open detail panel only on desktop — on mobile it's a full bottom sheet
+    if (window.innerWidth > 600) {
+        showDetailPanel(_hourlyData[closestIdx]);
+    }
 
     document.getElementById('scroll-left').onclick = () => { document.getElementById('unified-scroll').scrollBy({ left: -SLOT_W * 6, behavior: 'smooth' }); };
     document.getElementById('scroll-right').onclick = () => { document.getElementById('unified-scroll').scrollBy({ left: SLOT_W * 6, behavior: 'smooth' }); };
