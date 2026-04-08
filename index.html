@@ -2280,7 +2280,7 @@ function showDetailPanel(h) {
         <div class="detail-grid">
             <div class="detail-block">
                 <div class="detail-block-title">Ocean (offshore)</div>
-                <div class="d-row"><span class="d-label">Total Hs</span><span class="d-val" style="font-weight:700">${h.wave_height_model != null ? fmt(h.wave_height_model) + 'm' : '--'}${h.peak_period != null ? ' · ' + fmt(h.peak_period, 0) + 's' : ''}</span></div>
+                <div class="d-row"><span class="d-label">Total Hs</span><span class="d-val" style="font-weight:700">${formatOceanComponent(h.wave_height_model, h.peak_period, h.wave_direction, h.wave_direction_text)}</span></div>
                 <div class="d-row"><span class="d-label">Primary swell</span><span class="d-val">${formatOceanComponent(primarySwellHeight, h.swell_period, h.swell_direction, h.swell_direction_text)}</span></div>
                 ${secondarySwellRow}
                 ${windWaveRow}
