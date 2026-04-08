@@ -2105,7 +2105,7 @@ function renderUnifiedTrack() {
 
         const sd = document.createElement('div');
         sd.className = 'swell-dir-slot' + nightClass;
-        if (showLabel && h.swell_direction != null) {
+        if (h.swell_direction != null) {
             const offshoreHs = h.wave_height_model != null ? `${fmt(h.wave_height_model)}<span style="font-size:0.5rem;font-weight:600;color:var(--text-light);margin-right:2px;">m</span> ` : '';
             sd.innerHTML = `
                 <div style="font-size:0.7rem; font-weight:800; color:var(--text-dark); margin-bottom:1px; display:flex; align-items:baseline; justify-content:center;">
