@@ -963,15 +963,15 @@ function getSessionWaveLabel(sessionHours, fallbackHour) {
     const maxs = [];
 
     sessionHours.forEach(h => {
-        const minH = h.ml_wave_height_min != null ? h.ml_wave_height_min : (h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height);
-        const maxH = h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height;
+        const minH = h.ml_wave_height_min != null ? h.ml_wave_height_min : (h.ml_wave_height_max || 0);
+        const maxH = h.ml_wave_height_max || 0;
         if (minH != null) mins.push(minH);
         if (maxH != null) maxs.push(maxH);
     });
 
     if (!mins.length && fallbackHour) {
-        const minH = fallbackHour.ml_wave_height_min != null ? fallbackHour.ml_wave_height_min : (fallbackHour.ml_wave_height_max != null ? fallbackHour.ml_wave_height_max : fallbackHour.wave_height);
-        const maxH = fallbackHour.ml_wave_height_max != null ? fallbackHour.ml_wave_height_max : fallbackHour.wave_height;
+        const minH = fallbackHour.ml_wave_height_min != null ? fallbackHour.ml_wave_height_min : (fallbackHour.ml_wave_height_max || 0);
+        const maxH = fallbackHour.ml_wave_height_max || 0;
         if (minH != null) mins.push(minH);
         if (maxH != null) maxs.push(maxH);
     }
@@ -1189,7 +1189,7 @@ function _getMarkerProps(h, variable) {
             return { color: rc[r] || rc.Flat, radius: 5, label: r };
         }
         case 'wave_range': {
-            const v = h.ml_wave_height_max || h.wave_height || 0;
+            const v = h.ml_wave_height_max || 0;
             return { color: _colorScale(v, 0, 3, WAVE_SCALE), radius: Math.max(3, Math.min(8, 3 + v*2)), label: v > 0 ? v.toFixed(1)+'m' : 'Flat' };
         }
         case 'wave_sets': {
@@ -1205,7 +1205,7 @@ function _getMarkerProps(h, variable) {
             return { color: _colorScale(v, 0, 60, WIND_SCALE), radius: Math.max(3, Math.min(8, 3 + v/10)), label: Math.round(v)+'km/h' };
         }
         case 'hs_offshore': {
-            const v = h.wave_height_model || h.wave_height || 0;
+            const v = h.wave_height_model || 0;
             return { color: _colorScale(v, 0, 4, WAVE_SCALE), radius: Math.max(3, Math.min(8, 3 + v*1.5)), label: v > 0 ? v.toFixed(1)+'m' : '--' };
         }
         case 'wave_period': {
@@ -1341,7 +1341,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     const waveMin = sel.ml_wave_height_min;
     const waveMax = sel.ml_wave_height_max;
     const waveSets = sel.ml_wave_height_sets;
-    const waveText = waveMin != null ? (Math.abs(waveMax - waveMin) < 0.1 ? `${fmt(waveMax)}m` : `${fmt(waveMin)}-${fmt(waveMax)}m`) : (sel.wave_height ? `${fmt(sel.wave_height)}m` : '--');
+    const waveText = waveMin != null ? (Math.abs(waveMax - waveMin) < 0.1 ? `${fmt(waveMax)}m` : `${fmt(waveMin)}-${fmt(waveMax)}m`) : '--';
     const setsText = waveSets != null ? `Sets ${fmt(waveSets)}m` : '';
     const surface = sel.ml_surface || '--';
     const windSpd = sel.wind_speed_kmh != null ? Math.round(sel.wind_speed_kmh) + ' km/h' : '--';
@@ -1352,7 +1352,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     // Hourly mini bars
     let hourlyHtml = '';
     let maxWv = 0;
-    for (const hr of displayHours) { const wv = hr.ml_wave_height_max || hr.wave_height || 0; if (wv > maxWv) maxWv = wv; }
+    for (const hr of displayHours) { const wv = hr.ml_wave_height_max || 0; if (wv > maxWv) maxWv = wv; }
     const barScale = maxWv > 0 ? 30 / maxWv : 1;
     for (let i = 0; i < displayHours.length; i++) {
         const hr = displayHours[i];
@@ -1360,7 +1360,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
         const hh = String(htp.hour).padStart(2,'0');
         const c = getNormalizedConseil(hr);
         const rc = RATING_COLORS[c] || '#334155';
-        const wv = hr.ml_wave_height_max || hr.wave_height || 0;
+        const wv = hr.ml_wave_height_max || 0;
         const barH = Math.max(4, Math.round(wv * barScale));
         const isSelected = (i === 0) ? 'border-bottom:2px solid #fff;' : '';
         hourlyHtml += `<div class="popup-hour" style="${isSelected}"><span class="ph-time">${hh}h</span><div class="ph-bar" style="background:${rc};height:${barH}px;"></div><span class="ph-wave">${wv>0?wv.toFixed(1):'-'}</span></div>`;
@@ -1720,8 +1720,8 @@ function _renderHeroWithHour(h, spotData) {
         const currentIndex = spotData.hourly.findIndex(x => x.time === h.time);
         if (currentIndex >= 0 && currentIndex < spotData.hourly.length - 1) {
             const nextH = spotData.hourly[currentIndex + 1];
-            const currentWave = h.ml_wave_height_max != null ? h.ml_wave_height_max : h.wave_height;
-            const nextWave = nextH.ml_wave_height_max != null ? nextH.ml_wave_height_max : nextH.wave_height;
+            const currentWave = h.ml_wave_height_max || 0;
+            const nextWave = nextH.ml_wave_height_max || 0;
             if (nextWave > currentWave + 0.1) trendIcon = ` <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-3px; color:var(--accent)"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`;
             else if (nextWave < currentWave - 0.1) trendIcon = ` <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:-3px; color:var(--text-muted)"><line x1="7" y1="7" x2="17" y2="17"></line><polyline points="17 7 17 17 7 17"></polyline></svg>`;
         }
@@ -1735,7 +1735,7 @@ function _renderHeroWithHour(h, spotData) {
     } else if (mlWaveMax != null) {
         waveStr = `${fmt(mlWaveMax)}`;
     } else {
-        waveStr = fmt(h.wave_height);
+        waveStr = '--';
     }
 
     document.getElementById('hero-height').innerHTML = waveStr + trendIcon;
@@ -2054,7 +2054,7 @@ function renderUnifiedTrack() {
     windRow.innerHTML = '<div class="row-label">Wind</div>';
 
     const spot = _allData.data[_currentSpot].spot;
-    const maxWave = Math.max(..._hourlyData.map(h => h.ml_wave_height_max || h.wave_height || 0), 0.5);
+    const maxWave = Math.max(..._hourlyData.map(h => h.ml_wave_height_max || 0), 0.5);
     const BAR_MAX = 100;
     const nowLocal = spotLocalParts(new Date(), spot);
     const todayStr = `${nowLocal.year}-${String(nowLocal.month).padStart(2,'0')}-${String(nowLocal.day).padStart(2,'0')}`;
@@ -2086,12 +2086,12 @@ function renderUnifiedTrack() {
 
         const mlMax = h.ml_wave_height_max;
         const mlMin = h.ml_wave_height_min;
-        const displayH = mlMax != null ? mlMax : h.wave_height;
+        const displayH = mlMax || 0;
         const barH = Math.max(3, (displayH / maxWave) * BAR_MAX);
         const nightClass = isNight ? ' slot-night' : '';
         const slot = document.createElement('button');
         slot.className = 'wave-slot' + nightClass + (i === _selectedSlotIdx ? ' active' : '');
-        const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : fmt(h.wave_height);
+        const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : '--';
         slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m, ${conseilLabel}`);
         slot.innerHTML = `
             ${showLabel ? `<span class="wave-label">${waveLabel}</span>` : ''}
@@ -2233,7 +2233,7 @@ function showDetailPanel(h) {
     const secondarySwellHeight = h.swell2_height_model != null ? h.swell2_height_model : h.swell2_height;
     const windWaveHeight = h.wind_wave_height_model != null ? h.wind_wave_height_model : h.wind_wave_height;
 
-    const displayWaveText = mlWaveMin != null ? (Math.abs(mlWaveMax - mlWaveMin) < 0.1 ? `${fmt(mlWaveMax)}m` : `${fmt(mlWaveMin)}-${fmt(mlWaveMax)}m`) : `${fmt(h.wave_height)}m`;
+    const displayWaveText = mlWaveMin != null ? (Math.abs(mlWaveMax - mlWaveMin) < 0.1 ? `${fmt(mlWaveMax)}m` : `${fmt(mlWaveMin)}-${fmt(mlWaveMax)}m`) : '--';
     const displaySetsText = mlWaveSets != null ? `Sets: ${fmt(mlWaveSets)}m` : '';
 
     const formatOceanComponent = (height, period, direction, directionText) => {
