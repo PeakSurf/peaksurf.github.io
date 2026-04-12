@@ -478,9 +478,15 @@
                 <span class="rating-badge" id="hero-rating" style="background:var(--flat);width:max-content;">--</span>
             </div>
             <div class="ai-main-content">
-                <div class="ai-size-block">
-                    <div class="hero-val" style="font-size:2rem;"><span id="hero-height">--</span><span class="hero-val-unit" style="font-size:1rem; margin-left:2px;">m</span></div>
-                    <span class="hero-desc" id="hero-wave-detail" style="color:var(--accent); font-weight:600; margin-top:0.2rem;">--</span>
+                <div class="ai-size-block" style="display:flex;gap:0.8rem;align-items:baseline;">
+                    <div style="text-align:center;">
+                        <div class="hero-val" style="font-size:2rem;"><span id="hero-height">--</span><span class="hero-val-unit" style="font-size:1rem; margin-left:2px;">m</span></div>
+                        <span class="hero-desc" style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Waves</span>
+                    </div>
+                    <div id="hero-sets-block" style="text-align:center;">
+                        <div class="hero-val" style="font-size:2rem;color:var(--accent);"><span id="hero-sets-val">--</span><span class="hero-val-unit" style="font-size:1rem; margin-left:2px;">m</span></div>
+                        <span class="hero-desc" style="font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Sets</span>
+                    </div>
                 </div>
                 <div class="ai-details-block" id="hero-ai-detail">
                     <div id="hero-ai-surface" style="font-size:0.85rem;"></div>
@@ -600,6 +606,7 @@
                 </div>
             </div>
         </div>
+        <div id="selected-hour-summary" style="display:none;padding:0.5rem 0.75rem;margin:0.25rem 0;background:var(--card-bg);border:1.5px solid var(--accent);border-radius:10px;"></div>
         <div class="detail-panel" id="detail-panel"></div>
     </div>
 
@@ -961,12 +968,14 @@ function getSessionHours(dailyEntry) {
 function getSessionWaveLabel(sessionHours, fallbackHour) {
     const mins = [];
     const maxs = [];
+    const sets = [];
 
     sessionHours.forEach(h => {
         const minH = h.ml_wave_height_min != null ? h.ml_wave_height_min : (h.ml_wave_height_max || 0);
         const maxH = h.ml_wave_height_max || 0;
         if (minH != null) mins.push(minH);
         if (maxH != null) maxs.push(maxH);
+        if (h.ml_wave_height_sets != null) sets.push(h.ml_wave_height_sets);
     });
 
     if (!mins.length && fallbackHour) {
@@ -974,12 +983,18 @@ function getSessionWaveLabel(sessionHours, fallbackHour) {
         const maxH = fallbackHour.ml_wave_height_max || 0;
         if (minH != null) mins.push(minH);
         if (maxH != null) maxs.push(maxH);
+        if (fallbackHour.ml_wave_height_sets != null) sets.push(fallbackHour.ml_wave_height_sets);
     }
 
     if (!maxs.length) return '--';
     const minWave = Math.min(...mins);
     const maxWave = Math.max(...maxs);
-    return Math.abs(maxWave - minWave) < 0.1 ? `${fmt(maxWave)}m` : `${fmt(minWave)}-${fmt(maxWave)}m`;
+    const rangeStr = Math.abs(maxWave - minWave) < 0.1 ? `${fmt(maxWave)}m` : `${fmt(minWave)}-${fmt(maxWave)}m`;
+    if (sets.length) {
+        const maxSet = Math.max(...sets);
+        return `${rangeStr} <span style="color:var(--accent);font-weight:600;">| Sets ${fmt(maxSet)}m</span>`;
+    }
+    return rangeStr;
 }
 
 function renderSessionSpotlight(dateStr) {
@@ -1342,7 +1357,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     const waveMax = sel.ml_wave_height_max;
     const waveSets = sel.ml_wave_height_sets;
     const waveText = waveMin != null ? (Math.abs(waveMax - waveMin) < 0.1 ? `${fmt(waveMax)}m` : `${fmt(waveMin)}-${fmt(waveMax)}m`) : '--';
-    const setsText = waveSets != null ? `Sets ${fmt(waveSets)}m` : '';
+    const setsText = waveSets != null ? `${fmt(waveSets)}m` : '';
     const surface = sel.ml_surface || '--';
     const windSpd = sel.wind_speed_kmh != null ? Math.round(sel.wind_speed_kmh) + ' km/h' : '--';
     const windGust = sel.wind_gusts_kmh != null ? Math.round(sel.wind_gusts_kmh) + ' km/h' : '';
@@ -1352,8 +1367,9 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
     // Hourly mini bars
     let hourlyHtml = '';
     let maxWv = 0;
-    for (const hr of displayHours) { const wv = hr.ml_wave_height_max || 0; if (wv > maxWv) maxWv = wv; }
-    const barScale = maxWv > 0 ? 30 / maxWv : 1;
+    let maxBarVal = 0;
+    for (const hr of displayHours) { const sv = hr.ml_wave_height_sets || hr.ml_wave_height_max || 0; if (sv > maxBarVal) maxBarVal = sv; }
+    const barScale = maxBarVal > 0 ? 30 / maxBarVal : 1;
     for (let i = 0; i < displayHours.length; i++) {
         const hr = displayHours[i];
         const htp = viewerLocalParts(hr.time);
@@ -1361,9 +1377,12 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
         const c = getNormalizedConseil(hr);
         const rc = RATING_COLORS[c] || '#334155';
         const wv = hr.ml_wave_height_max || 0;
+        const sv = hr.ml_wave_height_sets || 0;
         const barH = Math.max(4, Math.round(wv * barScale));
+        const setsH = sv > 0 ? Math.max(4, Math.round(sv * barScale)) : 0;
         const isSelected = (i === 0) ? 'border-bottom:2px solid #fff;' : '';
-        hourlyHtml += `<div class="popup-hour" style="${isSelected}"><span class="ph-time">${hh}h</span><div class="ph-bar" style="background:${rc};height:${barH}px;"></div><span class="ph-wave">${wv>0?wv.toFixed(1):'-'}</span></div>`;
+        const setsOverlay = setsH > barH ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${setsH}px;border:1.5px solid var(--accent);border-radius:3px;pointer-events:none;"></div>` : '';
+        hourlyHtml += `<div class="popup-hour" style="${isSelected}"><span class="ph-time">${hh}h</span><div class="ph-bar" style="background:${rc};height:${barH}px;position:relative;">${setsOverlay}</div><span class="ph-wave">${sv>0?sv.toFixed(1):(wv>0?wv.toFixed(1):'-')}</span></div>`;
     }
 
     marker.bindPopup(`
@@ -1374,7 +1393,8 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
             </div>
             <div style="font-size:0.7rem;color:#94a3b8;padding:0 0 0.25rem;">${selDateTime}</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.8rem;font-size:0.7rem;padding:0.3rem 0;color:#64748b;">
-                <div><span style="color:#94a3b8;">Waves:</span> <b style="color:#1e293b;">${waveText}</b> ${setsText ? '<span style="color:#64748b;">'+setsText+'</span>' : ''}</div>
+                <div><span style="color:#94a3b8;">Waves:</span> <b style="color:#1e293b;">${waveText}</b></div>
+                <div><span style="color:#94a3b8;">Sets:</span> <b style="color:#0891b2;">${setsText || '--'}</b></div>
                 <div><span style="color:#94a3b8;">Surface:</span> <b style="color:#1e293b;">${surface}</b></div>
                 <div><span style="color:#94a3b8;">Wind:</span> <b style="color:#1e293b;">${windDir} ${windSpd}</b></div>
                 <div><span style="color:#94a3b8;">Gusts:</span> <b style="color:#1e293b;">${windGust || '--'}</b></div>
@@ -1739,7 +1759,10 @@ function _renderHeroWithHour(h, spotData) {
     }
 
     document.getElementById('hero-height').innerHTML = waveStr + trendIcon;
-    document.getElementById('hero-wave-detail').textContent = h.ml_wave_height_sets ? `Sets ${fmt(h.ml_wave_height_sets)}m` : '';
+    const setsVal = h.ml_wave_height_sets;
+    document.getElementById('hero-sets-val').textContent = setsVal != null ? fmt(setsVal) : '--';
+    const setsBlock = document.getElementById('hero-sets-block');
+    if (setsBlock) setsBlock.style.display = setsVal != null ? '' : 'none';
 
     const surfaceText = h.ml_surface || getSurfaceTexture(h, spotData.spot);
     const skillText = h.ml_skill === 'Confirmés+' ? 'Advanced Only' : 'Friendly for All Levels';
@@ -2102,6 +2125,7 @@ function renderUnifiedTrack() {
             _selectedSlotIdx = capturedIdx;
             waveRow.querySelectorAll('.wave-slot.active').forEach(s => s.classList.remove('active'));
             slot.classList.add('active');
+            showSelectedHourSummary(capturedH);
             showDetailPanel(capturedH);
         });
         waveRow.appendChild(slot);
@@ -2209,6 +2233,31 @@ function getSurfaceTexture(h, spot) {
     if (surfState === 'textured' && !baseTexture.includes('Blown')) return 'Textured';
     if (surfState === 'slightly textured' && (baseTexture === 'Glassy' || baseTexture === 'Clean & Groomed')) return 'Slightly Textured';
     return baseTexture;
+}
+
+function showSelectedHourSummary(h) {
+    const el = document.getElementById('selected-hour-summary');
+    if (!el) return;
+    const spotData = _allData.data[_currentSpot];
+    const tp = spotLocalParts(h.time, spotData.spot);
+    const timeLabel = `${tp.weekday} ${String(tp.hour).padStart(2,'0')}:${String(tp.minute).padStart(2,'0')}`;
+    const conseil = getNormalizedConseil(h) || '--';
+    const rc = getRatingColor(h);
+    const min = h.ml_wave_height_min, max = h.ml_wave_height_max, sets = h.ml_wave_height_sets;
+    const waveStr = min != null && max != null ? (Math.abs(max - min) < 0.1 ? `${fmt(max)}m` : `${fmt(min)}-${fmt(max)}m`) : '--';
+    const setsStr = sets != null ? `<span style="color:var(--accent);font-weight:700;">Sets ${fmt(sets)}m</span>` : '';
+    const surface = h.ml_surface || '--';
+    const wind = h.wind_speed_kmh != null ? `${Math.round(h.wind_speed_kmh)}km/h ${h.wind_direction_text || ''}` : '--';
+    const windEffect = getWindEffect(h, spotData.spot);
+    el.style.display = '';
+    el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;font-size:0.78rem;">
+            <span style="font-weight:700;color:var(--text-dark);">${timeLabel}</span>
+            <span class="rating-badge bg-${rc}" style="font-size:0.65rem;padding:0.15rem 0.5rem;">${conseil.toUpperCase()}</span>
+            <span><b>${waveStr}</b> ${setsStr}</span>
+            <span style="color:var(--text-muted);">${surface}</span>
+            <span style="color:var(--text-muted);">Wind: <b>${wind}</b> <span style="font-size:0.65rem;">${windEffect.label || ''}</span></span>
+        </div>`;
 }
 
 function showDetailPanel(h) {
