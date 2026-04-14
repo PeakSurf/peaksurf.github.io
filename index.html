@@ -46,10 +46,10 @@
             --wave-bar-active-top: #00e5ff;
 
             /* Couleurs de notes */
-            --poor: #ef4444;
-            --fair: #f59e0b;
-            --good: #10b981;
-            --epic: #1ac0c6; /* Le mode Epic utilise le Cyan de la marque */
+            --poor: #ef4444;   /* Red */
+            --fair: #f59e0b;   /* Orange/Amber */
+            --good: #1ac0c6;   /* Cyan — elevated to top tier */
+            --epic: #1ac0c6;   /* alias for Good (legacy) */
             --flat: #1e2e45;
 
             --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -225,11 +225,11 @@
         /* Arrow wrap — border color encodes DIRECTION (quality) only */
         .wind-arrow-wrap { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.05); margin: 4px 0; border: 2px solid transparent; position: relative; }
         /* Intensity alert: pulse glow when speed is strong — regardless of direction */
-        .wind-strong-alert { box-shadow: 0 0 8px #f97316; animation: windPulse 2s infinite; }
+        .wind-strong-alert { animation: windPulse 2s infinite ease-in-out; background: rgba(249, 115, 22, 0.15) !important; }
         @keyframes windPulse {
-            0%   { box-shadow: 0 0 0px #f97316; }
-            50%  { box-shadow: 0 0 10px #f97316; }
-            100% { box-shadow: 0 0 0px #f97316; }
+            0%   { transform: scale(1);    box-shadow: 0 0 0px  rgba(249, 115, 22, 0.0); }
+            50%  { transform: scale(1.05); box-shadow: 0 0 10px rgba(249, 115, 22, 0.6); }
+            100% { transform: scale(1);    box-shadow: 0 0 0px  rgba(249, 115, 22, 0.0); }
         }
         /* "Hard" badge for strong-offshore sessions (offshore + speed > 28) */
         .offshore-strong-warning { position: absolute; top: -6px; right: -6px; background: #f97316; color: white; font-size: 0.5rem; font-weight: 900; padding: 1px 3px; border-radius: 3px; text-transform: uppercase; line-height: 1; }
@@ -248,9 +248,9 @@
         .canvas-wrap canvas { display: block; }
 
         .bg-poor { background: var(--poor); color: #fff; }
-        .bg-fair { background: var(--fair); color: #fff; }
-        .bg-good { background: var(--good); color: #000; }
-        .bg-epic { background: var(--epic); color: #000; box-shadow: 0 0 16px rgba(26, 192, 198, 0.6); font-weight: 800; } /* Cyan bg, black text for contrast */
+        .bg-fair { background: var(--fair); color: #000; font-weight: 700; }
+        .bg-good { background: var(--good); color: #000; font-weight: 800; box-shadow: 0 0 12px rgba(26, 192, 198, 0.4); }
+        .bg-epic { background: var(--epic); color: #000; font-weight: 800; box-shadow: 0 0 16px rgba(26, 192, 198, 0.6); }
         .bg-flat { background: var(--flat); color: #fff; }
 
         /* ========== DETAIL PANEL ========== */
@@ -612,47 +612,43 @@
     <div class="rating-legend-title">Rating Definitions</div>
     <div class="rating-legend-list" style="margin-bottom: 1.5rem;">
         <div class="rating-legend-item">
-            <span class="rating-legend-dot" style="background:var(--epic);"></span>
-            <span class="rating-legend-name" style="color:var(--epic);">Epic</span>
-            <span>&mdash; Clean, well-shaped waves with offshore wind. Memorable session.</span>
-        </div>
-        <div class="rating-legend-item">
             <span class="rating-legend-dot" style="background:var(--good);"></span>
             <span class="rating-legend-name" style="color:var(--good);">Good</span>
-            <span>&mdash; Fun, well-formed waves. Light wind, good shape. Worth the drive.</span>
+            <span>&mdash; Optimal conditions. Clean faces, offshore wind, and solid set waves.</span>
         </div>
         <div class="rating-legend-item">
             <span class="rating-legend-dot" style="background:var(--fair);"></span>
             <span class="rating-legend-name" style="color:var(--fair);">Fair</span>
-            <span>&mdash; Surfable but inconsistent. Some texture or cross-shore wind.</span>
+            <span>&mdash; Surfable but imperfect. Light texture, cross-shore wind, or inconsistent sets.</span>
         </div>
         <div class="rating-legend-item">
             <span class="rating-legend-dot" style="background:var(--poor);"></span>
             <span class="rating-legend-name" style="color:var(--poor);">Poor</span>
-            <span>&mdash; Choppy, blown out or too small. Not recommended.</span>
+            <span>&mdash; Blown out, too small, or closing out. Not recommended.</span>
         </div>
     </div>
-    <div class="rating-legend-title">Wind Effect Colors</div>
+
+    <div class="rating-legend-title">Wind &amp; Strength Indicators</div>
     <div class="rating-legend-list">
         <div class="rating-legend-item">
             <span class="rating-legend-dot" style="background:#10b981;"></span>
-            <span class="rating-legend-name" style="color:#10b981;">Offshore</span>
-            <span>&mdash; Favorable wind blowing from land to sea, grooming the waves.</span>
-        </div>
-        <div class="rating-legend-item">
-            <span class="rating-legend-dot" style="background:#1ac0c6;"></span>
-            <span class="rating-legend-name" style="color:#1ac0c6;">Glassy</span>
-            <span>&mdash; Very light wind, leaving a perfectly smooth surface.</span>
-        </div>
-        <div class="rating-legend-item">
-            <span class="rating-legend-dot" style="background:#94a3b8;"></span>
-            <span class="rating-legend-name" style="color:#94a3b8;">Cross-shore</span>
-            <span>&mdash; Variable or neutral effect on the wave shape.</span>
+            <span class="rating-legend-name" style="color:#10b981;">Green Arrow</span>
+            <span>&mdash; Favorable Offshore wind grooming the waves.</span>
         </div>
         <div class="rating-legend-item">
             <span class="rating-legend-dot" style="background:#ef4444;"></span>
-            <span class="rating-legend-name" style="color:#ef4444;">Onshore</span>
-            <span>&mdash; Unfavorable wind blowing from sea to land, causing chop.</span>
+            <span class="rating-legend-name" style="color:#ef4444;">Red Arrow</span>
+            <span>&mdash; Onshore wind, causing chop and degrading surface.</span>
+        </div>
+        <div class="rating-legend-item">
+            <span class="rating-legend-dot" style="background:#1ac0c6;"></span>
+            <span class="rating-legend-name" style="color:#1ac0c6;">Cyan Arrow</span>
+            <span>&mdash; Glassy. Very light wind, perfectly smooth surface.</span>
+        </div>
+        <div class="rating-legend-item">
+            <span class="rating-legend-dot" style="background:#f97316;"></span>
+            <span class="rating-legend-name" style="color:#f97316;">Orange Number</span>
+            <span>&mdash; Strong wind (&gt;22 km/h). Check if it's too hard to paddle.</span>
         </div>
     </div>
 </div>
@@ -899,14 +895,17 @@ function getNormalizedConseil(h) {
 
 function getRatingColor(h) {
     const conseil = getNormalizedConseil(h);
-    if (conseil === 'Epic') return 'epic';
-    if (conseil === 'Good') return 'good';
+    // Epic and Good collapse to the same tier (cyan) — 3-class system
+    if (conseil === 'Epic' || conseil === 'Good') return 'good';
     if (conseil === 'Fair') return 'fair';
     if (conseil === 'Poor') return 'poor';
-    
+
+    // Fallback to raw rating string if normalization missed it
     if (h.rating) {
         const r = h.rating.toLowerCase();
-        if (r.includes('epic') || r.includes('good') || r.includes('fair') || r.includes('poor')) return r;
+        if (r.includes('good') || r.includes('epic')) return 'good';
+        if (r.includes('fair')) return 'fair';
+        if (r.includes('poor')) return 'poor';
     }
     return 'flat';
 }
