@@ -153,10 +153,11 @@
         .daily-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: #0a172a; }
 
         .daily-day { font-size: 0.8rem; font-weight: 700; color: var(--text-dark); }
-        .daily-height-container { display: flex; align-items: baseline; justify-content: flex-start; gap: 2px; white-space: nowrap; width: 100%; overflow: hidden; }
-        .daily-height { font-size: 1.15rem; font-weight: 800; color: var(--text-dark); font-family: var(--font-display); letter-spacing: -0.04em; }
-        .daily-unit { font-size: 0.65rem; font-weight: 700; color: var(--text-light); margin-left: 0px; }
-        .daily-set-badge { font-size: 0.7rem; font-weight: 800; color: var(--accent); border-left: 1px solid var(--border); padding-left: 4px; margin-left: 2px; flex-shrink: 0; }
+        /* Stacked layout — wave height on top, Sets badge on its own line below */
+        .daily-height-container { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 42px; margin: 4px 0; }
+        .daily-height { font-size: 1.35rem; font-weight: 900; color: var(--text-dark); font-family: var(--font-display); letter-spacing: -0.02em; line-height: 1; }
+        .daily-unit { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-left: 2px; }
+        .daily-set-badge { font-size: 0.72rem; font-weight: 800; color: var(--accent); background: rgba(26, 192, 198, 0.1); padding: 1px 6px; border-radius: 4px; margin-top: 3px; display: inline-block; white-space: nowrap; }
 
         .daily-rating-strip { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; display: flex; gap: 1px; }
         .daily-rating-strip div { flex: 1; }
@@ -1979,27 +1980,27 @@ function renderDailyCarousel() {
 
         const heightDisplay = typeof displayRange !== 'undefined' && displayRange ? displayRange : fmt(displayHeight);
         const setsVal = bestHourData && bestHourData.ml_wave_height_sets;
-        // Compact Set badge: "Set 2.5" — no arrow, no background, just a divider
+        // Stacked: Sets badge on its own line. Empty spacer keeps cards uniform.
         const setsHtml = (setsVal != null)
-            ? `<span class="daily-set-badge" title="Sets up to ${fmt(setsVal)}m">Set ${fmt(setsVal)}</span>`
-            : '';
+            ? `<div class="daily-set-badge" title="Sets up to ${fmt(setsVal)}m">Sets up to ${fmt(setsVal)}m</div>`
+            : `<div style="height:16px;"></div>`;
 
         const card = document.createElement('button');
         card.className = 'daily-card' + (d.date === activeDate ? ' active' : '');
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 0.4rem;">
-                <div class="daily-day">${isToday ? 'Today' : dp.weekday} <span style="font-size:0.6rem; color:var(--text-muted); margin-left:2px">${dp.day}/${dp.month}</span></div>
+                <div class="daily-day">${isToday ? 'Today' : dp.weekday} <span style="font-size:0.65rem; color:var(--text-muted); margin-left:3px">${dp.day}/${dp.month}</span></div>
             </div>
-            <div style="color:${bestColor}; font-weight:800; font-size: 0.7rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <div style="color:${bestColor}; font-weight:800; font-size: 0.72rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 ${bestTimeStr}
             </div>
             <div class="daily-height-container">
-                <span class="daily-height">${heightDisplay}<span class="daily-unit">m</span></span>
+                <div class="daily-height">${heightDisplay}<span class="daily-unit">m</span></div>
                 ${setsHtml}
             </div>
-            <div style="margin-top:0.2rem; color:var(--text-light); font-weight:600; font-size:0.68rem; display:flex; align-items:center; gap:2px;">
-                ${bestHourData.swell_direction ? `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${bestHourData.swell_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>` : ''}
-                ${fmt(displayPeriod, 0)}s
+            <div style="margin-top:0.4rem; color:var(--text-light); font-weight:700; font-size:0.7rem; display:flex; align-items:center; gap:3px; border-top: 1px solid var(--border-light); padding-top: 4px;">
+                ${bestHourData.swell_direction ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${bestHourData.swell_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                ${fmt(displayPeriod, 0)}s Period` : `${fmt(displayPeriod, 0)}s Period`}
             </div>
             <div class="daily-rating-strip">${samples.map(r => `<div class="bg-${r}"></div>`).join('')}</div>
         `;
