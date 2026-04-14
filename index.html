@@ -219,9 +219,20 @@
         .wind-row { display: flex; height: 110px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; background: rgba(0, 0, 0, 0.08); }
         .wind-slot { width: 56px; flex-shrink: 0; padding: 8px 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
         .wind-data-pill { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .wind-base-val { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
-        .wind-gust-val { font-size: 0.62rem; font-weight: 700; color: #f97316; background: rgba(249, 115, 22, 0.12); padding: 1px 5px; border-radius: 4px; line-height: 1.2; }
-        .wind-arrow-wrap { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.05); margin: 4px 0; border: 1px solid transparent; }
+        /* Wind numbers: speed turns orange when intensity is "Strong" (>22 km/h) */
+        .wind-speed-label { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
+        .wind-gust-sublabel { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); line-height: 1.2; }
+        /* Arrow wrap — border color encodes DIRECTION (quality) only */
+        .wind-arrow-wrap { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.05); margin: 4px 0; border: 2px solid transparent; position: relative; }
+        /* Intensity alert: pulse glow when speed is strong — regardless of direction */
+        .wind-strong-alert { box-shadow: 0 0 8px #f97316; animation: windPulse 2s infinite; }
+        @keyframes windPulse {
+            0%   { box-shadow: 0 0 0px #f97316; }
+            50%  { box-shadow: 0 0 10px #f97316; }
+            100% { box-shadow: 0 0 0px #f97316; }
+        }
+        /* "Hard" badge for strong-offshore sessions (offshore + speed > 28) */
+        .offshore-strong-warning { position: absolute; top: -6px; right: -6px; background: #f97316; color: white; font-size: 0.5rem; font-weight: 900; padding: 1px 3px; border-radius: 3px; text-transform: uppercase; line-height: 1; }
         .wind-effect-label { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }
 
         .swell-dir-row { display: flex; height: 54px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; }
@@ -371,10 +382,11 @@
             .wave-label { font-size: 0.6rem; }
             .wind-row { height: 84px; }
             .wind-slot { padding: 5px 0; }
-            .wind-base-val { font-size: 0.72rem; }
-            .wind-gust-val { font-size: 0.54rem; padding: 1px 4px; }
-            .wind-arrow-wrap { width: 22px; height: 22px; margin: 2px 0; }
+            .wind-speed-label { font-size: 0.72rem; }
+            .wind-gust-sublabel { font-size: 0.54rem; }
+            .wind-arrow-wrap { width: 24px; height: 24px; margin: 2px 0; border-width: 2px; }
             .wind-effect-label { font-size: 0.48rem; }
+            .offshore-strong-warning { font-size: 0.42rem; top: -5px; right: -5px; padding: 0 2px; }
             .swell-dir-row { height: 42px; }
             .swell-dir-slot { font-size: 0.55rem; }
             .rating-dot { width: 34px; }
@@ -2150,22 +2162,34 @@ function renderUnifiedTrack() {
             const gust = h.wind_gusts_kmh != null ? h.wind_gusts_kmh : speed;
             const effect = getWindEffect(h, spot);
             const effectLabel = (effect.label || '').toLowerCase();
-            let effectColor = '#94a3b8';   // default cross
-            if (effectLabel.includes('offshore'))       effectColor = '#10b981'; // green
-            else if (effectLabel.includes('onshore') || effectLabel.includes('blown')) effectColor = '#ef4444'; // red
-            else if (effectLabel === 'glassy' || speed < 5) effectColor = '#1ac0c6'; // cyan
+
+            // 1. Quality color = DIRECTION only (decoupled from speed)
+            let qualityColor = '#94a3b8';   // neutral cross
+            if (effectLabel.includes('offshore')) qualityColor = '#10b981';
+            else if (effectLabel.includes('onshore') || effectLabel.includes('blown')) qualityColor = '#ef4444';
+            else if (effectLabel.includes('glassy')) qualityColor = '#1ac0c6';
+
+            // 2. Intensity flags — independent of direction
+            const isStrong = speed > 22;
+            const isOverpoweringOffshore = effectLabel.includes('offshore') && speed > 28;
+
             const windDirLabel = h.wind_direction_text || degToCompass(h.wind_direction) || '';
+            const displayLabel = isOverpoweringOffshore ? 'Strong Off.' : (effect.label || windDirLabel);
             const tooltip = `${windDirLabel} ${fmt(speed,0)} km/h (gusts ${fmt(gust,0)}) — ${effect.label || ''}`;
+            const speedColor = isStrong ? '#f97316' : 'var(--text-dark)';
+            const alertClass = isStrong ? ' wind-strong-alert' : '';
+            const hardBadge = isOverpoweringOffshore ? '<span class="offshore-strong-warning">Hard</span>' : '';
 
             ws.innerHTML = `
                 <div class="wind-data-pill" title="${tooltip}">
-                    <span class="wind-base-val">${Math.round(speed)}</span>
-                    <span class="wind-gust-val">${Math.round(gust)}</span>
+                    <span class="wind-speed-label" style="color:${speedColor};">${Math.round(speed)}</span>
+                    <span class="wind-gust-sublabel">G${Math.round(gust)}</span>
                 </div>
-                <div class="wind-arrow-wrap" style="border-color:${effectColor};" title="${tooltip}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${effectColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                <div class="wind-arrow-wrap${alertClass}" style="border-color:${qualityColor};" title="${tooltip}">
+                    ${hardBadge}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${qualityColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 </div>
-                <span class="wind-effect-label" style="color:${effectColor};">${windDirLabel}</span>
+                <span class="wind-effect-label" style="color:${qualityColor};">${displayLabel}</span>
             `;
         }
         windRow.appendChild(ws);
