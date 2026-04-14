@@ -153,7 +153,9 @@
         .daily-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: #0a172a; }
 
         .daily-day { font-size: 0.8rem; font-weight: 700; color: var(--text-dark); }
-        .daily-height { font-size: 1.3rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.15rem; font-family: var(--font-display); letter-spacing: -0.02em; }
+        .daily-height-wrap { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; overflow: hidden; }
+        .daily-height { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.15rem; font-family: var(--font-display); letter-spacing: -0.03em; }
+        .daily-set-badge { font-size: 0.75rem; font-weight: 700; color: var(--accent); background: rgba(26, 192, 198, 0.1); padding: 1px 4px; border-radius: 4px; margin-left: 2px; }
 
         .daily-rating-strip { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; display: flex; gap: 1px; }
         .daily-rating-strip div { flex: 1; }
@@ -1965,7 +1967,9 @@ function renderDailyCarousel() {
 
         const heightDisplay = typeof displayRange !== 'undefined' && displayRange ? displayRange : fmt(displayHeight);
         const bestSets = bestHourData && bestHourData.ml_wave_height_sets;
-        const setsBadge = bestSets != null ? `<span style="color:var(--accent);font-weight:700;font-size:0.82rem;margin-left:0.2rem;">&uarr;${fmt(bestSets)}m</span>` : '';
+        const setsBadge = (bestSets != null && bestSets > displayHeight)
+            ? `<span class="daily-set-badge">&uarr;${fmt(bestSets)}</span>`
+            : '';
 
         const card = document.createElement('button');
         card.className = 'daily-card' + (d.date === activeDate ? ' active' : '');
@@ -1973,11 +1977,12 @@ function renderDailyCarousel() {
             <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 0.5rem;">
                 <div class="daily-day">${isToday ? 'Today' : dp.weekday} <span style="font-size:0.65rem; color:var(--text-muted); margin-left:4px">${dp.day}/${dp.month}</span></div>
             </div>
-            <div style="color:${bestColor}; font-weight:800; font-size: 0.75rem; margin-bottom: 0.15rem;">
+            <div style="color:${bestColor}; font-weight:800; font-size: 0.72rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 ${bestTimeStr}
             </div>
-            <div class="daily-height" style="margin-bottom:0; line-height:1.1;">
-                ${heightDisplay}<span style="font-size:0.75rem;font-weight:600;color:var(--text-muted)">m</span>${setsBadge}
+            <div class="daily-height-wrap">
+                <span class="daily-height">${heightDisplay}<span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);margin-left:1px;">m</span></span>
+                ${setsBadge}
             </div>
             <div style="margin-top:0.25rem; color:var(--text-light); font-weight:600; font-size:0.7rem; display:flex; align-items:center; gap:2px;">
                 ${bestHourData.swell_direction ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${bestHourData.swell_direction}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>` : ''}
