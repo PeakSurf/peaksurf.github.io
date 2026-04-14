@@ -210,7 +210,7 @@
         .wind-row { display: flex; height: 100px; align-items: center; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; }
         .wind-bar-container { display: flex; align-items: flex-end; justify-content: center; height: 36px; width: 8px; margin: 4px auto 0; border-radius: 4px; background: rgba(255,255,255,0.05); overflow: hidden; }
         .wind-bar-base { width: 100%; border-radius: 2px; transition: height 0.3s; }
-        .wind-bar-gust { width: 100%; opacity: 0.6; background: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.8) 2px, rgba(255,255,255,0.8) 4px); transition: height 0.3s; }
+        .wind-bar-gust { width: 100%; opacity: 1.0; background: #f97316; transition: height 0.3s; }
         .wind-align-offshore { background: #10b981; }
         .wind-align-onshore { background: #ef4444; }
         .wind-align-cross { background: #94a3b8; }
@@ -226,7 +226,7 @@
         .wind-value-stack { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 1px; }
         .wind-speed, .wind-gust { min-width: 28px; padding: 1px 5px; border-radius: 999px; line-height: 1.1; text-align: center; border: 1px solid transparent; }
         .wind-speed { font-size: 0.72rem; font-weight: 800; color: var(--text-dark); background: rgba(26, 192, 198, 0.12); border-color: rgba(26, 192, 198, 0.25); }
-        .wind-gust { font-size: 0.55rem; font-weight: 800; color: #ffd59d; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.28); }
+        .wind-gust { font-size: 0.62rem; font-weight: 800; color: #f97316; background: rgba(249, 115, 22, 0.14); border-color: rgba(249, 115, 22, 0.4); }
         .wind-gust.is-strong { color: #ffd7d7; background: rgba(239, 68, 68, 0.16); border-color: rgba(239, 68, 68, 0.3); }
         .wind-dir-text { display: none; }
 
@@ -2128,7 +2128,7 @@ function renderUnifiedTrack() {
             const speed = h.wind_speed_kmh || 0;
             const gust = h.wind_gusts_kmh != null ? h.wind_gusts_kmh : speed;
             const delta = Math.max(0, gust - speed);
-            const showGustText = delta > 8;
+            const isGusty = delta > 5;  // flag to emphasise variable wind
             const effectLabel = getWindEffect(h, spot).label.toLowerCase();
             
             let alignClass = 'wind-align-cross';
@@ -2150,7 +2150,7 @@ function renderUnifiedTrack() {
                 </div>
                 <div class="wind-value-stack" style="gap:1px; justify-content:center; align-items:center;">
                     <span class="wind-speed" style="background:transparent; border-color:transparent; padding:0; font-size:0.7rem; color:var(--text-dark); font-weight:800;" title="Wind ${fmt(speed, 0)} km/h">${fmt(speed, 0)}</span>
-                    <span class="wind-gust" style="background:transparent; border-color:transparent; padding:0; font-size:0.55rem; color:#ffd59d; font-weight:700;" title="Gusts ${fmt(gust, 0)} km/h">${fmt(gust, 0)}</span>
+                    <span class="wind-gust${isGusty ? ' is-strong' : ''}" style="background:transparent; border-color:transparent; padding:0; font-size:0.64rem; color:#f97316; font-weight:800;" title="Gusts ${fmt(gust, 0)} km/h${isGusty ? ' (gusty!)' : ''}">G${fmt(gust, 0)}${isGusty ? '!' : ''}</span>
                 </div>
                 <div class="wind-bar-container" title="${fmt(speed, 0)} km/h (Gusts ${fmt(gust, 0)}) - ${getWindEffect(h, spot).label}">
                     <div style="width:100%; display:flex; flex-direction:column; justify-content:flex-end; height:100%; align-items:center;">
