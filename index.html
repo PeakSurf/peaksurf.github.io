@@ -262,12 +262,9 @@
         .detail-panel.open { display: block; animation: slideDown 0.2s cubic-bezier(0.175, 0.885, 0.32, 1); }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* Mobile: panel stays inline in the document flow — no bottom sheet / popup */
         @media (max-width: 600px) {
-            .detail-panel { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10000; background: rgba(6, 17, 33, 0.88); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-top: 1px solid rgba(255,255,255,0.1); border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 1.5rem; padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,0.6); }
-            .detail-panel.open { animation: slideUpSheet 0.35s cubic-bezier(0.175, 0.885, 0.32, 1); }
-            @keyframes slideUpSheet { from { transform: translateY(100%); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
-            /* Backdrop when bottom sheet is open */
-            .detail-panel::before { content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.2); }
+            .detail-panel { position: static; width: 100%; border-radius: var(--radius); box-shadow: none; padding: 1rem; background: var(--bg-main); }
         }
 
         .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
@@ -2128,13 +2125,8 @@ function renderUnifiedTrack() {
             _selectedSlotIdx = capturedIdx;
             waveRow.querySelectorAll('.wave-slot.active').forEach(s => s.classList.remove('active'));
             slot.classList.add('active');
-            // Always update the hero card in place with the selected hour
             updateHero(capturedH);
-            // On desktop, also open the full detail panel; on mobile skip it
-            // (the user asked for no popups / bottom sheets on phones)
-            if (window.innerWidth > 600) {
-                showDetailPanel(capturedH);
-            }
+            showDetailPanel(capturedH);
         });
         waveRow.appendChild(slot);
 
