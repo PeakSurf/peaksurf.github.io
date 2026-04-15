@@ -1895,11 +1895,16 @@ function renderDailyCarousel() {
         let bestColor = 'var(--text-muted)';
         let bestHourData = {};
 
-        // If every rated hour in the day is Poor (or flat), don't advertise a "best period".
-        const dayHasGoodOrFair = mlHours.some(h => {
+        // Count non-Poor hours in the day.
+        // - 0 hours: show "Poor all day", no best period at all.
+        // - 1-2 hours: show a single peak hour instead of a fake multi-hour window.
+        // - 3+ hours: show the full window.
+        const nonPoorCount = mlHours.reduce((n, h) => {
             const c = getNormalizedConseil(h);
-            return c === 'Epic' || c === 'Good' || c === 'Fair';
-        });
+            return (c === 'Epic' || c === 'Good' || c === 'Fair') ? n + 1 : n;
+        }, 0);
+        const dayHasGoodOrFair = nonPoorCount > 0;
+        const dayHasSustainedSession = nonPoorCount >= 3;
 
         if (mlHours.length > 0) {
             const bestWindow = getBestSurfWindow(dayHours, spot);
@@ -1914,7 +1919,11 @@ function renderDailyCarousel() {
                 bestHourTime = bestWindow.peakHour.time;
                 const startTp = spotLocalParts(bestWindow.startHour.time, spot);
                 const endTp = spotLocalParts(bestWindow.endBoundary.time, spot);
-                const timeLabel = `${String(startTp.hour).padStart(2, '0')}h-${String(endTp.hour).padStart(2, '0')}h`;
+                const peakTp = spotLocalParts(bestWindow.peakHour.time, spot);
+                // Multi-hour window only if day has >=3 non-Poor hours; otherwise pin to the peak.
+                const timeLabel = dayHasSustainedSession
+                    ? `${String(startTp.hour).padStart(2, '0')}h-${String(endTp.hour).padStart(2, '0')}h`
+                    : `${String(peakTp.hour).padStart(2, '0')}h00`;
 
                 const bestConseil = getNormalizedConseil(bestWindow.peakHour);
                 bestColor = `var(--${getRatingColor(bestWindow.peakHour)})`;
