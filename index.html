@@ -46,9 +46,10 @@
             --wave-bar-active-top: #00e5ff;
 
             /* Couleurs de notes */
-            --poor: #ef4444;   /* Red */
-            --fair: #f59e0b;   /* Orange/Amber */
-            --good: #1ac0c6;   /* Cyan — elevated to top tier */
+            /* Rating palette — DISTINCT from wind palette (no red in ratings) */
+            --poor: #64748b;   /* Slate gray (muted, not alarming) */
+            --fair: #f59e0b;   /* Amber */
+            --good: #1ac0c6;   /* Cyan — top tier, matches brand */
             --epic: #1ac0c6;   /* alias for Good (legacy) */
             --flat: #1e2e45;
 
@@ -2125,7 +2126,13 @@ function renderUnifiedTrack() {
             _selectedSlotIdx = capturedIdx;
             waveRow.querySelectorAll('.wave-slot.active').forEach(s => s.classList.remove('active'));
             slot.classList.add('active');
-            showDetailPanel(capturedH);
+            // Always update the hero card in place with the selected hour
+            updateHero(capturedH);
+            // On desktop, also open the full detail panel; on mobile skip it
+            // (the user asked for no popups / bottom sheets on phones)
+            if (window.innerWidth > 600) {
+                showDetailPanel(capturedH);
+            }
         });
         waveRow.appendChild(slot);
 
@@ -2154,10 +2161,12 @@ function renderUnifiedTrack() {
             const effectLabel = (effect.label || '').toLowerCase();
 
             // 1. Quality color = DIRECTION only (decoupled from speed)
-            let qualityColor = '#94a3b8';   // neutral cross
-            if (effectLabel.includes('offshore')) qualityColor = '#10b981';
-            else if (effectLabel.includes('onshore') || effectLabel.includes('blown')) qualityColor = '#ef4444';
-            else if (effectLabel.includes('glassy')) qualityColor = '#1ac0c6';
+            //    Wind palette is deliberately DIFFERENT from the rating palette so
+            //    "green wind arrow" and "cyan Good badge" can't be confused with each other.
+            let qualityColor = '#94a3b8';   // slate — neutral cross
+            if (effectLabel.includes('offshore'))       qualityColor = '#10b981';  // emerald
+            else if (effectLabel.includes('onshore') || effectLabel.includes('blown')) qualityColor = '#e11d48';  // crimson
+            else if (effectLabel.includes('glassy'))    qualityColor = '#6366f1';  // indigo
 
             // 2. Intensity flags — independent of direction
             const isStrong = speed > 22;
