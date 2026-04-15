@@ -621,9 +621,19 @@
     <div class="rating-legend-title">Wind Indicators</div>
     <div class="rating-legend-list">
         <div class="rating-legend-item">
-            <span class="rating-legend-dot" style="background:var(--text-muted);"></span>
-            <span class="rating-legend-name">Arrow</span>
-            <span>&mdash; Points where the wind is going. The label below the arrow names the effect (Offshore, Cross-shore, Onshore, &hellip;).</span>
+            <span class="rating-legend-dot" style="background:#10b981;"></span>
+            <span class="rating-legend-name" style="color:#10b981;">Offshore</span>
+            <span>&mdash; Favorable: wind blowing from land out to sea, grooming wave faces.</span>
+        </div>
+        <div class="rating-legend-item">
+            <span class="rating-legend-dot" style="background:#94a3b8;"></span>
+            <span class="rating-legend-name" style="color:#94a3b8;">Cross-shore</span>
+            <span>&mdash; Neutral: wind along the coast. Texture depends on strength.</span>
+        </div>
+        <div class="rating-legend-item">
+            <span class="rating-legend-dot" style="background:#ef4444;"></span>
+            <span class="rating-legend-name" style="color:#ef4444;">Onshore</span>
+            <span>&mdash; Unfavorable: wind blowing from sea to land, chopping up the surface.</span>
         </div>
         <div class="rating-legend-item">
             <span class="rating-legend-name">Numbers</span>
@@ -2161,8 +2171,10 @@ function renderUnifiedTrack() {
             const effect = getWindEffect(h, spot);
             const effectLabel = (effect.label || '').toLowerCase();
 
-            // Wind is fully colorless — arrow rotation shows direction, numbers show intensity.
-            const neutralColor = 'var(--text-muted)';
+            // Direction color on the arrow + label; numbers stay neutral.
+            let dirColor = '#94a3b8';  // slate — cross-shore / neutral
+            if (effectLabel.includes('offshore'))      dirColor = '#10b981';  // green
+            else if (effectLabel.includes('onshore'))  dirColor = '#ef4444';  // red
             const windDirLabel = h.wind_direction_text || degToCompass(h.wind_direction) || '';
             const displayLabel = effect.label || windDirLabel;
             const tooltip = `${windDirLabel} ${fmt(speed,0)} km/h (gusts ${fmt(gust,0)}) — ${effect.label || ''}`;
@@ -2172,10 +2184,10 @@ function renderUnifiedTrack() {
                     <span class="wind-speed-label">${Math.round(speed)}</span>
                     <span class="wind-gust-sublabel">G${Math.round(gust)}</span>
                 </div>
-                <div class="wind-arrow-wrap" style="border-color:${neutralColor};" title="${tooltip}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${neutralColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                <div class="wind-arrow-wrap" style="border-color:${dirColor};" title="${tooltip}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${dirColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 </div>
-                <span class="wind-effect-label" style="color:${neutralColor};">${displayLabel}</span>
+                <span class="wind-effect-label" style="color:${dirColor};">${displayLabel}</span>
             `;
         }
         windRow.appendChild(ws);
