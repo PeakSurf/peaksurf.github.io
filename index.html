@@ -46,8 +46,10 @@
             --wave-bar-active-top: #00e5ff;
 
             /* Couleurs de notes */
-            /* Rating palette — DISTINCT from wind palette (no red in ratings) */
-            --poor: #64748b;   /* Slate gray (muted, not alarming) */
+            /* Rating palette — classic Red/Amber/Cyan.
+               Visual separation from wind is achieved by SHAPE:
+               solid blocks = ratings, hollow rings = wind arrows. */
+            --poor: #ef4444;   /* Red */
             --fair: #f59e0b;   /* Amber */
             --good: #1ac0c6;   /* Cyan — top tier, matches brand */
             --epic: #1ac0c6;   /* alias for Good (legacy) */
@@ -2161,12 +2163,12 @@ function renderUnifiedTrack() {
             const effectLabel = (effect.label || '').toLowerCase();
 
             // 1. Quality color = DIRECTION only (decoupled from speed)
-            //    Wind palette is deliberately DIFFERENT from the rating palette so
-            //    "green wind arrow" and "cyan Good badge" can't be confused with each other.
+            //    Classic Red/Green/Cyan palette — visual separation from rating
+            //    comes from SHAPE (hollow rings vs solid blocks), not color.
             let qualityColor = '#94a3b8';   // slate — neutral cross
-            if (effectLabel.includes('offshore'))       qualityColor = '#10b981';  // emerald
-            else if (effectLabel.includes('onshore') || effectLabel.includes('blown')) qualityColor = '#e11d48';  // crimson
-            else if (effectLabel.includes('glassy'))    qualityColor = '#6366f1';  // indigo
+            if (effectLabel.includes('offshore'))       qualityColor = '#10b981';  // green
+            else if (effectLabel.includes('onshore') || effectLabel.includes('blown')) qualityColor = '#ef4444';  // red
+            else if (effectLabel.includes('glassy'))    qualityColor = '#1ac0c6';  // cyan
 
             // 2. Intensity flags — independent of direction
             const isStrong = speed > 22;
