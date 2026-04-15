@@ -1751,6 +1751,9 @@ function _renderHeroWithHour(h, spotData) {
     }
 
     const surfaceText = h.ml_surface || getSurfaceTexture(h, spotData.spot);
+    const heroConseil = getNormalizedConseil(h);
+    // Hide skill-level advice when session is Poor — "Friendly for All Levels" is misleading if there's nothing to surf.
+    const showSkill = heroConseil !== 'Poor';
     const skillText = h.ml_skill === 'Confirmés+' ? 'Advanced Only' : 'Friendly for All Levels';
     const windEffect = getWindEffect(h, spotData.spot);
     const tideStatus = getTideStatusLabel(h);
@@ -1758,7 +1761,7 @@ function _renderHeroWithHour(h, spotData) {
 
     document.getElementById('hero-ai-detail').innerHTML = `
         <div style="font-size:0.85rem;">
-            <span style="font-weight:600; color:var(--text-dark);">${surfaceText}</span> &bull; ${skillText}
+            <span style="font-weight:600; color:var(--text-dark);">${surfaceText}</span>${showSkill ? ` &bull; ${skillText}` : ''}
         </div>
     `;
 
@@ -1892,6 +1895,12 @@ function renderDailyCarousel() {
         let bestColor = 'var(--text-muted)';
         let bestHourData = {};
 
+        // If every rated hour in the day is Poor (or flat), don't advertise a "best period".
+        const dayHasGoodOrFair = mlHours.some(h => {
+            const c = getNormalizedConseil(h);
+            return c === 'Epic' || c === 'Good' || c === 'Fair';
+        });
+
         if (mlHours.length > 0) {
             const bestWindow = getBestSurfWindow(dayHours, spot);
 
@@ -1909,10 +1918,10 @@ function renderDailyCarousel() {
 
                 const bestConseil = getNormalizedConseil(bestWindow.peakHour);
                 bestColor = `var(--${getRatingColor(bestWindow.peakHour)})`;
-                if (bestConseil === 'Epic' || bestConseil === 'Good' || bestConseil === 'Fair') {
+                if (dayHasGoodOrFair && (bestConseil === 'Epic' || bestConseil === 'Good' || bestConseil === 'Fair')) {
                     bestTimeStr = `${bestConseil} &bull; ${timeLabel}`;
                 } else {
-                    bestTimeStr = displayHeight < 0.3 ? 'Flat' : `Poor &bull; ${timeLabel}`;
+                    bestTimeStr = displayHeight < 0.3 ? 'Flat' : 'Poor all day';
                 }
             } else {
                 const sessionHours = [];
@@ -1951,10 +1960,10 @@ function renderDailyCarousel() {
                 bestColor = `var(--${getRatingColor(bestHour)})`;
 
                 const timeLabel = String(bestHr).padStart(2, '0') + 'h00';
-                if (bestConseil === 'Epic' || bestConseil === 'Good' || bestConseil === 'Fair') {
+                if (dayHasGoodOrFair && (bestConseil === 'Epic' || bestConseil === 'Good' || bestConseil === 'Fair')) {
                     bestTimeStr = `${bestConseil} &bull; ${timeLabel}`;
                 } else {
-                    bestTimeStr = displayHeight < 0.3 ? 'Flat' : 'Poor';
+                    bestTimeStr = displayHeight < 0.3 ? 'Flat' : 'Poor all day';
                 }
             }
         } else {
@@ -2329,7 +2338,7 @@ function showDetailPanel(h) {
                 <div class="detail-block-title">AI Engine Insights</div>
                 <div class="d-row"><span class="d-label">Rating</span><span class="d-val"><span class="rating-badge bg-${ratingColor}" style="font-size:0.6rem;padding:0.1rem 0.4rem;">${conseilLabel.toUpperCase()}</span>${h.tide_quality ? ` <span style="font-size:0.55rem;font-weight:600;color:${h.tide_quality === 'good' ? '#16a34a' : h.tide_quality === 'poor' ? '#dc2626' : '#94a3b8'};">${h.tide_quality === 'good' ? 'Tide optimal' : h.tide_quality === 'poor' ? 'Bad tide' : 'Tide OK'}</span>` : ''}</span></div>
                 <div class="d-row"><span class="d-label">Surface</span><span class="d-val">${mlSurface || surfaceTexture}</span></div>
-                <div class="d-row"><span class="d-label">Level</span><span class="d-val">${(h.ml_skill === 'Confirmés+' ? 'Advanced' : 'All levels')}</span></div>
+                ${conseilLabel !== 'Poor' ? `<div class="d-row"><span class="d-label">Level</span><span class="d-val">${(h.ml_skill === 'Confirmés+' ? 'Advanced' : 'All levels')}</span></div>` : ''}
                 ${h.ml_conseil_proba ? `<div class="d-row" style="margin-top:0.25rem;border-top:1px dashed var(--border-light);padding-top:0.4rem;">
                     <span class="d-label" style="font-size:0.6rem">Probability Matrix</span>
                     <span class="d-val" style="font-size:0.6rem">${Object.entries(h.ml_conseil_proba).map(([k,v]) => k + ' ' + Math.round(v*100) + '%').join(' · ')}</span>
