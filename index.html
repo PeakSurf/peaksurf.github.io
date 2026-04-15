@@ -619,17 +619,17 @@
         </div>
     </div>
 
-    <div class="rating-legend-title">Wind &amp; Strength Indicators</div>
+    <div class="rating-legend-title">Wind Indicators</div>
     <div class="rating-legend-list">
         <div class="rating-legend-item">
-            <span class="rating-legend-dot" style="background:#10b981;"></span>
-            <span class="rating-legend-name" style="color:#10b981;">Green Arrow</span>
-            <span>&mdash; Favorable Offshore direction.</span>
+            <span class="rating-legend-dot" style="background:var(--text-muted);"></span>
+            <span class="rating-legend-name">Arrow direction</span>
+            <span>&mdash; Points where the wind is going (Offshore, Cross-shore, Onshore). Label below the arrow names it.</span>
         </div>
         <div class="rating-legend-item">
-            <span class="rating-legend-dot" style="background:#f97316;"></span>
-            <span class="rating-legend-name" style="color:#f97316;">Orange Number</span>
-            <span>&mdash; High Intensity / Strong Wind (&gt;22 km/h).</span>
+            <span class="rating-legend-dot" style="background:linear-gradient(90deg,hsl(60,92%,58%),hsl(30,92%,52%),hsl(0,92%,46%));"></span>
+            <span class="rating-legend-name">Speed &amp; gust color</span>
+            <span>&mdash; Continuous gradient: neutral under 6&nbsp;km/h, then yellow &rarr; orange &rarr; red as wind builds toward 40&nbsp;km/h. A hotter gust than speed means a gusty day.</span>
         </div>
     </div>
 </div>
@@ -2176,13 +2176,9 @@ function renderUnifiedTrack() {
             const effect = getWindEffect(h, spot);
             const effectLabel = (effect.label || '').toLowerCase();
 
-            // 1. Direction color — classic palette, no glassy branch.
-            let qualityColor = '#94a3b8';   // slate — neutral cross
-            if (effectLabel.includes('offshore'))      qualityColor = '#10b981';  // green
-            else if (effectLabel.includes('onshore'))  qualityColor = '#ef4444';  // red
-
-            // 2. Intensity color — continuous HSL gradient, no hard threshold.
-            //    <=6 km/h: neutral text. 6..40 km/h: yellow (60°) -> red (0°).
+            // Wind is fully colorless for direction — the arrow rotation tells the story.
+            // Only the speed/gust numbers carry a continuous HSL intensity gradient.
+            const neutralColor = 'var(--text-muted)';
             const windDirLabel = h.wind_direction_text || degToCompass(h.wind_direction) || '';
             const displayLabel = effect.label || windDirLabel;
             const tooltip = `${windDirLabel} ${fmt(speed,0)} km/h (gusts ${fmt(gust,0)}) — ${effect.label || ''}`;
@@ -2194,10 +2190,10 @@ function renderUnifiedTrack() {
                     <span class="wind-speed-label" style="color:${speedColor};">${Math.round(speed)}</span>
                     <span class="wind-gust-sublabel" style="color:${gustColor};">G${Math.round(gust)}</span>
                 </div>
-                <div class="wind-arrow-wrap" style="border-color:${qualityColor};" title="${tooltip}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${qualityColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                <div class="wind-arrow-wrap" style="border-color:${neutralColor};" title="${tooltip}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${neutralColor}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${h.wind_direction || 0}deg)"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 </div>
-                <span class="wind-effect-label" style="color:${qualityColor};">${displayLabel}</span>
+                <span class="wind-effect-label" style="color:${neutralColor};">${displayLabel}</span>
             `;
         }
         windRow.appendChild(ws);
