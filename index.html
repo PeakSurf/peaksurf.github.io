@@ -2127,6 +2127,10 @@ function renderUnifiedTrack() {
             slot.classList.add('active');
             updateHero(capturedH);
             showDetailPanel(capturedH);
+            if (window.navigator.vibrate) window.navigator.vibrate(5);
+            if (window.innerWidth < 600) {
+                document.getElementById('detail-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         });
         waveRow.appendChild(slot);
 
