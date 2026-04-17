@@ -214,6 +214,8 @@
         .wave-slot:hover .wave-bar { transform: scaleY(1.05); }
         .wave-slot.active .wave-bar { transform: scaleY(1.08) scaleX(1.1); }
         .wave-slot:hover .set-bar-ext, .wave-slot.active .set-bar-ext { background: rgba(26, 192, 198, 0.35); }
+        /* ML confidence strip — thin line at bottom of each wave slot, opacity encodes confidence */
+        .wave-conf-strip { position: absolute; bottom: 2px; left: 6px; right: 6px; height: 2px; background: var(--accent); border-radius: 1px; pointer-events: none; }
         .wave-label { font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-bottom: 3px; white-space: nowrap; }
         .hero-set-badge { display: inline-block; font-size: 0.75rem; color: var(--accent); background: rgba(26, 192, 198, 0.1); padding: 2px 8px; border-radius: 6px; font-weight: 700; border: 1px solid rgba(26, 192, 198, 0.35); line-height: 1.3; margin-top: 4px; }
 
@@ -399,6 +401,12 @@
         .footer-logo-wrap { background: #ffffff; display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 14px; margin-bottom: 0.75rem; box-shadow: 0 4px 20px rgba(26, 192, 198, 0.15); }
         .footer-logo-wrap img { display: block; height: 60px; width: 60px; }
 
+        /* ========== TAP TOOLTIP (mobile popover for .tip-target[title]) ========== */
+        .tap-tip { position: fixed; z-index: 9999; background: rgba(6, 17, 33, 0.96); color: var(--text-dark); border: 1px solid var(--accent); border-radius: 10px; padding: 0.55rem 0.75rem; font-size: 0.72rem; font-weight: 500; max-width: 260px; line-height: 1.4; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity 0.15s ease, transform 0.15s ease; top: 0; left: 0; }
+        .tap-tip.show { opacity: 1; transform: translateY(0); }
+        .tip-target { cursor: help; position: relative; }
+        .tip-target::after { content: 'ⓘ'; font-size: 0.7em; color: var(--text-light); margin-left: 0.25em; vertical-align: baseline; font-weight: 600; }
+
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
             .hero-grid { grid-template-columns: 1fr 1fr; }
@@ -424,6 +432,8 @@
     </style>
 </head>
 <body>
+
+<div id="tap-tip" class="tap-tip" role="tooltip"></div>
 
 <header class="header">
     <div class="header-inner">
@@ -2124,14 +2134,18 @@ function renderUnifiedTrack() {
         const slot = document.createElement('button');
         slot.className = 'wave-slot' + nightClass + (i === _selectedSlotIdx ? ' active' : '');
         const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : '--';
-        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}`);
-        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m`;
+        const mlConf = h.ml_conseil_conf;
+        const confOpacity = mlConf != null ? (0.2 + 0.8 * Math.max(0, Math.min(1, mlConf))).toFixed(2) : null;
+        const confLabelText = mlConf != null ? (mlConf > 0.5 ? 'High' : mlConf > 0.3 ? 'Medium' : 'Low') : '';
+        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}${confLabelText ? ', ' + confLabelText + ' confidence' : ''}`);
+        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m${confLabelText ? ' · ' + confLabelText + ' confidence' : ''}`;
         slot.innerHTML = `
             ${showLabel ? `<span class="wave-label">${waveLabel}</span>` : ''}
             <div class="wave-bar-wrapper" style="height:${setH}px;">
                 <div class="set-bar-ext" style="height:100%;"></div>
                 <div class="wave-bar" style="height:${innerBarPct}%;"></div>
             </div>
+            ${confOpacity != null ? `<div class="wave-conf-strip" style="opacity:${confOpacity};"></div>` : ''}
         `;
         const capturedIdx = i, capturedH = h;
         slot.addEventListener('click', () => {
@@ -2304,17 +2318,17 @@ function showDetailPanel(h) {
 
         <div class="detail-surf-banner">
             <div>
-                <div class="surf-label" title="Nearshore face height — trough-to-crest on the breaking face, as French surfers report it">Waves at Spot · face height${h.ml_conseil ? ' (AI Model)' : ''}</div>
+                <div class="surf-label tip-target" title="Nearshore face height — trough-to-crest on the breaking face, as French surfers report it">Waves at Spot · face height${h.ml_conseil ? ' (AI Model)' : ''}</div>
                 <div class="surf-value">${displayWaveText}</div>
                 ${displaySetsText ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.15rem;">${displaySetsText}</div>` : ''}
             </div>
-            <div class="surf-offshore" title="Significant wave height (Hs) offshore — open-ocean swell from the IBI model, before shoaling">Offshore Hs: ${offshoreHs}</div>
+            <div class="surf-offshore tip-target" title="Significant wave height (Hs) offshore — open-ocean swell from the IBI model, before shoaling">Offshore Hs: ${offshoreHs}</div>
         </div>
 
         <div class="detail-grid">
             <div class="detail-block">
                 <div class="detail-block-title">Ocean (offshore)</div>
-                <div class="d-row"><span class="d-label" title="Significant wave height — mean trough-to-crest height of the highest third of waves in the open ocean">Total Hs</span><span class="d-val" style="font-weight:700">${formatOceanComponent(h.wave_height_model, h.peak_period, h.wave_direction, h.wave_direction_text)}</span></div>
+                <div class="d-row"><span class="d-label tip-target" title="Significant wave height — mean trough-to-crest height of the highest third of waves in the open ocean">Total Hs</span><span class="d-val" style="font-weight:700">${formatOceanComponent(h.wave_height_model, h.peak_period, h.wave_direction, h.wave_direction_text)}</span></div>
                 <div class="d-row"><span class="d-label">Primary swell</span><span class="d-val">${formatOceanComponent(primarySwellHeight, h.swell_period, h.swell_direction, h.swell_direction_text)}</span></div>
                 ${secondarySwellRow}
                 ${windWaveRow}
@@ -2508,7 +2522,38 @@ window.addEventListener('resize', () => {
     _resizeTimer = setTimeout(() => { renderTideCanvas(); }, 200);
 });
 
+// ── Tap-friendly tooltip (native title= doesn't work on touch) ──
+function initTapTips() {
+    const tip = document.getElementById('tap-tip');
+    if (!tip) return;
+    let shown = false;
+    const hide = () => { tip.classList.remove('show'); shown = false; };
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('.tip-target');
+        if (!target) { if (shown) hide(); return; }
+        const text = target.getAttribute('title') || target.getAttribute('data-tip');
+        if (!text) return;
+        e.preventDefault();
+        e.stopPropagation();
+        tip.textContent = text;
+        tip.classList.add('show');
+        // Position below the element, flip above if overflowing
+        const r = target.getBoundingClientRect();
+        const tipH = tip.offsetHeight;
+        const tipW = tip.offsetWidth;
+        let top = r.bottom + 6;
+        if (top + tipH > window.innerHeight - 8) top = Math.max(8, r.top - tipH - 6);
+        let left = r.left + r.width / 2 - tipW / 2;
+        left = Math.max(8, Math.min(window.innerWidth - tipW - 8, left));
+        tip.style.top = top + 'px';
+        tip.style.left = left + 'px';
+        shown = true;
+    }, true);
+    document.addEventListener('scroll', () => { if (shown) hide(); }, true);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initTapTips();
     // Wire search input
     const searchInput = document.getElementById('spot-search');
     if (searchInput) {
