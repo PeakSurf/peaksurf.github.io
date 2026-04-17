@@ -2151,6 +2151,7 @@ function renderUnifiedTrack() {
         sd.className = 'swell-dir-slot' + nightClass;
         if (h.swell_direction != null) {
             const offshoreHs = h.wave_height_model != null ? `${fmt(h.wave_height_model)}<span style="font-size:0.5rem;font-weight:600;color:var(--text-light);margin-right:2px;">m</span> ` : '';
+            sd.title = h.wave_height_model != null ? `Offshore Hs ${fmt(h.wave_height_model)}m — significant wave height from the offshore model` : '';
             sd.innerHTML = `
                 <div style="font-size:0.7rem; font-weight:800; color:var(--text-dark); margin-bottom:1px; display:flex; align-items:baseline; justify-content:center;">
                     ${offshoreHs}<span class="swell-period" style="font-size:0.6rem; font-weight:700; color:var(--text-muted);">${fmt(h.peak_period || h.swell_period, 0)}s</span>
@@ -2303,17 +2304,17 @@ function showDetailPanel(h) {
 
         <div class="detail-surf-banner">
             <div>
-                <div class="surf-label">Waves at Spot${h.ml_conseil ? ' (AI Model)' : ''}</div>
+                <div class="surf-label" title="Nearshore face height — trough-to-crest on the breaking face, as French surfers report it">Waves at Spot · face height${h.ml_conseil ? ' (AI Model)' : ''}</div>
                 <div class="surf-value">${displayWaveText}</div>
                 ${displaySetsText ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.15rem;">${displaySetsText}</div>` : ''}
             </div>
-            <div class="surf-offshore">Offshore Data: ${offshoreHs}</div>
+            <div class="surf-offshore" title="Significant wave height (Hs) offshore — open-ocean swell from the IBI model, before shoaling">Offshore Hs: ${offshoreHs}</div>
         </div>
 
         <div class="detail-grid">
             <div class="detail-block">
                 <div class="detail-block-title">Ocean (offshore)</div>
-                <div class="d-row"><span class="d-label">Total Hs</span><span class="d-val" style="font-weight:700">${formatOceanComponent(h.wave_height_model, h.peak_period, h.wave_direction, h.wave_direction_text)}</span></div>
+                <div class="d-row"><span class="d-label" title="Significant wave height — mean trough-to-crest height of the highest third of waves in the open ocean">Total Hs</span><span class="d-val" style="font-weight:700">${formatOceanComponent(h.wave_height_model, h.peak_period, h.wave_direction, h.wave_direction_text)}</span></div>
                 <div class="d-row"><span class="d-label">Primary swell</span><span class="d-val">${formatOceanComponent(primarySwellHeight, h.swell_period, h.swell_direction, h.swell_direction_text)}</span></div>
                 ${secondarySwellRow}
                 ${windWaveRow}
