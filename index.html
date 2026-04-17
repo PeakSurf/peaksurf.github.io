@@ -214,8 +214,6 @@
         .wave-slot:hover .wave-bar { transform: scaleY(1.05); }
         .wave-slot.active .wave-bar { transform: scaleY(1.08) scaleX(1.1); }
         .wave-slot:hover .set-bar-ext, .wave-slot.active .set-bar-ext { background: rgba(26, 192, 198, 0.35); }
-        /* ML confidence strip — thin line at bottom of each wave slot, opacity encodes confidence */
-        .wave-conf-strip { position: absolute; bottom: 2px; left: 6px; right: 6px; height: 2px; background: var(--accent); border-radius: 1px; pointer-events: none; }
         .wave-label { font-size: 0.75rem; font-weight: 700; color: var(--text-dark); margin-bottom: 3px; white-space: nowrap; }
         .hero-set-badge { display: inline-block; font-size: 0.75rem; color: var(--accent); background: rgba(26, 192, 198, 0.1); padding: 2px 8px; border-radius: 6px; font-weight: 700; border: 1px solid rgba(26, 192, 198, 0.35); line-height: 1.3; margin-top: 4px; }
 
@@ -405,7 +403,7 @@
         .tap-tip { position: fixed; z-index: 9999; background: rgba(6, 17, 33, 0.96); color: var(--text-dark); border: 1px solid var(--accent); border-radius: 10px; padding: 0.55rem 0.75rem; font-size: 0.72rem; font-weight: 500; max-width: 260px; line-height: 1.4; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity 0.15s ease, transform 0.15s ease; top: 0; left: 0; }
         .tap-tip.show { opacity: 1; transform: translateY(0); }
         .tip-target { cursor: help; position: relative; }
-        .tip-target::after { content: 'ⓘ'; font-size: 0.7em; color: var(--text-light); margin-left: 0.25em; vertical-align: baseline; font-weight: 600; }
+        .tip-target::after { content: 'ⓘ'; font-size: 1em; color: var(--accent); margin-left: 0.35em; vertical-align: baseline; font-weight: 700; opacity: 0.85; }
 
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
@@ -482,6 +480,7 @@
             </div>
             <div class="ai-main-content">
                 <div class="ai-size-block">
+                    <span class="ai-context-line tip-target" title="Nearshore face height — trough-to-crest on the breaking face, as French surfers report it. Offshore Hs (significant wave height) is shown separately in the Offshore card.">Face height</span>
                     <div class="hero-val" style="font-size:2rem;"><span id="hero-height">--</span><span class="hero-val-unit" style="font-size:1rem; margin-left:2px;">m</span></div>
                     <span class="hero-desc" id="hero-wave-detail" style="color:var(--accent); font-weight:600; margin-top:0.2rem;">--</span>
                 </div>
@@ -2134,18 +2133,14 @@ function renderUnifiedTrack() {
         const slot = document.createElement('button');
         slot.className = 'wave-slot' + nightClass + (i === _selectedSlotIdx ? ' active' : '');
         const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : '--';
-        const mlConf = h.ml_conseil_conf;
-        const confOpacity = mlConf != null ? (0.2 + 0.8 * Math.max(0, Math.min(1, mlConf))).toFixed(2) : null;
-        const confLabelText = mlConf != null ? (mlConf > 0.5 ? 'High' : mlConf > 0.3 ? 'Medium' : 'Low') : '';
-        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}${confLabelText ? ', ' + confLabelText + ' confidence' : ''}`);
-        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m${confLabelText ? ' · ' + confLabelText + ' confidence' : ''}`;
+        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}`);
+        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m`;
         slot.innerHTML = `
             ${showLabel ? `<span class="wave-label">${waveLabel}</span>` : ''}
             <div class="wave-bar-wrapper" style="height:${setH}px;">
                 <div class="set-bar-ext" style="height:100%;"></div>
                 <div class="wave-bar" style="height:${innerBarPct}%;"></div>
             </div>
-            ${confOpacity != null ? `<div class="wave-conf-strip" style="opacity:${confOpacity};"></div>` : ''}
         `;
         const capturedIdx = i, capturedH = h;
         slot.addEventListener('click', () => {
