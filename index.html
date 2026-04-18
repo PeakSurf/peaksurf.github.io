@@ -2325,6 +2325,28 @@ function _sizeBucket(face) {
     return 'huge';
 }
 
+function _slopeDesc(pente) {
+    // pente is a dimensionless beach slope (rise/run). Typical range 0.005 (flat
+    // banks, many open beaches) to 0.03+ (steep beach/point).
+    if (pente == null) return null;
+    if (pente >= 0.020) return { tag: 'steep beach', tideNote: 'tide-critical — narrow workable zone' };
+    if (pente >= 0.012) return { tag: 'moderate slope', tideNote: 'moderately tide-sensitive' };
+    if (pente >= 0.007) return { tag: 'gentle slope', tideNote: 'tolerates wide tide range' };
+    return { tag: 'very gentle / flat banks', tideNote: 'works at almost any tide' };
+}
+
+function _substrateDesc(bottom) {
+    if (!bottom) return null;
+    const b = bottom.toLowerCase();
+    if (b.includes('reef')) return 'reef';
+    if (b.includes('point')) return 'point break';
+    if (b.includes('cobble')) return 'cobble';
+    if (b.includes('sand_over_rock') || b.includes('rock')) return 'sand over rock';
+    if (b.includes('sheltered') || b.includes('bay')) return 'sheltered bay';
+    if (b.includes('sand')) return 'sand';
+    return bottom;
+}
+
 function buildConditionContext(h, spot, currentSlug) {
     const face = h.ml_wave_height_max;
     const hs = h.wave_height_model;
@@ -2333,29 +2355,34 @@ function buildConditionContext(h, spot, currentSlug) {
     const windDirTxt = h.wind_direction_text || degToCompass(h.wind_direction) || '';
     const conseil = getNormalizedConseil(h) || 'Poor';
     const size = _sizeBucket(face);
-    const windShore = _windAngleRelToShore(h, spot);  // 0=onshore, 180=offshore
-    const windEffect = getWindEffect(h, spot);  // existing helper, returns {label}
+    const windEffect = getWindEffect(h, spot);
     const effectLow = (windEffect.label || '').toLowerCase();
+    const slope = _slopeDesc(spot.pente_fond);
+    const substrate = _substrateDesc(spot.bottom_type);
 
     // Wind descriptor
-    let windDesc = 'neutral';
+    let windDesc = 'light';
     if (wind != null && wind < 5) windDesc = 'calm';
     else if (effectLow.includes('offshore')) windDesc = wind < 20 ? 'clean offshore' : 'strong offshore';
     else if (effectLow.includes('onshore')) windDesc = wind > 20 ? 'blown out' : 'onshore';
     else if (effectLow.includes('cross')) windDesc = 'cross-shore';
 
-    // Swell quality
+    // Swell period description (no "mixed" jargon)
     let swellDesc = '';
     if (tp != null) {
-        if (tp >= 13) swellDesc = 'groundswell';
-        else if (tp >= 10) swellDesc = 'mixed swell';
-        else if (tp >= 7) swellDesc = 'short swell';
+        if (tp >= 13) swellDesc = 'long-period groundswell';
+        else if (tp >= 10) swellDesc = 'medium-period swell';
+        else if (tp >= 7) swellDesc = 'short-period swell';
         else swellDesc = 'wind swell';
     }
 
-    // Clean detector
-    const isClean = windDesc.includes('offshore') || windDesc === 'calm' || windDesc === 'neutral';
+    const isClean = windDesc.includes('offshore') || windDesc === 'calm' || windDesc === 'light';
+    const isMessy = windDesc === 'onshore' || windDesc === 'blown out' || windDesc === 'cross-shore';
     const isGroundswell = tp != null && tp >= 12;
+    const isSteep = spot.pente_fond != null && spot.pente_fond >= 0.020;
+    const isGentle = spot.pente_fond != null && spot.pente_fond < 0.010;
+    const isReef = substrate === 'reef' || substrate === 'point break';
+    const isBay = substrate === 'sheltered bay';
 
     // Neighbor comparison (same hour)
     const neighbors = _getNearbySpots(currentSlug, 60, 4);
@@ -2368,37 +2395,86 @@ function buildConditionContext(h, spot, currentSlug) {
         neighborRatings.push({ name: n.name, conseil: c, color: col, dist: n.dist });
     }
 
-    // Rank conseil (Good=3, Fair=2, Poor=1)
     const rank = { 'Epic': 3, 'Good': 3, 'Fair': 2, 'Poor': 1 };
     const myRank = rank[conseil] || 1;
     const neighborBetter = neighborRatings.filter(n => (rank[n.conseil] || 1) > myRank);
     const neighborWorse = neighborRatings.filter(n => (rank[n.conseil] || 1) < myRank);
 
-    // Narrative
+    // Narrative (verdict) — builds a default explanation for every combination
     const verdicts = [];
-    if (conseil === 'Poor' && isClean && size === 'tiny' && neighborBetter.length >= 2) {
-        verdicts.push("Small but clean — rating likely conservative. Bring a longboard, mornings usually workable.");
-    } else if (conseil === 'Poor' && isClean && (size === 'small' || size === 'tiny') && isGroundswell) {
-        verdicts.push("Clean offshore + long-period groundswell — small but quality. Protected bays may surf better than rated.");
-    } else if (conseil === 'Poor' && size === 'flat') {
-        verdicts.push("Genuinely too small to surf here today.");
-    } else if (conseil === 'Poor' && windDesc === 'blown out') {
-        verdicts.push("Wind-affected and unclean. Seek sheltered alternative.");
-    } else if ((conseil === 'Good' || conseil === 'Epic') && size === 'big' && isClean) {
-        verdicts.push("Clean and sizeable — solid conditions. Experienced surfers only if getting bigger.");
-    } else if (conseil === 'Fair' && isClean) {
-        verdicts.push("Fair rating but conditions are clean — worth a check.");
-    } else if (neighborBetter.length >= 2 && conseil === 'Poor') {
-        verdicts.push(`Rating Poor while nearby ${neighborBetter.map(n => n.name).slice(0,2).join(', ')} score higher — may under-predict this spot.`);
-    } else if (neighborWorse.length >= 2 && (conseil === 'Good' || conseil === 'Epic')) {
-        verdicts.push("Rated Good while neighbors are lower — this spot is an outlier winner today.");
+
+    // Size-driven primary verdicts
+    if (size === 'flat' || size === 'tiny') {
+        if (isClean && isGroundswell && isReef) {
+            verdicts.push('Small but quality — clean long-period swell on reef. Expert longboarders can find a wave.');
+        } else if (isClean && (conseil === 'Poor') && neighborBetter.length >= 2) {
+            verdicts.push(`Small and clean, rating likely conservative — nearby ${neighborBetter.slice(0,2).map(n=>n.name).join(', ')} score higher. Longboard day.`);
+        } else if (isClean && isBay) {
+            verdicts.push('Clean but small in a sheltered bay — protected waters rarely produce big waves on days like this.');
+        } else if (size === 'flat') {
+            verdicts.push('Genuinely too small to surf today.');
+        } else if (isMessy) {
+            verdicts.push('Small and messy — not worth a session. Seek more exposed alternatives if available.');
+        } else {
+            verdicts.push('Small conditions — longboards or softboards only.');
+        }
+    } else if (size === 'small') {
+        if (isClean && isGroundswell) {
+            verdicts.push('Small but clean groundswell — quality over size. Good shortboard day for experienced surfers.');
+        } else if (isClean) {
+            verdicts.push('Manageable clean conditions — friendly for most levels.');
+        } else if (isMessy) {
+            verdicts.push('Small and wind-affected — clean surface compromised.');
+        } else {
+            verdicts.push('Modest waves.');
+        }
+    } else if (size === 'medium') {
+        if (isClean && isGroundswell) {
+            verdicts.push('Clean medium-sized groundswell — solid session quality. Shortboards primary.');
+        } else if (isMessy) {
+            verdicts.push('Decent size but wind is degrading the surface — expect choppy faces.');
+        } else {
+            verdicts.push('Medium-sized conditions.');
+        }
+    } else if (size === 'big' || size === 'huge') {
+        if (isClean) {
+            verdicts.push(`Clean and ${size === 'huge' ? 'powerful' : 'sizeable'} — experienced surfers only. Mind the currents.`);
+        } else {
+            verdicts.push('Big and disorganised — serious conditions, reserve for advanced only.');
+        }
     }
+
+    // Slope / substrate supplementary verdict
+    const supps = [];
+    if (isSteep && h.tide_quality === 'poor') {
+        supps.push('Steep beach at poor tide — likely to close out or become unsurfable in sections.');
+    } else if (isSteep && h.tide_quality === 'good') {
+        supps.push('Steep beach at favourable tide — classic peeling walls if swell matches.');
+    } else if (isGentle && size !== 'flat' && size !== 'tiny') {
+        supps.push('Gentle slope — long mellow rides typical.');
+    }
+    if (isReef && isGroundswell && size !== 'flat') {
+        supps.push('Reef + groundswell combo — watch for set-heavy intervals.');
+    }
+    if (supps.length) verdicts.push(supps[0]);
+
+    // Neighbor disagreement note (adds flavour on top of primary verdict)
+    if (neighborBetter.length >= 2 && (conseil === 'Poor' || conseil === 'Fair')) {
+        verdicts.push(`Note: ${neighborBetter.slice(0,2).map(n=>n.name).join(', ')} rated higher this hour — ${spot.name || 'this spot'} may be under-predicted.`);
+    } else if (neighborWorse.length >= 2 && (conseil === 'Good' || conseil === 'Epic')) {
+        verdicts.push(`Note: neighbors rated lower — ${spot.name || 'this spot'} is the standout today.`);
+    }
+
+    const geomBits = [];
+    if (slope) geomBits.push(slope.tag);
+    if (substrate) geomBits.push(substrate);
 
     return {
         sizeDesc: size === 'unknown' ? null : `Face ${fmt(face)}m (${size})`,
         hsDesc: hs != null ? `Offshore Hs ${fmt(hs)}m${tp ? ` · ${fmt(tp, 0)}s` : ''}${swellDesc ? ` · ${swellDesc}` : ''}` : null,
         windDesc: wind != null ? `${windDesc} (${fmt(wind, 0)} km/h ${windDirTxt})` : null,
         tideDesc: h.tide_quality === 'good' ? 'Tide favourable' : h.tide_quality === 'poor' ? 'Tide unfavourable' : (h.tide_quality === 'ok' ? 'Tide OK' : null),
+        geomDesc: geomBits.length ? `${geomBits.join(' · ')}${slope ? ` (${slope.tideNote})` : ''}` : null,
         neighbors: neighborRatings,
         verdicts,
     };
@@ -2409,6 +2485,7 @@ function renderContextCard(h, spot, currentSlug) {
     const lines = [];
     const factBits = [ctx.sizeDesc, ctx.hsDesc, ctx.windDesc, ctx.tideDesc].filter(Boolean);
     if (factBits.length) lines.push(`<div class="cc-line">${factBits.join(' · ')}</div>`);
+    if (ctx.geomDesc) lines.push(`<div class="cc-line cc-muted">Break: ${ctx.geomDesc}</div>`);
     if (ctx.neighbors.length) {
         const chips = ctx.neighbors.map(n =>
             `<span class="cc-neighbor bg-${n.color}" title="${Math.round(n.dist)} km away">${n.name}: ${n.conseil}</span>`
