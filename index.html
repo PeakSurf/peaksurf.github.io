@@ -2522,7 +2522,75 @@ function buildConditionContext(h, spot, currentSlug) {
     };
 }
 
+// New renderer: reads pre-computed k-NN context fields injected by
+// fetch_data.py (knn_context.py module). Falls back to legacy rule-based
+// card if those fields are absent.
 function renderContextCard(h, spot, currentSlug) {
+    // If knn_context did not annotate this hour, show minimal card
+    const hasKnn = h.ml_conseil_knn != null || h.ml_similar_match != null;
+    if (!hasKnn) {
+        return renderLegacyContextCard(h, spot, currentSlug);
+    }
+
+    const face = h.ml_wave_height_max;
+    const hs = h.wave_height_model;
+    const tp = h.peak_period || h.swell_period;
+    const wind = h.wind_speed_kmh;
+    const windDirTxt = h.wind_direction_text || degToCompass(h.wind_direction) || '';
+    const surf = h.ml_surface || '?';
+    const wmin = h.ml_wave_height_min;
+    const wsets = h.ml_wave_height_sets;
+
+    const lines = [];
+
+    // Fine-grained historical label chip (always present when knn ran)
+    if (h.ml_conseil_knn) {
+        lines.push(`<div class="cc-line"><span class="cc-muted">Historically similar:</span> <strong>${h.ml_conseil_knn}</strong></div>`);
+    }
+    // Override banner (only when rating was flipped)
+    if (h.ml_conseil_override && h.ml_conseil_v13) {
+        lines.push(`<div class="cc-line cc-muted">Rating overridden: v13_3c said <strong>${h.ml_conseil_v13}</strong>, ${h.ml_conseil_override_n || '≥5'} similar past sessions here say <strong>${h.ml_conseil_override}</strong>.</div>`);
+    }
+    // Wave override marker
+    if (h.ml_wave_override_n && h.ml_wave_height_max_v13 != null) {
+        const v_min = h.ml_wave_height_min_v13, v_max = h.ml_wave_height_max_v13;
+        lines.push(`<div class="cc-line cc-muted">Face adjusted from ${fmt(v_min)}–${fmt(v_max)}m (v13_3c) to ${fmt(wmin)}–${fmt(face)}m (${h.ml_wave_override_n} historical matches).</div>`);
+    }
+
+    // Facts line
+    const factBits = [];
+    if (face != null) {
+        const rng = (wmin != null && Math.abs(wmin - face) > 0.1) ? `${fmt(wmin)}–${fmt(face)}m` : `${fmt(face)}m`;
+        factBits.push(`Face ${rng}`);
+        if (wsets != null && wsets > face + 0.1) factBits.push(`sets ${fmt(wsets)}m`);
+    }
+    if (hs != null) factBits.push(`Hs ${fmt(hs)}m`);
+    if (tp != null) factBits.push(`${fmt(tp, 0)}s`);
+    factBits.push(`${surf.toLowerCase()} surface`);
+    if (wind != null) factBits.push(`${fmt(wind, 0)} km/h ${windDirTxt}`);
+    if (factBits.length) lines.push(`<div class="cc-line">${factBits.join(' · ')}</div>`);
+
+    // Tide note from history
+    if (h.ml_tide_note_en) {
+        const color = h.ml_tide_note_kind === 'unfavourable' ? '#ef4444' : (h.ml_tide_note_kind === 'favourable' ? '#10b981' : 'var(--text-muted)');
+        lines.push(`<div class="cc-line" style="color:${color};">Tide: ${h.ml_tide_note_en}</div>`);
+    }
+
+    // Authentic narrative
+    if (h.ml_similar_match && h.ml_similar_match.conseil_long_en) {
+        const sm = h.ml_similar_match;
+        const same = sm.same_spot ? ' (same spot)' : ` (${sm.slug || 'nearby'})`;
+        const date = sm.date || '';
+        const reporter = sm.conseil_en ? ` — reporter: "${sm.conseil_en}"` : '';
+        lines.push(`<div class="cc-verdict">Similar past session ${date}${same}:<br><em>"${sm.conseil_long_en}"</em>${reporter}</div>`);
+    }
+
+    if (!lines.length) return '';
+    return `<div class="context-card"><div class="cc-title">Conditions context</div>${lines.join('')}</div>`;
+}
+
+// Preserved legacy renderer for any hour without k-NN annotation
+function renderLegacyContextCard(h, spot, currentSlug) {
     const ctx = buildConditionContext(h, spot, currentSlug);
     const lines = [];
     const factBits = [ctx.sizeDesc, ctx.hsDesc, ctx.surfaceDesc, ctx.windDesc, ctx.tideDesc].filter(Boolean);
