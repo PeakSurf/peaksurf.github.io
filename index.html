@@ -2677,7 +2677,7 @@ function showDetailPanel(h) {
             <div class="surf-offshore tip-target" title="Significant wave height (Hs) offshore — open-ocean swell from the IBI model, before shoaling">Offshore Hs: ${offshoreHs}</div>
         </div>
 
-        ${renderContextCard(h, spotData.spot, _currentSpot)}
+        ${h.ml_conseil_knn ? `<div style="font-size:0.72rem;color:var(--text-muted);margin:-0.5rem 0 0.9rem 0.25rem;">Historically similar here: <span style="color:var(--text-main);font-weight:600;">${h.ml_conseil_knn}</span>${h.ml_conseil_knn_n ? ` <span style="opacity:0.6;">(${h.ml_conseil_knn_n} past sessions)</span>` : ''}</div>` : ''}
 
         <div class="detail-grid">
             <div class="detail-block">
