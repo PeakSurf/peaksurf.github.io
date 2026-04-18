@@ -2608,6 +2608,29 @@ function renderLegacyContextCard(h, spot, currentSlug) {
     return `<div class="context-card"><div class="cc-title">Conditions context</div>${lines.join('')}</div>`;
 }
 
+// Historical rating/wave summary — one line under the Waves banner.
+// Uses pre-computed ml_hist_* fields from knn_context post-pass.
+function renderHistoricalLine(h) {
+    try {
+        if (!h || !h.ml_hist_rating) return '';
+        const r = h.ml_hist_rating;
+        const parts = [];
+        if (h.ml_hist_wave_min != null && h.ml_hist_wave_max != null) {
+            const diff = Math.abs(h.ml_hist_wave_min - h.ml_hist_wave_max);
+            parts.push(diff > 0.1
+                ? `${fmt(h.ml_hist_wave_min)}-${fmt(h.ml_hist_wave_max)}m`
+                : `${fmt(h.ml_hist_wave_max)}m`);
+        }
+        if (h.ml_hist_wave_sets != null) parts.push(`sets ${fmt(h.ml_hist_wave_sets)}m`);
+        const waves = parts.length ? ' · ' + parts.join(' · ') : '';
+        const n = h.ml_hist_n ? ` <span style="opacity:0.6;">(${h.ml_hist_n} past sessions)</span>` : '';
+        return `<div style="font-size:0.72rem;color:var(--text-muted);margin:-0.5rem 0 0.9rem 0.25rem;">Historically similar here: <span style="color:var(--text-main);font-weight:600;">${r}</span>${waves}${n}</div>`;
+    } catch (e) {
+        console.error('renderHistoricalLine error:', e);
+        return '';
+    }
+}
+
 function showDetailPanel(h) {
     const panel = document.getElementById('detail-panel');
     panel.classList.add('open');
@@ -2677,20 +2700,7 @@ function showDetailPanel(h) {
             <div class="surf-offshore tip-target" title="Significant wave height (Hs) offshore — open-ocean swell from the IBI model, before shoaling">Offshore Hs: ${offshoreHs}</div>
         </div>
 
-        ${h.ml_hist_rating ? (() => {
-            const r = h.ml_hist_rating;
-            const waveBits = [];
-            if (h.ml_hist_wave_min != null && h.ml_hist_wave_max != null) {
-                const rng = Math.abs(h.ml_hist_wave_min - h.ml_hist_wave_max) > 0.1
-                    ? `${fmt(h.ml_hist_wave_min)}–${fmt(h.ml_hist_wave_max)}m`
-                    : `${fmt(h.ml_hist_wave_max)}m`;
-                waveBits.push(rng);
-            }
-            if (h.ml_hist_wave_sets != null) waveBits.push(`sets ${fmt(h.ml_hist_wave_sets)}m`);
-            const waves = waveBits.length ? ` · ${waveBits.join(' · ')}` : '';
-            const n = h.ml_hist_n ? ` <span style="opacity:0.6;">(${h.ml_hist_n} past sessions)</span>` : '';
-            return `<div style="font-size:0.72rem;color:var(--text-muted);margin:-0.5rem 0 0.9rem 0.25rem;">Historically similar here: <span style="color:var(--text-main);font-weight:600;">${r}</span>${waves}${n}</div>`;
-        })() : ''}
+        ${renderHistoricalLine(h)}
 
         <div class="detail-grid">
             <div class="detail-block">
