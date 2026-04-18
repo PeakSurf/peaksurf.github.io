@@ -2356,6 +2356,48 @@ function _substrateDesc(bottom) {
     return bottom;
 }
 
+function _angleDiff(a, b) {
+    if (a == null || b == null) return null;
+    return Math.abs(((a - b + 180) % 360) - 180);
+}
+
+function _swellCompositionInterpretation(h) {
+    // Produce 0–2 short sentences that describe how the primary swell,
+    // secondary swell, and wind wave relate in size and direction.
+    const sw1 = h.swell_height_model, sw1d = h.swell_direction, sw1p = h.swell_period;
+    const sw2 = h.swell2_height_model, sw2d = h.swell2_direction, sw2p = h.swell2_period;
+    const ww  = h.wind_wave_height_model, wwd = h.wind_wave_direction, wwp = h.wind_wave_period;
+    const lines = [];
+    if (sw1 == null) return lines;
+
+    // Wind wave vs primary swell dominance
+    if (ww != null && ww > 0.4 && ww > sw1 * 1.0 && wwp != null && wwp < 7) {
+        lines.push(`Wind wave (${fmt(ww)}m @ ${fmt(wwp, 0)}s) dominates primary swell — expect choppy, short-period faces.`);
+    } else if (ww != null && sw1 != null && sw1 >= 2 * ww && sw1p != null && sw1p >= 11) {
+        lines.push(`Primary groundswell dominant (${fmt(sw1)}m @ ${fmt(sw1p, 0)}s) with minimal wind wave — organized long-period lines.`);
+    }
+
+    // Crossed swells: primary vs secondary
+    if (sw2 != null && sw2 > 0.3 && sw2 > sw1 * 0.3) {
+        const dd = _angleDiff(sw1d, sw2d);
+        if (dd != null && dd > 60) {
+            lines.push(`Crossed swells — primary from ${h.swell_direction_text || degToCompass(sw1d)} and secondary from ${h.swell2_direction_text || degToCompass(sw2d)} (~${Math.round(dd)}° apart): multi-peak, less clean faces.`);
+        } else if (dd != null && dd < 30) {
+            lines.push(`Primary + secondary aligned (both ~${h.swell_direction_text || degToCompass(sw1d)}) — consistent direction, adds to face height.`);
+        }
+    }
+
+    // Wind wave vs primary swell direction (in addition to size check above)
+    if (ww != null && ww > 0.4 && sw1 != null && sw1 > 0.3) {
+        const dd = _angleDiff(sw1d, wwd);
+        if (dd != null && dd > 120) {
+            lines.push(`Wind wave opposes primary swell — mixed surface, watch for confused peaks.`);
+        }
+    }
+
+    return lines.slice(0, 2);
+}
+
 function buildConditionContext(h, spot, currentSlug) {
     const face = h.ml_wave_height_max;
     const hs = h.wave_height_model;
@@ -2453,6 +2495,11 @@ function buildConditionContext(h, spot, currentSlug) {
 
     if (isReef && isGroundswell && size !== 'flat') {
         verdicts.push('Reef + groundswell combo — watch for set-heavy intervals.');
+    }
+
+    // Swell composition: primary × secondary × wind-wave interactions
+    for (const line of _swellCompositionInterpretation(h)) {
+        verdicts.push(line);
     }
 
     // Neighbor disagreement note
