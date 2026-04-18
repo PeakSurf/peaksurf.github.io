@@ -264,6 +264,12 @@
         .detail-close:hover { color: var(--text-dark); }
 
         .detail-surf-banner { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; margin-bottom: 1rem; background: rgba(26, 192, 198, 0.05); border: 1px solid rgba(26, 192, 198, 0.15); border-radius: var(--radius); }
+        .context-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 0.75rem 0.9rem; margin-bottom: 1rem; font-size: 0.82rem; color: var(--text-main); line-height: 1.45; }
+        .context-card .cc-title { font-size: 0.62rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem; }
+        .context-card .cc-line { margin: 0.15rem 0; }
+        .context-card .cc-muted { color: var(--text-muted); }
+        .context-card .cc-neighbor { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin: 0 0.2rem 0.15rem 0; }
+        .context-card .cc-verdict { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); font-weight: 600; color: var(--text-dark); }
         .detail-surf-banner .surf-value { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); }
         .detail-surf-banner .surf-label { font-size: 0.7rem; color: var(--accent); font-weight: 700; text-transform: uppercase; }
         .detail-surf-banner .surf-offshore { font-size: 0.75rem; color: var(--text-muted); text-align: right; }
@@ -2278,6 +2284,144 @@ function getSurfaceTexture(h, spot) {
     return baseTexture;
 }
 
+// ── Conditions-Context helpers ──
+function _haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371, toRad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * toRad, dLon = (lon2 - lon1) * toRad;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toRad)*Math.cos(lat2*toRad)*Math.sin(dLon/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function _getNearbySpots(currentSlug, maxKm, maxN) {
+    if (!_allData || !_allData.data) return [];
+    const me = _allData.data[currentSlug];
+    if (!me || !me.spot) return [];
+    const list = [];
+    for (const [slug, entry] of Object.entries(_allData.data)) {
+        if (slug === currentSlug) continue;
+        if (!entry.spot || entry.spot.lat == null) continue;
+        const d = _haversineKm(me.spot.lat, me.spot.lon, entry.spot.lat, entry.spot.lon);
+        if (d <= maxKm) list.push({ slug, name: entry.spot.name, dist: d, hourly: entry.hourly });
+    }
+    list.sort((a, b) => a.dist - b.dist);
+    return list.slice(0, maxN);
+}
+
+function _windAngleRelToShore(h, spot) {
+    if (h.wind_direction == null || spot.shore_normal == null) return null;
+    const diff = Math.abs(((h.wind_direction - spot.shore_normal + 180) % 360) - 180);
+    // 0=pure onshore (blowing from sea to shore, aligned with shore normal)
+    // 180=pure offshore (from land to sea). We invert so 0 = onshore, 180 = offshore.
+    return 180 - diff;
+}
+
+function _sizeBucket(face) {
+    if (face == null) return 'unknown';
+    if (face < 0.3) return 'flat';
+    if (face < 0.6) return 'tiny';
+    if (face < 1.0) return 'small';
+    if (face < 1.8) return 'medium';
+    if (face < 2.5) return 'big';
+    return 'huge';
+}
+
+function buildConditionContext(h, spot, currentSlug) {
+    const face = h.ml_wave_height_max;
+    const hs = h.wave_height_model;
+    const tp = h.peak_period || h.swell_period;
+    const wind = h.wind_speed_kmh;
+    const windDirTxt = h.wind_direction_text || degToCompass(h.wind_direction) || '';
+    const conseil = getNormalizedConseil(h) || 'Poor';
+    const size = _sizeBucket(face);
+    const windShore = _windAngleRelToShore(h, spot);  // 0=onshore, 180=offshore
+    const windEffect = getWindEffect(h, spot);  // existing helper, returns {label}
+    const effectLow = (windEffect.label || '').toLowerCase();
+
+    // Wind descriptor
+    let windDesc = 'neutral';
+    if (wind != null && wind < 5) windDesc = 'calm';
+    else if (effectLow.includes('offshore')) windDesc = wind < 20 ? 'clean offshore' : 'strong offshore';
+    else if (effectLow.includes('onshore')) windDesc = wind > 20 ? 'blown out' : 'onshore';
+    else if (effectLow.includes('cross')) windDesc = 'cross-shore';
+
+    // Swell quality
+    let swellDesc = '';
+    if (tp != null) {
+        if (tp >= 13) swellDesc = 'groundswell';
+        else if (tp >= 10) swellDesc = 'mixed swell';
+        else if (tp >= 7) swellDesc = 'short swell';
+        else swellDesc = 'wind swell';
+    }
+
+    // Clean detector
+    const isClean = windDesc.includes('offshore') || windDesc === 'calm' || windDesc === 'neutral';
+    const isGroundswell = tp != null && tp >= 12;
+
+    // Neighbor comparison (same hour)
+    const neighbors = _getNearbySpots(currentSlug, 60, 4);
+    const neighborRatings = [];
+    for (const n of neighbors) {
+        const match = (n.hourly || []).find(hh => hh.time === h.time);
+        if (!match) continue;
+        const c = getNormalizedConseil(match) || match.rating;
+        const col = getRatingColor(match);
+        neighborRatings.push({ name: n.name, conseil: c, color: col, dist: n.dist });
+    }
+
+    // Rank conseil (Good=3, Fair=2, Poor=1)
+    const rank = { 'Epic': 3, 'Good': 3, 'Fair': 2, 'Poor': 1 };
+    const myRank = rank[conseil] || 1;
+    const neighborBetter = neighborRatings.filter(n => (rank[n.conseil] || 1) > myRank);
+    const neighborWorse = neighborRatings.filter(n => (rank[n.conseil] || 1) < myRank);
+
+    // Narrative
+    const verdicts = [];
+    if (conseil === 'Poor' && isClean && size === 'tiny' && neighborBetter.length >= 2) {
+        verdicts.push("Small but clean — rating likely conservative. Bring a longboard, mornings usually workable.");
+    } else if (conseil === 'Poor' && isClean && (size === 'small' || size === 'tiny') && isGroundswell) {
+        verdicts.push("Clean offshore + long-period groundswell — small but quality. Protected bays may surf better than rated.");
+    } else if (conseil === 'Poor' && size === 'flat') {
+        verdicts.push("Genuinely too small to surf here today.");
+    } else if (conseil === 'Poor' && windDesc === 'blown out') {
+        verdicts.push("Wind-affected and unclean. Seek sheltered alternative.");
+    } else if ((conseil === 'Good' || conseil === 'Epic') && size === 'big' && isClean) {
+        verdicts.push("Clean and sizeable — solid conditions. Experienced surfers only if getting bigger.");
+    } else if (conseil === 'Fair' && isClean) {
+        verdicts.push("Fair rating but conditions are clean — worth a check.");
+    } else if (neighborBetter.length >= 2 && conseil === 'Poor') {
+        verdicts.push(`Rating Poor while nearby ${neighborBetter.map(n => n.name).slice(0,2).join(', ')} score higher — may under-predict this spot.`);
+    } else if (neighborWorse.length >= 2 && (conseil === 'Good' || conseil === 'Epic')) {
+        verdicts.push("Rated Good while neighbors are lower — this spot is an outlier winner today.");
+    }
+
+    return {
+        sizeDesc: size === 'unknown' ? null : `Face ${fmt(face)}m (${size})`,
+        hsDesc: hs != null ? `Offshore Hs ${fmt(hs)}m${tp ? ` · ${fmt(tp, 0)}s` : ''}${swellDesc ? ` · ${swellDesc}` : ''}` : null,
+        windDesc: wind != null ? `${windDesc} (${fmt(wind, 0)} km/h ${windDirTxt})` : null,
+        tideDesc: h.tide_quality === 'good' ? 'Tide favourable' : h.tide_quality === 'poor' ? 'Tide unfavourable' : (h.tide_quality === 'ok' ? 'Tide OK' : null),
+        neighbors: neighborRatings,
+        verdicts,
+    };
+}
+
+function renderContextCard(h, spot, currentSlug) {
+    const ctx = buildConditionContext(h, spot, currentSlug);
+    const lines = [];
+    const factBits = [ctx.sizeDesc, ctx.hsDesc, ctx.windDesc, ctx.tideDesc].filter(Boolean);
+    if (factBits.length) lines.push(`<div class="cc-line">${factBits.join(' · ')}</div>`);
+    if (ctx.neighbors.length) {
+        const chips = ctx.neighbors.map(n =>
+            `<span class="cc-neighbor bg-${n.color}" title="${Math.round(n.dist)} km away">${n.name}: ${n.conseil}</span>`
+        ).join('');
+        lines.push(`<div class="cc-line cc-muted">Nearby (same hour): ${chips}</div>`);
+    }
+    for (const v of ctx.verdicts) {
+        lines.push(`<div class="cc-verdict">${v}</div>`);
+    }
+    if (!lines.length) return '';
+    return `<div class="context-card"><div class="cc-title">Conditions context</div>${lines.join('')}</div>`;
+}
+
 function showDetailPanel(h) {
     const panel = document.getElementById('detail-panel');
     panel.classList.add('open');
@@ -2346,6 +2490,8 @@ function showDetailPanel(h) {
             </div>
             <div class="surf-offshore tip-target" title="Significant wave height (Hs) offshore — open-ocean swell from the IBI model, before shoaling">Offshore Hs: ${offshoreHs}</div>
         </div>
+
+        ${renderContextCard(h, spotData.spot, _currentSpot)}
 
         <div class="detail-grid">
             <div class="detail-block">
