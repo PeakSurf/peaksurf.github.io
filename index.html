@@ -130,7 +130,9 @@
         .direction-inline .deg { color: var(--text-light); font-size: 0.92em; font-weight: 700; }
         .rating-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #000; }
 
-        .session-spotlight { display: none !important; }
+        .session-spotlight { background: linear-gradient(135deg, rgba(26,192,198,0.08), rgba(13,30,54,0.5)); border: 1px solid rgba(26,192,198,0.2); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.25rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .session-spotlight:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,192,198,0.12); }
+        .session-spotlight.is-week-best { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(26,192,198,0.15); }
         .session-topline { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
         .session-kicker { font-size: 0.68rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.09em; }
         .session-day-pill { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); font-size: 0.7rem; font-weight: 700; color: var(--text-dark); }
@@ -522,7 +524,7 @@
         Live Cam
     </a>
 
-    <div class="session-spotlight" id="session-spotlight" style="display:none;">
+    <div class="session-spotlight" id="session-spotlight" role="button" tabindex="0" title="Click to jump to this hour in the forecast">
         <div class="session-topline">
             <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
                 <span class="session-kicker">Best 3h Session</span>
@@ -990,9 +992,28 @@ function getSessionWaveLabel(sessionHours, fallbackHour) {
     return rangeStr;
 }
 
-function renderSessionSpotlight(dateStr) {
+function findBestWeekWindowDate() {
+    // Scan every daily entry and pick the one whose best-moment hour has
+    // the highest score. Tiebreaker: higher predicted wave_max.
+    if (!_dailyData || !_dailyData.length) return null;
+    let bestDate = null, bestScore = -Infinity;
+    for (const d of _dailyData) {
+        const h = d.best_time_full ? _hourlyData.find(x => x.time === d.best_time_full) : null;
+        if (!h) continue;
+        const s = getBestPeriodHourScore(h);
+        if (s > bestScore) { bestScore = s; bestDate = d.date; }
+    }
+    return bestDate;
+}
+
+function renderSessionSpotlight(dateStr, opts) {
+    opts = opts || {};
     const spotlight = document.getElementById('session-spotlight');
     if (!spotlight || !_dailyData.length) return;
+    const weekMode = !!opts.weekMode;
+    spotlight.classList.toggle('is-week-best', weekMode);
+    const kicker = spotlight.querySelector('.session-kicker');
+    if (kicker) kicker.textContent = weekMode ? 'Best Window This Week' : 'Best 3h Session';
 
     const spot = _allData.data[_currentSpot].spot;
     let dailyEntry = _dailyData.find(d => d.date === dateStr) || _dailyData[0];
@@ -2062,9 +2083,17 @@ function renderDailyCarousel() {
     if (!container.querySelector('.daily-card.active') && container.firstChild) {
         container.firstChild.classList.add('active');
     }
-    if (activeDate) {
+    // Default spotlight: the best 3h window across the WHOLE week (not just today)
+    const weekBestDate = findBestWeekWindowDate();
+    if (weekBestDate) {
+        _activeSessionDate = weekBestDate;
+        renderSessionSpotlight(weekBestDate, { weekMode: true });
+        // Don't override the current-day-label — the daily carousel keeps today active
+    } else if (activeDate) {
         _activeSessionDate = activeDate;
         renderSessionSpotlight(activeDate);
+    }
+    if (activeDate) {
         const activeEntry = _dailyData.find(d => d.date === activeDate) || _dailyData[0];
         if (activeEntry) {
             const activeTp = tzParts(activeEntry.date + 'T12:00:00');
@@ -2547,8 +2576,40 @@ function initTapTips() {
     document.addEventListener('scroll', () => { if (shown) hide(); }, true);
 }
 
+// Click-to-jump on the Best-Window spotlight: scrolls the hourly strip
+// to the highlighted best hour and opens its detail panel.
+function initSpotlightClickJump() {
+    const spotlight = document.getElementById('session-spotlight');
+    if (!spotlight) return;
+    spotlight.addEventListener('click', () => {
+        if (!_activeSessionDate || !_dailyData.length) return;
+        const d = _dailyData.find(x => x.date === _activeSessionDate);
+        if (!d) return;
+        const targetTime = d.best_time_full;
+        if (!targetTime) return;
+        const idx = _hourlyData.findIndex(h => h.time === targetTime);
+        if (idx < 0) return;
+        const scroller = document.getElementById('unified-scroll');
+        if (scroller) {
+            scroller.scrollTo({ left: Math.max(0, idx * SLOT_W - scroller.clientWidth / 2 + SLOT_W / 2), behavior: 'smooth' });
+        }
+        const waveRow = document.getElementById('wave-bars');
+        if (waveRow) {
+            waveRow.querySelectorAll('.wave-slot.active').forEach(s => s.classList.remove('active'));
+            const slot = waveRow.children[idx];
+            if (slot) slot.classList.add('active');
+        }
+        _selectedSlotIdx = idx;
+        showDetailPanel(_hourlyData[idx]);
+        if (window.innerWidth < 600) {
+            document.getElementById('detail-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initTapTips();
+    initSpotlightClickJump();
     // Wire search input
     const searchInput = document.getElementById('spot-search');
     if (searchInput) {
