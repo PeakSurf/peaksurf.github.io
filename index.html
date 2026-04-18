@@ -2325,14 +2325,23 @@ function _sizeBucket(face) {
     return 'huge';
 }
 
-function _slopeDesc(pente) {
-    // pente is a dimensionless beach slope (rise/run). Typical range 0.005 (flat
-    // banks, many open beaches) to 0.03+ (steep beach/point).
-    if (pente == null) return null;
-    if (pente >= 0.020) return { tag: 'steep beach', tideNote: 'tide-critical — narrow workable zone' };
-    if (pente >= 0.012) return { tag: 'moderate slope', tideNote: 'moderately tide-sensitive' };
-    if (pente >= 0.007) return { tag: 'gentle slope', tideNote: 'tolerates wide tide range' };
-    return { tag: 'very gentle / flat banks', tideNote: 'works at almost any tide' };
+function _slopeDesc(spot) {
+    // Prefer beach_slope (surf-zone slope, computed from nearshore bathy in
+    // the 0–10 m depth range). Fall back to pente_fond (shelf slope) only
+    // when beach_slope is missing — that fallback is coarse and may be wrong.
+    const useShelfFallback = (spot.beach_slope == null);
+    const slope = spot.beach_slope != null ? spot.beach_slope : spot.pente_fond;
+    if (slope == null) return null;
+    let tag, tideNote;
+    if (slope >= 0.020) { tag = 'steep beach';            tideNote = 'tide-critical — narrow workable zone'; }
+    else if (slope >= 0.012) { tag = 'moderate slope';    tideNote = 'moderately tide-sensitive'; }
+    else if (slope >= 0.007) { tag = 'gentle slope';      tideNote = 'tolerates wide tide range'; }
+    else                     { tag = 'very gentle banks'; tideNote = 'works at almost any tide'; }
+    return {
+        tag: useShelfFallback ? tag + ' (shelf estimate)' : tag,
+        tideNote,
+        source: useShelfFallback ? 'shelf-scale (5km baseline, approximate)' : 'surf-zone (0-300m bathy)',
+    };
 }
 
 function _substrateDesc(bottom) {
@@ -2357,7 +2366,7 @@ function buildConditionContext(h, spot, currentSlug) {
     const size = _sizeBucket(face);
     const windEffect = getWindEffect(h, spot);
     const effectLow = (windEffect.label || '').toLowerCase();
-    const slope = _slopeDesc(spot.pente_fond);
+    const slope = _slopeDesc(spot);
     const substrate = _substrateDesc(spot.bottom_type);
 
     // Wind descriptor
@@ -2379,8 +2388,9 @@ function buildConditionContext(h, spot, currentSlug) {
     const isClean = windDesc.includes('offshore') || windDesc === 'calm' || windDesc === 'light';
     const isMessy = windDesc === 'onshore' || windDesc === 'blown out' || windDesc === 'cross-shore';
     const isGroundswell = tp != null && tp >= 12;
-    const isSteep = spot.pente_fond != null && spot.pente_fond >= 0.020;
-    const isGentle = spot.pente_fond != null && spot.pente_fond < 0.010;
+    const _slopeVal = spot.beach_slope != null ? spot.beach_slope : spot.pente_fond;
+    const isSteep = _slopeVal != null && _slopeVal >= 0.020;
+    const isGentle = _slopeVal != null && _slopeVal < 0.010;
     const isReef = substrate === 'reef' || substrate === 'point break';
     const isBay = substrate === 'sheltered bay';
 
