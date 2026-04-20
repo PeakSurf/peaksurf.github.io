@@ -249,6 +249,13 @@
         .bg-flat { background: var(--flat); color: #fff; }
 
         /* ========== DETAIL PANEL ========== */
+        /* ========== DAILY CARD · BETTER-NEARBY HINT ========== */
+        .daily-card .better-nearby { margin-top: 6px; padding: 4px 6px; border-radius: 6px; font-size: 0.6rem; line-height: 1.25; background: rgba(26,192,198,0.08); border: 1px solid rgba(26,192,198,0.25); color: var(--text-main); cursor: pointer; }
+        .daily-card .better-nearby:hover { background: rgba(26,192,198,0.18); }
+        .daily-card .better-nearby .bn-name { color: var(--accent); font-weight: 700; display: block; }
+        .daily-card .better-nearby .bn-meta { display: block; font-size: 0.56rem; color: var(--text-muted); margin-top: 1px; }
+        .daily-card .no-better { margin-top: 6px; font-size: 0.58rem; color: var(--text-light); font-style: italic; }
+
         .detail-panel { display: none; background: var(--bg-main); border-top: 1px solid var(--border); padding: 1.25rem; }
         .detail-panel.open { display: block; animation: slideDown 0.2s cubic-bezier(0.175, 0.885, 0.32, 1); }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
@@ -2042,6 +2049,35 @@ function renderDailyCarousel() {
             <div class="daily-rating-strip">${samples.map(r => `<div class="bg-${r}"></div>`).join('')}</div>
         `;
 
+        // Better-nearby suggestion — strictly-better rating within NEARBY_RADIUS_KM
+        try {
+            const better = findBetterNearby(_currentSpot, d.date);
+            const daySlot = card.querySelector('.daily-rating-strip');
+            if (better) {
+                const wave = better.wave != null ? fmt(better.wave, 1) + 'm' : '';
+                const hint = document.createElement('div');
+                hint.className = 'better-nearby';
+                hint.setAttribute('data-slug', better.slug);
+                hint.innerHTML =
+                    `<span class="bn-name">→ ${better.name}</span>`
+                  + `<span class="bn-meta">${better.conseil} · ${Math.round(better.dist)}km · ${String(better.hour).padStart(2,'0')}h ${wave}</span>`;
+                hint.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    if (typeof renderSpot === 'function') {
+                        renderSpot(better.slug);
+                        renderSpotNav();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+                card.insertBefore(hint, daySlot);
+            } else {
+                const none = document.createElement('div');
+                none.className = 'no-better';
+                none.textContent = 'no better spot nearby';
+                card.insertBefore(none, daySlot);
+            }
+        } catch(e) { /* non-fatal */ }
+
         card.addEventListener('click', () => {
             try {
                 _activeSessionDate = d.date;
@@ -2606,6 +2642,58 @@ function renderLegacyContextCard(h, spot, currentSlug) {
     }
     if (!lines.length) return '';
     return `<div class="context-card"><div class="cc-title">Conditions context</div>${lines.join('')}</div>`;
+}
+
+// ── Per-day best-nearby suggestion for the daily carousel ──
+// For a given day at the current spot, find the closest spot that is
+// STRICTLY better-rated (Good > Fair > Poor) within NEARBY_RADIUS_KM.
+// If none is better, return null — the UI shows "no better nearby" in EN.
+const NEARBY_RADIUS_KM = 80;
+const RATING_RANK = { 'Poor': 1, 'Fair': 2, 'Good': 3, 'Epic': 3 };
+
+function _bestDayRating(entry, dateStr) {
+    const spot = entry.spot;
+    let best = null;
+    for (const h of (entry.hourly || [])) {
+        if (!h.time.startsWith(dateStr)) continue;
+        if (!isDaylight(h, spot)) continue;
+        const s = getBestPeriodHourScore(h);
+        if (best === null || s > best.s) {
+            const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
+            best = { s, h, conseil, color: getRatingColor(h),
+                     wave: h.ml_wave_height_max, hour: spotLocalParts(h.time, spot).hour };
+        }
+    }
+    return best;
+}
+
+function findBetterNearby(currentSlug, dateStr) {
+    const data = _allData && _allData.data; if (!data) return null;
+    const me = data[currentSlug]; if (!me || !me.spot || me.spot.lat == null) return null;
+    const myBest = _bestDayRating(me, dateStr);
+    if (!myBest) return null;
+    const myRank = RATING_RANK[myBest.conseil] || 1;
+
+    let pick = null;
+    for (const [slug, entry] of Object.entries(data)) {
+        if (slug === currentSlug) continue;
+        if (!entry.spot || entry.spot.lat == null) continue;
+        const d = _haversineKm(me.spot.lat, me.spot.lon, entry.spot.lat, entry.spot.lon);
+        if (d > NEARBY_RADIUS_KM) continue;
+        const bw = _bestDayRating(entry, dateStr);
+        if (!bw) continue;
+        const r = RATING_RANK[bw.conseil] || 1;
+        // Need strictly better rating; break ties by shorter distance, then higher score
+        if (r > myRank) {
+            if (!pick || r > pick.rank || (r === pick.rank && d < pick.dist) ||
+                (r === pick.rank && d === pick.dist && bw.s > pick.s)) {
+                pick = { slug, name: entry.spot.name, dist: d, rank: r,
+                         conseil: bw.conseil, color: bw.color, wave: bw.wave,
+                         hour: bw.hour, s: bw.s };
+            }
+        }
+    }
+    return pick;
 }
 
 // Historical rating/wave summary — one line under the Waves banner.
