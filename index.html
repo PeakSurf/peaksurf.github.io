@@ -249,6 +249,12 @@
         .bg-flat { background: var(--flat); color: #fff; }
 
         /* ========== DETAIL PANEL ========== */
+        /* ========== NEARBY-RADIUS PILL SELECTOR ========== */
+        .nearby-radius-pills { display: inline-flex; gap: 2px; align-items: center; }
+        .nearby-radius-pills .nrp { font-size: 0.65rem; font-weight: 700; padding: 0.25rem 0.55rem; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-surface); color: var(--text-muted); cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+        .nearby-radius-pills .nrp:hover { color: var(--text-dark); border-color: var(--text-muted); }
+        .nearby-radius-pills .nrp.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
         /* ========== DAILY CARD · BETTER-NEARBY HINT ========== */
         .daily-card .better-nearby { margin-top: 6px; padding: 4px 6px; border-radius: 6px; font-size: 0.6rem; line-height: 1.25; background: rgba(26,192,198,0.08); border: 1px solid rgba(26,192,198,0.25); color: var(--text-main); cursor: pointer; }
         .daily-card .better-nearby:hover { background: rgba(26,192,198,0.18); }
@@ -579,7 +585,18 @@
     </div>
 
     <!-- Daily Carousel -->
-    <div class="section-title">7-Day Overview</div>
+    <div class="section-title" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+        <span>7-Day Overview</span>
+        <span style="font-size:0.65rem;font-weight:500;color:var(--text-muted);margin-left:auto;">nearby-search radius</span>
+        <div id="nearby-radius-pills" class="nearby-radius-pills">
+            <button type="button" class="nrp" data-km="20">20</button>
+            <button type="button" class="nrp" data-km="40">40</button>
+            <button type="button" class="nrp" data-km="60">60</button>
+            <button type="button" class="nrp active" data-km="80">80</button>
+            <button type="button" class="nrp" data-km="100">100</button>
+            <span style="font-size:0.6rem;color:var(--text-light);margin-left:0.1rem;">km</span>
+        </div>
+    </div>
     <div class="daily-carousel" id="daily-carousel"></div>
 
     <!-- Unified Forecast -->
@@ -2653,7 +2670,16 @@ function renderLegacyContextCard(h, spot, currentSlug) {
 // hours (Good=3, Fair=2, Poor=1, Epic=4) and only suggest candidates whose
 // session-score beats the local one by a meaningful margin. Tie-break
 // favours closer spots via a mild distance penalty.
-const NEARBY_RADIUS_KM   = 120;
+// User-selectable radius via the pill selector above the daily carousel.
+// Persisted to localStorage so the preference survives reloads.
+const NEARBY_RADIUS_OPTS = [20, 40, 60, 80, 100];
+let _nearbyRadiusKm = (() => {
+    try {
+        const v = parseInt(localStorage.getItem('peaksurf_nearby_radius_km'), 10);
+        if (NEARBY_RADIUS_OPTS.includes(v)) return v;
+    } catch (e) {}
+    return 80;
+})();
 const MIN_SCORE_GAIN     = 3;      // candidate must beat local by this much
 const DISTANCE_PENALTY   = 0.03;   // score points per km (tiny — keeps far spots in running)
 const RATING_RANK = { 'Poor': 1, 'Fair': 2, 'Good': 3, 'Epic': 4 };
@@ -2716,7 +2742,7 @@ function findBetterNearby(currentSlug, dateStr) {
         if (slug === currentSlug) continue;
         if (!entry.spot || entry.spot.lat == null) continue;
         const d = _haversineKm(me.spot.lat, me.spot.lon, entry.spot.lat, entry.spot.lon);
-        if (d > NEARBY_RADIUS_KM) continue;
+        if (d > _nearbyRadiusKm) continue;
         const ds = _daySummary(entry, dateStr); if (!ds) continue;
         // Distance-adjusted session score
         const adjScore = ds.score - d * DISTANCE_PENALTY;
@@ -3086,9 +3112,29 @@ function initSpotlightClickJump() {
     });
 }
 
+function initNearbyRadiusPills() {
+    const wrap = document.getElementById('nearby-radius-pills');
+    if (!wrap) return;
+    // Sync initial active state with stored preference
+    wrap.querySelectorAll('.nrp').forEach(btn => {
+        const km = parseInt(btn.getAttribute('data-km'), 10);
+        btn.classList.toggle('active', km === _nearbyRadiusKm);
+        btn.addEventListener('click', () => {
+            const newKm = parseInt(btn.getAttribute('data-km'), 10);
+            if (newKm === _nearbyRadiusKm) return;
+            _nearbyRadiusKm = newKm;
+            try { localStorage.setItem('peaksurf_nearby_radius_km', String(newKm)); } catch (e) {}
+            wrap.querySelectorAll('.nrp').forEach(b => b.classList.toggle('active', b === btn));
+            // Re-render the daily carousel to refresh the better-nearby hints
+            if (typeof renderDailyCarousel === 'function') renderDailyCarousel();
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initTapTips();
     initSpotlightClickJump();
+    initNearbyRadiusPills();
     // Wire search input
     const searchInput = document.getElementById('spot-search');
     if (searchInput) {
