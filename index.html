@@ -2049,18 +2049,21 @@ function renderDailyCarousel() {
             <div class="daily-rating-strip">${samples.map(r => `<div class="bg-${r}"></div>`).join('')}</div>
         `;
 
-        // Better-nearby suggestion — strictly-better rating within NEARBY_RADIUS_KM
+        // Better-nearby suggestion — better SESSION (multi-hour) within radius
         try {
             const better = findBetterNearby(_currentSpot, d.date);
             const daySlot = card.querySelector('.daily-rating-strip');
             if (better) {
-                const wave = better.wave != null ? fmt(better.wave, 1) + 'm' : '';
+                const sessionBits = [];
+                if (better.good_h) sessionBits.push(`${better.good_h}h Good`);
+                if (better.fair_h) sessionBits.push(`${better.fair_h}h Fair`);
+                const sessionStr = sessionBits.length ? sessionBits.join(' + ') : 'mostly Poor';
                 const hint = document.createElement('div');
                 hint.className = 'better-nearby';
                 hint.setAttribute('data-slug', better.slug);
                 hint.innerHTML =
                     `<span class="bn-name">→ ${better.name}</span>`
-                  + `<span class="bn-meta">${better.conseil} · ${Math.round(better.dist)}km · ${String(better.hour).padStart(2,'0')}h ${wave}</span>`;
+                  + `<span class="bn-meta">${sessionStr} · ${Math.round(better.dist)}km</span>`;
                 hint.addEventListener('click', (ev) => {
                     ev.stopPropagation();
                     if (typeof renderSpot === 'function') {
@@ -2645,52 +2648,68 @@ function renderLegacyContextCard(h, spot, currentSlug) {
 }
 
 // ── Per-day best-nearby suggestion for the daily carousel ──
-// For a given day at the current spot, find the closest spot that is
-// STRICTLY better-rated (Good > Fair > Poor) within NEARBY_RADIUS_KM.
-// If none is better, return null — the UI shows "no better nearby" in EN.
-const NEARBY_RADIUS_KM = 80;
-const RATING_RANK = { 'Poor': 1, 'Fair': 2, 'Good': 3, 'Epic': 3 };
+// A viable alternative isn't "one hour of Good in a sea of Poor" — it's a
+// SESSION. We score each spot-day by summing rating ranks over daylight
+// hours (Good=3, Fair=2, Poor=1, Epic=4) and only suggest candidates whose
+// session-score beats the local one by a meaningful margin. Tie-break
+// favours closer spots via a mild distance penalty.
+const NEARBY_RADIUS_KM   = 120;
+const MIN_SCORE_GAIN     = 3;      // candidate must beat local by this much
+const DISTANCE_PENALTY   = 0.03;   // score points per km (tiny — keeps far spots in running)
+const RATING_RANK = { 'Poor': 1, 'Fair': 2, 'Good': 3, 'Epic': 4 };
 
-function _bestDayRating(entry, dateStr) {
+function _daySummary(entry, dateStr) {
+    // Returns { score, good_hours, fair_hours, poor_hours, best_hour, best_wave, best_conseil, best_color }
     const spot = entry.spot;
-    let best = null;
+    let score = 0, good = 0, fair = 0, poor = 0;
+    let bestH = null, bestScore = -Infinity;
     for (const h of (entry.hourly || [])) {
         if (!h.time.startsWith(dateStr)) continue;
         if (!isDaylight(h, spot)) continue;
-        const s = getBestPeriodHourScore(h);
-        if (best === null || s > best.s) {
-            const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
-            best = { s, h, conseil, color: getRatingColor(h),
-                     wave: h.ml_wave_height_max, hour: spotLocalParts(h.time, spot).hour };
+        const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
+        const rank = RATING_RANK[conseil] || 1;
+        score += rank;
+        if (rank >= 3) good++; else if (rank === 2) fair++; else poor++;
+        const hscore = getBestPeriodHourScore(h);
+        if (hscore > bestScore) {
+            bestScore = hscore;
+            bestH = { h, conseil, color: getRatingColor(h),
+                      wave: h.ml_wave_height_max, hour: spotLocalParts(h.time, spot).hour };
         }
     }
-    return best;
+    if (score === 0) return null;
+    return {
+        score, good, fair, poor,
+        best_hour:    bestH ? bestH.hour    : null,
+        best_wave:    bestH ? bestH.wave    : null,
+        best_conseil: bestH ? bestH.conseil : null,
+        best_color:   bestH ? bestH.color   : null,
+    };
 }
 
 function findBetterNearby(currentSlug, dateStr) {
     const data = _allData && _allData.data; if (!data) return null;
     const me = data[currentSlug]; if (!me || !me.spot || me.spot.lat == null) return null;
-    const myBest = _bestDayRating(me, dateStr);
-    if (!myBest) return null;
-    const myRank = RATING_RANK[myBest.conseil] || 1;
+    const myDay = _daySummary(me, dateStr); if (!myDay) return null;
 
-    let pick = null;
+    let pick = null, pickAdj = -Infinity;
     for (const [slug, entry] of Object.entries(data)) {
         if (slug === currentSlug) continue;
         if (!entry.spot || entry.spot.lat == null) continue;
         const d = _haversineKm(me.spot.lat, me.spot.lon, entry.spot.lat, entry.spot.lon);
         if (d > NEARBY_RADIUS_KM) continue;
-        const bw = _bestDayRating(entry, dateStr);
-        if (!bw) continue;
-        const r = RATING_RANK[bw.conseil] || 1;
-        // Need strictly better rating; break ties by shorter distance, then higher score
-        if (r > myRank) {
-            if (!pick || r > pick.rank || (r === pick.rank && d < pick.dist) ||
-                (r === pick.rank && d === pick.dist && bw.s > pick.s)) {
-                pick = { slug, name: entry.spot.name, dist: d, rank: r,
-                         conseil: bw.conseil, color: bw.color, wave: bw.wave,
-                         hour: bw.hour, s: bw.s };
-            }
+        const ds = _daySummary(entry, dateStr); if (!ds) continue;
+        // Distance-adjusted session score
+        const adjScore = ds.score - d * DISTANCE_PENALTY;
+        // Need meaningful gain over local
+        if (ds.score <= myDay.score + MIN_SCORE_GAIN - 1) continue;
+        if (adjScore > pickAdj) {
+            pickAdj = adjScore;
+            pick = { slug, name: entry.spot.name, dist: d,
+                     score: ds.score, good_h: ds.good, fair_h: ds.fair, poor_h: ds.poor,
+                     conseil: ds.best_conseil, color: ds.best_color,
+                     wave: ds.best_wave, hour: ds.best_hour,
+                     local_score: myDay.score };
         }
     }
     return pick;
