@@ -2658,26 +2658,45 @@ const MIN_SCORE_GAIN     = 3;      // candidate must beat local by this much
 const DISTANCE_PENALTY   = 0.03;   // score points per km (tiny — keeps far spots in running)
 const RATING_RANK = { 'Poor': 1, 'Fair': 2, 'Good': 3, 'Epic': 4 };
 
+function _probRank(h) {
+    // Expected rating rank from ml_conseil_proba (smooth, confidence-aware).
+    // Falls back to discrete rank of the argmax class when proba missing.
+    const p = h.ml_conseil_proba;
+    if (p && typeof p === 'object') {
+        const pG = (p.Good  || 0) + (p.Epic || 0);
+        const pF = p.Fair  || 0;
+        const pP = p.Poor  || 0;
+        const norm = pG + pF + pP || 1;
+        return (pG * 3 + pF * 2 + pP * 1) / norm;
+    }
+    const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
+    return RATING_RANK[conseil] || 1;
+}
+
 function _daySummary(entry, dateStr) {
-    // Returns { score, good_hours, fair_hours, poor_hours, best_hour, best_wave, best_conseil, best_color }
+    // Session score = Σ expected rank over daylight hours (confidence-aware)
     const spot = entry.spot;
-    let score = 0, good = 0, fair = 0, poor = 0;
+    let score = 0, good = 0, fair = 0, poor = 0, n = 0;
     let bestH = null, bestScore = -Infinity;
     for (const h of (entry.hourly || [])) {
         if (!h.time.startsWith(dateStr)) continue;
         if (!isDaylight(h, spot)) continue;
-        const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
-        const rank = RATING_RANK[conseil] || 1;
-        score += rank;
-        if (rank >= 3) good++; else if (rank === 2) fair++; else poor++;
+        const r = _probRank(h);
+        score += r;
+        n++;
+        // Bucket counts by expected rank — a 2.5 counts ~half-Good half-Fair
+        if (r >= 2.5)      good++;
+        else if (r >= 1.5) fair++;
+        else               poor++;
         const hscore = getBestPeriodHourScore(h);
         if (hscore > bestScore) {
             bestScore = hscore;
+            const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
             bestH = { h, conseil, color: getRatingColor(h),
                       wave: h.ml_wave_height_max, hour: spotLocalParts(h.time, spot).hour };
         }
     }
-    if (score === 0) return null;
+    if (n === 0) return null;
     return {
         score, good, fair, poor,
         best_hour:    bestH ? bestH.hour    : null,
