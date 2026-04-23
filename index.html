@@ -1191,6 +1191,8 @@ function _lerpColor(a, b, t) {
 // Color scales for continuous variables
 const WAVE_SCALE = [[0,'#1e2e45'],[0.15,'#0ea5e9'],[0.4,'#10b981'],[0.65,'#f59e0b'],[1,'#ef4444']];
 const WIND_SCALE = [[0,'#10b981'],[0.3,'#f59e0b'],[0.6,'#ef4444'],[1,'#dc2626']];
+// Physics score 0→80+ on a cold→hot ramp; 80 already caps at 'epic'
+const PHYSICS_SCALE = [[0,'#1e2e45'],[0.18,'#ef4444'],[0.35,'#f59e0b'],[0.55,'#10b981'],[1,'#1ac0c6']];
 // Direction hue wheel: N=blue, E=green, S=red, W=purple
 function _dirColor(deg) {
     if (deg == null || isNaN(deg)) return '#1e2e45';
@@ -1290,6 +1292,11 @@ function _getMarkerProps(h, variable) {
             const dir = h.swell_direction;
             const v = h.swell_height_model || h.swell_height || 0;
             return { color: _dirColor(dir), radius: Math.max(3, Math.min(8, 3 + v*1.5)), label: (h.swell_direction_text||'--')+' '+v.toFixed(1)+'m', arrow: dir };
+        }
+        case 'physics_score': {
+            const v = (h.physics_fit && h.physics_fit.physics_score != null) ? h.physics_fit.physics_score : null;
+            if (v == null) return { color: '#1e2e45', radius: 4, label: '--' };
+            return { color: _colorScale(v, 0, 80, PHYSICS_SCALE), radius: Math.max(3, Math.min(9, 3 + v/12)), label: Math.round(v)+'/100' };
         }
         default: return { color: '#1e2e45', radius: 4, label: '--' };
     }
@@ -1443,6 +1450,7 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
                 <div><span style="color:#94a3b8;">Surface:</span> <b style="color:#1e293b;">${surface}</b></div>
                 <div><span style="color:#94a3b8;">Wind:</span> <b style="color:#1e293b;">${windDir} ${windSpd}</b></div>
                 <div><span style="color:#94a3b8;">Gusts:</span> <b style="color:#1e293b;">${windGust || '--'}</b></div>
+                ${sel.physics_fit && sel.physics_fit.physics_score != null ? `<div style="grid-column:1/-1;border-top:1px dashed #cbd5e1;padding-top:0.25rem;margin-top:0.15rem;"><span style="color:#94a3b8;">Physics:</span> <b style="color:#1e293b;">${Math.round(sel.physics_fit.physics_score)}/100</b> <span style="color:#94a3b8;">&middot; ${(sel.physics_fit.wind_class||'').replace('-',' ')} &middot; exp ${sel.physics_fit.swell_exposure_pct!=null?Math.round(sel.physics_fit.swell_exposure_pct)+'%':'--'}${sel.physics_fit.tide_trend?' &middot; '+sel.physics_fit.tide_trend:''}</span></div>` : ''}
             </div>
             <div class="popup-hourly">${hourlyHtml}</div>
             <span class="popup-link" onclick="_switchToSpotAtTime('${sid}','${sel.time}');" style="display:block;text-align:center;padding:6px;font-size:0.75rem;font-weight:700;">View full forecast &rarr;</span>
@@ -1541,6 +1549,7 @@ function updateMapLegend() {
         else if (_mapVariable === 'wind_speed') { scale = WIND_SCALE; min = 0; max = 50; unit = 'km/h'; }
         else if (_mapVariable === 'wind_gust') { scale = WIND_SCALE; min = 0; max = 60; unit = 'km/h'; }
         else if (_mapVariable === 'hs_offshore') { scale = WAVE_SCALE; min = 0; max = 4; unit = 'm'; }
+        else if (_mapVariable === 'physics_score') { scale = PHYSICS_SCALE; min = 0; max = 80; unit = '/100'; }
         else { scale = WAVE_SCALE; min = 0; max = 3; unit = ''; }
         const grad = scale.map(s => `${s[1]} ${s[0]*100}%`).join(', ');
         document.getElementById('map-scale-gradient').style.background = `linear-gradient(to right, ${grad})`;
@@ -2250,7 +2259,23 @@ function renderUnifiedTrack() {
         const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
         timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localH + 'h' : ''}</div>`;
 
-        stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"></div>`;
+        // Rating strip follows the active ranking mode so ML and Physics views
+        // are directly comparable at the hour-by-hour level.
+        let stripStyle = '';
+        let stripClass = `rating-segment${isNight ? ' slot-night' : ''}`;
+        let stripTitle = '';
+        const pf = h.physics_fit;
+        const physScore = (pf && pf.physics_score != null) ? pf.physics_score : null;
+        if (_rankingMode === 'physics' && physScore != null) {
+            stripStyle = `background:${_colorScale(physScore, 0, 80, PHYSICS_SCALE)};`;
+            stripTitle = ` title="Physics ${Math.round(physScore)}/100 · ML ${conseilLabel}"`;
+        } else {
+            stripClass += ` bg-${ratingColor}`;
+            stripTitle = physScore != null
+                ? ` title="ML ${conseilLabel} · Physics ${Math.round(physScore)}/100"`
+                : ` title="ML ${conseilLabel}"`;
+        }
+        stripRow.innerHTML += `<div class="${stripClass}" style="${stripStyle}"${stripTitle}></div>`;
 
         const mlMax = h.ml_wave_height_max || 0;
         const mlMin = h.ml_wave_height_min;
@@ -3211,6 +3236,7 @@ function initRankingModePills() {
             try { localStorage.setItem('peaksurf_ranking_mode', newMode); } catch (e) {}
             wrap.querySelectorAll('.nrp').forEach(b => b.classList.toggle('active', b === btn));
             if (typeof renderDailyCarousel === 'function') renderDailyCarousel();
+            if (typeof renderUnifiedTrack === 'function') renderUnifiedTrack();
         });
     });
 }
@@ -3282,6 +3308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <option value="wind_dir">Wind Direction</option>
                     <option value="hs_offshore">Hs Offshore</option>
                     <option value="swell_dir">Swell Direction</option>
+                    <option value="physics_score">Physics Score</option>
                 </select>
             </div>
             <div class="map-ctrl-group" style="flex:1;">
@@ -3313,6 +3340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="wind_dir">Wind Dir</option>
             <option value="hs_offshore">Hs Offshore</option>
             <option value="swell_dir">Swell Dir</option>
+            <option value="physics_score">Physics</option>
         </select>
         <button class="map-play-btn" id="mobile-map-play">&#9654;</button>
         <input type="range" id="mobile-map-slider" min="0" max="168" value="0">
