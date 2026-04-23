@@ -188,6 +188,8 @@
         .time-slot.is-now { background: rgba(255,255,255,0.08); color: var(--text-dark); font-weight: 800; }
 
         .rating-strip { display: flex; height: 6px; position: relative; z-index: 2; }
+        .physics-badge { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 0.58rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; padding: 1px 3px; border-radius: 3px; background: rgba(0,0,0,0.35); pointer-events: none; }
+        .wave-slot.active .physics-badge { background: rgba(0,0,0,0.55); }
         .rating-segment { width: 56px; flex-shrink: 0; }
 
         /* Night shades hidden — replaced by data dimming */
@@ -2259,23 +2261,14 @@ function renderUnifiedTrack() {
         const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
         timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localH + 'h' : ''}</div>`;
 
-        // Rating strip follows the active ranking mode so ML and Physics views
-        // are directly comparable at the hour-by-hour level.
-        let stripStyle = '';
-        let stripClass = `rating-segment${isNight ? ' slot-night' : ''}`;
-        let stripTitle = '';
+        // Rating strip always follows ML rating (colour). Physics score is
+        // surfaced as a number inside the wave-slot, not via the strip colour.
         const pf = h.physics_fit;
         const physScore = (pf && pf.physics_score != null) ? pf.physics_score : null;
-        if (_rankingMode === 'physics' && physScore != null) {
-            stripStyle = `background:${_colorScale(physScore, 0, 80, PHYSICS_SCALE)};`;
-            stripTitle = ` title="Physics ${Math.round(physScore)}/100 · ML ${conseilLabel}"`;
-        } else {
-            stripClass += ` bg-${ratingColor}`;
-            stripTitle = physScore != null
-                ? ` title="ML ${conseilLabel} · Physics ${Math.round(physScore)}/100"`
-                : ` title="ML ${conseilLabel}"`;
-        }
-        stripRow.innerHTML += `<div class="${stripClass}" style="${stripStyle}"${stripTitle}></div>`;
+        const stripTitle = physScore != null
+            ? ` title="ML ${conseilLabel} · Physics ${Math.round(physScore)}/100"`
+            : ` title="ML ${conseilLabel}"`;
+        stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"${stripTitle}></div>`;
 
         const mlMax = h.ml_wave_height_max || 0;
         const mlMin = h.ml_wave_height_min;
@@ -2288,14 +2281,20 @@ function renderUnifiedTrack() {
         const slot = document.createElement('button');
         slot.className = 'wave-slot' + nightClass + (i === _selectedSlotIdx ? ' active' : '');
         const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : '--';
-        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}`);
-        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m`;
+        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}${physScore!=null?`, physics ${Math.round(physScore)}`:''}`);
+        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m${physScore!=null?` · Physics ${Math.round(physScore)}/100`:''}`;
+        let physBadge = '';
+        if (physScore != null) {
+            const physColor = _colorScale(physScore, 0, 80, PHYSICS_SCALE);
+            physBadge = `<span class="physics-badge" style="color:${physColor};" title="Physics score">${Math.round(physScore)}</span>`;
+        }
         slot.innerHTML = `
             ${showLabel ? `<span class="wave-label">${waveLabel}</span>` : ''}
             <div class="wave-bar-wrapper" style="height:${setH}px;">
                 <div class="set-bar-ext" style="height:100%;"></div>
                 <div class="wave-bar" style="height:${innerBarPct}%;"></div>
             </div>
+            ${physBadge}
         `;
         const capturedIdx = i, capturedH = h;
         slot.addEventListener('click', () => {
