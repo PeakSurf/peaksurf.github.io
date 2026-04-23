@@ -533,6 +533,12 @@
             <div class="hero-val"><span id="hero-sst">--</span><span class="hero-val-unit">&deg;C</span></div>
             <span class="hero-desc" id="hero-sst-suit"></span>
         </div>
+        <!-- PHYSICS FIT (deterministic score, no ML) -->
+        <div class="hero-card" id="hero-physics-card" title="Pure physics score — orientation, wind direction & strength, gust, tide depth & trend. No ML.">
+            <span class="hero-card-title">Physics Fit</span>
+            <div class="hero-val"><span id="hero-physics-score">--</span><span class="hero-val-unit">/100</span></div>
+            <span class="hero-desc" id="hero-physics-detail">--</span>
+        </div>
     </div>
 
     <!-- Webcam link -->
@@ -587,7 +593,12 @@
     <!-- Daily Carousel -->
     <div class="section-title" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
         <span>7-Day Overview</span>
-        <span style="font-size:0.65rem;font-weight:500;color:var(--text-muted);margin-left:auto;">nearby-search radius</span>
+        <span style="font-size:0.65rem;font-weight:500;color:var(--text-muted);margin-left:auto;">rank nearby by</span>
+        <div id="ranking-mode-pills" class="nearby-radius-pills" title="ML = AI rating · Physics = deterministic score from orientation + wind + tide">
+            <button type="button" class="nrp active" data-mode="ml">ML</button>
+            <button type="button" class="nrp" data-mode="physics">Physics</button>
+        </div>
+        <span style="font-size:0.65rem;font-weight:500;color:var(--text-muted);">radius</span>
         <div id="nearby-radius-pills" class="nearby-radius-pills">
             <button type="button" class="nrp" data-km="20">20</button>
             <button type="button" class="nrp" data-km="40">40</button>
@@ -1829,6 +1840,36 @@ function _renderHeroWithHour(h, spotData) {
     document.getElementById('hero-sst-suit').textContent = sst < 14 ? '4/3mm Wetsuit' : sst < 18 ? '3/2mm Wetsuit' : sst < 22 ? 'Shorty / Spring suit' : 'Boardshorts';
     document.getElementById('hero-tide').textContent = h.tide_height != null ? fmt(h.tide_height) : '--';
     document.getElementById('hero-tide-trend').textContent = tideStatus;
+    renderPhysicsCard(h);
+}
+
+function renderPhysicsCard(h) {
+    const card = document.getElementById('hero-physics-card');
+    const scoreEl = document.getElementById('hero-physics-score');
+    const detailEl = document.getElementById('hero-physics-detail');
+    if (!card || !scoreEl || !detailEl) return;
+    const f = h && h.physics_fit;
+    if (!f || f.physics_score == null) {
+        scoreEl.textContent = '--';
+        detailEl.textContent = 'no physics data';
+        card.style.borderColor = 'var(--border)';
+        return;
+    }
+    const s = Math.round(f.physics_score);
+    scoreEl.textContent = s;
+    // Colour border by score band so it reads at a glance
+    let band;
+    if      (s >= 60) band = 'var(--accent)';     // epic-ish
+    else if (s >= 40) band = '#10b981';           // good
+    else if (s >= 22) band = '#f59e0b';           // fair
+    else              band = '#ef4444';           // poor
+    card.style.borderColor = band;
+    scoreEl.style.color = band;
+    // Detail line: wind class + alignment %
+    const exp = f.swell_exposure_pct != null ? Math.round(f.swell_exposure_pct) + '%' : '--';
+    const wc  = (f.wind_class || '').replace('-', ' ');
+    const tt  = f.tide_trend ? ' · ' + f.tide_trend : '';
+    detailEl.textContent = `${wc} · exp ${exp}${tt}`;
 }
 
 function getWindEffect(h, spot) {
@@ -2680,8 +2721,18 @@ let _nearbyRadiusKm = (() => {
     } catch (e) {}
     return 80;
 })();
-const MIN_SCORE_GAIN     = 3;      // candidate must beat local by this much
-const DISTANCE_PENALTY   = 0.03;   // score points per km (tiny — keeps far spots in running)
+const RANKING_MODES = ['ml', 'physics'];
+let _rankingMode = (() => {
+    try {
+        const v = localStorage.getItem('peaksurf_ranking_mode');
+        if (RANKING_MODES.includes(v)) return v;
+    } catch (e) {}
+    return 'ml';
+})();
+const MIN_SCORE_GAIN     = 3;      // candidate must beat local by this much (ML units ~= rating rank)
+const MIN_PHYS_GAIN      = 6;      // same idea but in physics-score units (0-100 scale)
+const DISTANCE_PENALTY   = 0.03;   // score points per km (ML)
+const DISTANCE_PENALTY_P = 0.15;   // physics — physics-score is denser per point, bump penalty
 const RATING_RANK = { 'Poor': 1, 'Fair': 2, 'Good': 3, 'Epic': 4 };
 
 function _probRank(h) {
@@ -2700,21 +2751,32 @@ function _probRank(h) {
 }
 
 function _daySummary(entry, dateStr) {
-    // Session score = Σ expected rank over daylight hours (confidence-aware)
+    // Session score = Σ expected rank over daylight hours (confidence-aware),
+    // plus a parallel physics-score sum that lets the UI rank by deterministic
+    // physics instead. `score` reflects the currently active mode.
     const spot = entry.spot;
-    let score = 0, good = 0, fair = 0, poor = 0, n = 0;
+    let scoreML = 0, scorePhys = 0, good = 0, fair = 0, poor = 0, n = 0;
     let bestH = null, bestScore = -Infinity;
     for (const h of (entry.hourly || [])) {
         if (!h.time.startsWith(dateStr)) continue;
         if (!isDaylight(h, spot)) continue;
         const r = _probRank(h);
-        score += r;
+        scoreML += r;
+        if (h.physics_fit && h.physics_fit.physics_score != null) {
+            scorePhys += h.physics_fit.physics_score;
+        }
         n++;
-        // Bucket counts by expected rank — a 2.5 counts ~half-Good half-Fair
         if (r >= 2.5)      good++;
         else if (r >= 1.5) fair++;
         else               poor++;
-        const hscore = getBestPeriodHourScore(h);
+        // Best-moment uses the active mode so the badge/hint reflects what was
+        // actually ranked.
+        let hscore;
+        if (_rankingMode === 'physics' && h.physics_fit && h.physics_fit.physics_score != null) {
+            hscore = h.physics_fit.physics_score;
+        } else {
+            hscore = getBestPeriodHourScore(h);
+        }
         if (hscore > bestScore) {
             bestScore = hscore;
             const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
@@ -2723,8 +2785,10 @@ function _daySummary(entry, dateStr) {
         }
     }
     if (n === 0) return null;
+    const score = (_rankingMode === 'physics') ? scorePhys : scoreML;
     return {
-        score, good, fair, poor,
+        score, score_ml: scoreML, score_phys: scorePhys,
+        good, fair, poor,
         best_hour:    bestH ? bestH.hour    : null,
         best_wave:    bestH ? bestH.wave    : null,
         best_conseil: bestH ? bestH.conseil : null,
@@ -2737,6 +2801,9 @@ function findBetterNearby(currentSlug, dateStr) {
     const me = data[currentSlug]; if (!me || !me.spot || me.spot.lat == null) return null;
     const myDay = _daySummary(me, dateStr); if (!myDay) return null;
 
+    const gain = (_rankingMode === 'physics') ? MIN_PHYS_GAIN : MIN_SCORE_GAIN;
+    const distPen = (_rankingMode === 'physics') ? DISTANCE_PENALTY_P : DISTANCE_PENALTY;
+
     let pick = null, pickAdj = -Infinity;
     for (const [slug, entry] of Object.entries(data)) {
         if (slug === currentSlug) continue;
@@ -2745,9 +2812,9 @@ function findBetterNearby(currentSlug, dateStr) {
         if (d > _nearbyRadiusKm) continue;
         const ds = _daySummary(entry, dateStr); if (!ds) continue;
         // Distance-adjusted session score
-        const adjScore = ds.score - d * DISTANCE_PENALTY;
+        const adjScore = ds.score - d * distPen;
         // Need meaningful gain over local
-        if (ds.score <= myDay.score + MIN_SCORE_GAIN - 1) continue;
+        if (ds.score <= myDay.score + gain - 1) continue;
         if (adjScore > pickAdj) {
             pickAdj = adjScore;
             pick = { slug, name: entry.spot.name, dist: d,
@@ -3131,10 +3198,28 @@ function initNearbyRadiusPills() {
     });
 }
 
+function initRankingModePills() {
+    const wrap = document.getElementById('ranking-mode-pills');
+    if (!wrap) return;
+    wrap.querySelectorAll('.nrp').forEach(btn => {
+        const mode = btn.getAttribute('data-mode');
+        btn.classList.toggle('active', mode === _rankingMode);
+        btn.addEventListener('click', () => {
+            const newMode = btn.getAttribute('data-mode');
+            if (newMode === _rankingMode) return;
+            _rankingMode = newMode;
+            try { localStorage.setItem('peaksurf_ranking_mode', newMode); } catch (e) {}
+            wrap.querySelectorAll('.nrp').forEach(b => b.classList.toggle('active', b === btn));
+            if (typeof renderDailyCarousel === 'function') renderDailyCarousel();
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initTapTips();
     initSpotlightClickJump();
     initNearbyRadiusPills();
+    initRankingModePills();
     // Wire search input
     const searchInput = document.getElementById('spot-search');
     if (searchInput) {
