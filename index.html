@@ -188,8 +188,6 @@
         .time-slot.is-now { background: rgba(255,255,255,0.08); color: var(--text-dark); font-weight: 800; }
 
         .rating-strip { display: flex; height: 6px; position: relative; z-index: 2; }
-        .physics-badge { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 0.58rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; padding: 1px 3px; border-radius: 3px; background: rgba(0,0,0,0.35); pointer-events: none; }
-        .wave-slot.active .physics-badge { background: rgba(0,0,0,0.55); }
         .rating-segment { width: 56px; flex-shrink: 0; }
 
         /* Night shades hidden — replaced by data dimming */
@@ -708,7 +706,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260424-dualstrip"></script>
+<script src="data/forecast.js?v=20260424-nobadge"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -2292,18 +2290,12 @@ function renderUnifiedTrack() {
         const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : '--';
         slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}${physScore!=null?`, physics ${Math.round(physScore)}`:''}`);
         slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m${physScore!=null?` · Physics ${Math.round(physScore)}/100`:''}`;
-        let physBadge = '';
-        if (physScore != null) {
-            const physColor = _colorScale(physScore, 0, 80, PHYSICS_SCALE);
-            physBadge = `<span class="physics-badge" style="color:${physColor};" title="Physics score">${Math.round(physScore)}</span>`;
-        }
         slot.innerHTML = `
             ${showLabel ? `<span class="wave-label">${waveLabel}</span>` : ''}
             <div class="wave-bar-wrapper" style="height:${setH}px;">
                 <div class="set-bar-ext" style="height:100%;"></div>
                 <div class="wave-bar" style="height:${innerBarPct}%;"></div>
             </div>
-            ${physBadge}
         `;
         const capturedIdx = i, capturedH = h;
         slot.addEventListener('click', () => {
