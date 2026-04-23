@@ -636,6 +636,7 @@
                 <div class="night-shade-container" id="night-shades"></div>
                 <div class="time-row" id="time-row"></div>
                 <div class="rating-strip" id="rating-strip"></div>
+                <div class="rating-strip" id="physics-strip"></div>
                 <div class="waves-row" id="wave-bars"></div>
                 <div class="swell-dir-row" id="swell-dir-row"></div>
                 <div class="wind-row" id="wind-row"></div>
@@ -707,7 +708,7 @@
     </div>
 </footer>
 
-<script src="data/forecast.js?v=20260423-windfix"></script>
+<script src="data/forecast.js?v=20260424-dualstrip"></script>
 <script>
 /* =====================================================
    PeakSurf - Dark Mode UI & IA Logic
@@ -2217,16 +2218,19 @@ function renderDailyCarousel() {
 function renderUnifiedTrack() {
     const timeRow = document.getElementById('time-row');
     const stripRow = document.getElementById('rating-strip');
+    const physRow = document.getElementById('physics-strip');
     const waveRow = document.getElementById('wave-bars');
     const swellDirRow = document.getElementById('swell-dir-row');
     const windRow = document.getElementById('wind-row');
     const shadesRow = document.getElementById('night-shades');
 
     timeRow.innerHTML = ''; stripRow.innerHTML = ''; waveRow.innerHTML = '';
+    if (physRow) physRow.innerHTML = '';
     swellDirRow.innerHTML = ''; windRow.innerHTML = ''; shadesRow.innerHTML = '';
 
     timeRow.innerHTML = '<div class="row-label"></div>';
-    stripRow.innerHTML = '<div class="row-label" style="height:6px;"></div>';
+    stripRow.innerHTML = '<div class="row-label" style="height:6px;font-size:0.55rem;color:var(--text-light);display:flex;align-items:center;padding-left:4px;">ML</div>';
+    if (physRow) physRow.innerHTML = '<div class="row-label" style="height:6px;font-size:0.55rem;color:var(--text-light);display:flex;align-items:center;padding-left:4px;">Physics</div>';
     waveRow.innerHTML = '<div class="row-label">Waves</div>';
     swellDirRow.innerHTML = '<div class="row-label">Swell</div>';
     windRow.innerHTML = '<div class="row-label">Wind</div>';
@@ -2261,14 +2265,19 @@ function renderUnifiedTrack() {
         const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
         timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localH + 'h' : ''}</div>`;
 
-        // Rating strip always follows ML rating (colour). Physics score is
-        // surfaced as a number inside the wave-slot, not via the strip colour.
+        // Two separate strips: rating-strip = ML rating colour, physics-strip
+        // = physics_score colour (deterministic). Tooltip on each shows both
+        // so they can be cross-checked.
         const pf = h.physics_fit;
         const physScore = (pf && pf.physics_score != null) ? pf.physics_score : null;
         const stripTitle = physScore != null
             ? ` title="ML ${conseilLabel} · Physics ${Math.round(physScore)}/100"`
             : ` title="ML ${conseilLabel}"`;
         stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"${stripTitle}></div>`;
+        if (physRow) {
+            const physBg = physScore != null ? _colorScale(physScore, 0, 80, PHYSICS_SCALE) : '#1e2e45';
+            physRow.innerHTML += `<div class="rating-segment${isNight ? ' slot-night' : ''}" style="background:${physBg};"${stripTitle}></div>`;
+        }
 
         const mlMax = h.ml_wave_height_max || 0;
         const mlMin = h.ml_wave_height_min;
