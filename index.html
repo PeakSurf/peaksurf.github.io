@@ -188,9 +188,12 @@
         .time-slot.is-now { background: rgba(255,255,255,0.08); color: var(--text-dark); font-weight: 800; }
 
         .rating-strip { display: flex; height: 6px; position: relative; z-index: 2; }
-        .surface-segment-clean    { background: #10b981; }
-        .surface-segment-textured { background: #f59e0b; }
-        .surface-segment-messy    { background: #ef4444; }
+        /* Surface strip uses a distinct blue/purple/magenta hue family so it
+         * can't be confused at a glance with the ML rating strip (cyan/amber/
+         * red). Same scale of meaning: cool = clean → warm = messy. */
+        .surface-segment-clean    { background: #3b82f6; }   /* blue */
+        .surface-segment-textured { background: #8b5cf6; }   /* violet */
+        .surface-segment-messy    { background: #ec4899; }   /* magenta */
         .surface-segment-unknown  { background: var(--flat); }
         .rating-segment { width: 56px; flex-shrink: 0; }
 
