@@ -2178,13 +2178,30 @@ function _renderYearly(c) {
 
 function renderClimato(spotId) {
     const wrap = document.getElementById('climato-wrap');
+    const period = document.getElementById('climato-period');
     if (!wrap) return;
-    if (!_climatoData || !_climatoData[spotId]) {
+    if (!_climatoData) {
         wrap.style.display = 'none';
-        document.getElementById('climato-period').textContent = '';
+        if (period) period.textContent = '(loading…)';
         return;
     }
+    if (!_climatoData[spotId]) {
+        wrap.style.display = 'none';
+        if (period) period.textContent = '(no data for this spot)';
+        return;
+    }
+    try {
+        _doRenderClimato(spotId);
+    } catch (e) {
+        wrap.style.display = '';
+        if (period) period.textContent = 'render error: ' + (e && e.message || e);
+        console.error('climato render error:', e);
+    }
+}
+
+function _doRenderClimato(spotId) {
     const c = _climatoData[spotId];
+    const wrap = document.getElementById('climato-wrap');
     wrap.style.display = '';
     document.getElementById('climato-period').textContent = `${c.year_start}–${c.year_end} · ${c.n_years} years · CMEMS IBI + ERA5`;
 
