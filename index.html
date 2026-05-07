@@ -3480,6 +3480,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapToggle = document.getElementById('map-toggle');
     if (mapToggle) mapToggle.addEventListener('click', toggleMapSize);
 
+    // Climatology data (lazy-loaded, runs regardless of inline FORECAST_DATA)
+    fetch('data/climato_summary.json')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (data) {
+                _climatoData = data;
+                if (_currentSpot) renderClimato(_currentSpot);
+            }
+        })
+        .catch(() => { /* climatology is optional */ });
+
     if (typeof FORECAST_DATA !== 'undefined') {
         try {
             initApp(FORECAST_DATA);
@@ -3496,17 +3507,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('spot-name').textContent = 'Error loading forecast';
             console.error('Load error:', e);
         });
-
-    // Climatology data (lazy-loaded, separate from forecast)
-    fetch('data/climato_summary.json')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-            if (data) {
-                _climatoData = data;
-                if (_currentSpot) renderClimato(_currentSpot);
-            }
-        })
-        .catch(() => { /* climatology is optional */ });
 });
 </script>
 
