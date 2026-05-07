@@ -457,6 +457,34 @@
             .hourly-guide { gap: 0.35rem; }
             .hourly-guide-text { width: 100%; font-size: 0.69rem; }
         }
+
+        /* ========== CLIMATOLOGY ========== */
+        .climato-wrap { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem; }
+        .climato-annual { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.6rem; padding: 0.9rem 1rem; background: var(--bg-surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); }
+        .climato-annual .ca-cell { display: flex; flex-direction: column; gap: 0.15rem; }
+        .climato-annual .ca-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+        .climato-annual .ca-val { font-size: 1.1rem; font-weight: 800; color: var(--text-dark); font-family: var(--font-display); letter-spacing: -0.01em; }
+        .climato-annual .ca-val .ca-unit { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-left: 2px; }
+        .climato-annual .ca-sub { font-size: 0.7rem; color: var(--text-muted); }
+        .climato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .climato-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .climato-card.climato-full { grid-column: 1 / -1; }
+        .climato-card-title { font-size: 0.78rem; font-weight: 700; color: var(--text-dark); }
+        .climato-card-sub { font-size: 0.65rem; color: var(--text-muted); line-height: 1.45; }
+        .climato-svg { width: 100%; height: auto; display: block; }
+        .climato-svg text { fill: var(--text-muted); font-family: var(--font); font-size: 9px; }
+        .climato-svg .climato-axis { stroke: var(--border); stroke-width: 0.5; }
+        .climato-svg .climato-line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+        .climato-svg .climato-band { fill: var(--accent); fill-opacity: 0.18; stroke: none; }
+        .climato-svg .climato-tier-good { fill: var(--good); }
+        .climato-svg .climato-tier-fair { fill: var(--fair); }
+        .climato-svg .climato-tier-poor { fill: var(--poor); }
+        .climato-rose-spoke { stroke: var(--border); stroke-width: 0.5; }
+        .climato-rose-label { fill: var(--text-light); font-size: 8px; font-weight: 700; }
+        @media (max-width: 720px) {
+            .climato-grid { grid-template-columns: 1fr; }
+            .climato-annual { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
@@ -647,6 +675,42 @@
         <div class="detail-panel" id="detail-panel"></div>
     </div>
 
+    <!-- Climatology -->
+    <div class="section-title" style="margin-top:2rem;display:flex;align-items:center;gap:0.75rem;">
+        <span>Climatology</span>
+        <span id="climato-period" style="font-size:0.7rem;font-weight:500;color:var(--text-muted);"></span>
+    </div>
+    <div class="climato-wrap" id="climato-wrap" style="display:none;">
+        <div class="climato-annual" id="climato-annual"></div>
+        <div class="climato-grid">
+            <div class="climato-card">
+                <div class="climato-card-title">Surf-session probability by month</div>
+                <div class="climato-card-sub">Hours meeting our session criteria (Hs 0.7-2.5m, Tp ≥ 8s, wind &lt; 15km/h, not strong-onshore).</div>
+                <svg class="climato-svg" id="climato-monthly-session" viewBox="0 0 480 180"></svg>
+            </div>
+            <div class="climato-card">
+                <div class="climato-card-title">Wave height by month</div>
+                <div class="climato-card-sub">Median Hs (line) and P25–P75 range (band), in meters.</div>
+                <svg class="climato-svg" id="climato-monthly-hs" viewBox="0 0 480 180"></svg>
+            </div>
+            <div class="climato-card">
+                <div class="climato-card-title">Swell rose</div>
+                <div class="climato-card-sub">Dominant swell direction frequency × Hs band (&lt;0.5 / 0.5–1.5 / ≥1.5m).</div>
+                <svg class="climato-svg" id="climato-swell-rose" viewBox="-110 -110 220 220"></svg>
+            </div>
+            <div class="climato-card">
+                <div class="climato-card-title">Wind rose</div>
+                <div class="climato-card-sub">Wind direction frequency × speed band (&lt;10 / 10–20 / ≥20km/h).</div>
+                <svg class="climato-svg" id="climato-wind-rose" viewBox="-110 -110 220 220"></svg>
+            </div>
+            <div class="climato-card climato-full">
+                <div class="climato-card-title">Yearly session % (1993 – 2024)</div>
+                <div class="climato-card-sub">Year-to-year evolution of session probability — watch for climate shifts.</div>
+                <svg class="climato-svg" id="climato-yearly" viewBox="0 0 720 130"></svg>
+            </div>
+        </div>
+    </div>
+
 </main>
 
 <div class="rating-legend">
@@ -720,6 +784,7 @@ let _tideData = [];
 let _dailyData = [];
 let _selectedSlotIdx = -1;
 let _activeSessionDate = null;
+let _climatoData = null;
 
 function fmt(val, decimals = 1) { return val == null ? '--' : Number(val).toFixed(decimals); }
 
@@ -1725,6 +1790,7 @@ function renderSpot(spotId) {
     renderHero(spotData);
     renderDailyCarousel();
     renderUnifiedTrack();
+    renderClimato(spotId);
     updateFavToggle();
     setTimeout(() => { renderTideCanvas(); }, 60);
     // Force scroll to top AFTER all rendering (tide canvas etc) is done
@@ -1927,6 +1993,236 @@ function collectBestWindowCandidates(dayHours, spot, length) {
 
 function getBestSurfWindow(dayHours, spot) {
     return pickBestWindowCandidate(collectBestWindowCandidates(dayHours, spot, 3));
+}
+
+// ────────── Climatology rendering ──────────
+function _climatoTier(pct) {
+    if (pct == null) return 'climato-tier-poor';
+    if (pct >= 50) return 'climato-tier-good';
+    if (pct >= 35) return 'climato-tier-fair';
+    return 'climato-tier-poor';
+}
+
+function _setSvg(id, content) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = content;
+}
+
+function _renderMonthlySession(c) {
+    const W = 480, H = 180;
+    const padL = 28, padR = 8, padT = 12, padB = 28;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const months = c.monthly;
+    const maxPct = Math.max(60, ...months.map(m => m.session_pct || 0));
+    const barW = innerW / 12 * 0.72;
+    const step = innerW / 12;
+    let svg = '';
+    // Y-axis grid lines
+    for (let pct = 0; pct <= maxPct; pct += 20) {
+        const y = padT + innerH - (pct / maxPct) * innerH;
+        svg += `<line class="climato-axis" x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}"/>`;
+        svg += `<text x="${padL - 4}" y="${y + 3}" text-anchor="end">${pct}%</text>`;
+    }
+    months.forEach((m, i) => {
+        const pct = m.session_pct || 0;
+        const x = padL + step * i + (step - barW) / 2;
+        const h = (pct / maxPct) * innerH;
+        const y = padT + innerH - h;
+        const tier = _climatoTier(pct);
+        svg += `<rect class="${tier}" x="${x}" y="${y}" width="${barW}" height="${h}" rx="2"><title>${m.month}: ${pct ? pct.toFixed(1) : '-'}% sessions</title></rect>`;
+        svg += `<text x="${x + barW / 2}" y="${padT + innerH + 14}" text-anchor="middle">${m.month}</text>`;
+        if (pct >= 5) {
+            svg += `<text x="${x + barW / 2}" y="${y - 3}" text-anchor="middle" style="fill:var(--text-dark);font-weight:700;font-size:8.5px;">${Math.round(pct)}</text>`;
+        }
+    });
+    _setSvg('climato-monthly-session', svg);
+}
+
+function _renderMonthlyHs(c) {
+    const W = 480, H = 180;
+    const padL = 28, padR = 8, padT = 12, padB = 28;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const months = c.monthly;
+    const maxHs = Math.max(3, ...months.map(m => m.hs_p75 || 0)) * 1.05;
+    const step = innerW / 11;
+    const xAt = i => padL + step * i;
+    const yAt = v => padT + innerH - (v / maxHs) * innerH;
+    let svg = '';
+    for (let v = 0; v <= maxHs; v += 0.5) {
+        const y = yAt(v);
+        if (v > 0) {
+            svg += `<line class="climato-axis" x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}"/>`;
+        }
+        svg += `<text x="${padL - 4}" y="${y + 3}" text-anchor="end">${v.toFixed(1)}</text>`;
+    }
+    // P25-P75 ribbon
+    const top = months.map((m, i) => `${xAt(i)},${yAt(m.hs_p75 || 0)}`);
+    const bot = months.map((m, i) => `${xAt(i)},${yAt(m.hs_p25 || 0)}`).reverse();
+    svg += `<polygon class="climato-band" points="${top.concat(bot).join(' ')}"/>`;
+    // Median line
+    const med = months.map((m, i) => `${i === 0 ? 'M' : 'L'}${xAt(i)},${yAt(m.hs_med || 0)}`).join(' ');
+    svg += `<path class="climato-line" d="${med}"/>`;
+    months.forEach((m, i) => {
+        svg += `<circle cx="${xAt(i)}" cy="${yAt(m.hs_med || 0)}" r="2.5" fill="var(--accent)"><title>${m.month}: median ${(m.hs_med || 0).toFixed(2)}m, P25-P75 ${(m.hs_p25 || 0).toFixed(2)}-${(m.hs_p75 || 0).toFixed(2)}m</title></circle>`;
+        svg += `<text x="${xAt(i)}" y="${padT + innerH + 14}" text-anchor="middle">${m.month}</text>`;
+    });
+    _setSvg('climato-monthly-hs', svg);
+}
+
+function _renderRose(svgId, rose, bandColors, bandLabels, unit) {
+    if (!rose || rose.length !== 8) { _setSvg(svgId, ''); return; }
+    const R = 90;  // outer radius
+    const sectors = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    // Find max sector total to scale
+    const totals = rose.map(s => s.reduce((a, b) => a + b, 0));
+    const maxTotal = Math.max(0.001, ...totals);
+    let svg = '';
+    // Concentric guide circles
+    [0.33, 0.66, 1.0].forEach(f => {
+        svg += `<circle cx="0" cy="0" r="${R * f}" fill="none" stroke="var(--border)" stroke-width="0.5"/>`;
+    });
+    // 8 spokes
+    for (let i = 0; i < 8; i++) {
+        const a = i * 45 - 90;  // top = N
+        const x = Math.cos(a * Math.PI / 180) * R;
+        const y = Math.sin(a * Math.PI / 180) * R;
+        svg += `<line class="climato-rose-spoke" x1="0" y1="0" x2="${x}" y2="${y}"/>`;
+    }
+    // Sectors: each is a stack of 3 wedges
+    rose.forEach((bands, i) => {
+        const a0 = i * 45 - 90 - 22.5; // sector centered on its compass dir
+        let cum = 0;
+        bands.forEach((freq, b) => {
+            if (freq <= 0) { cum += freq; return; }
+            const r0 = (cum / maxTotal) * R;
+            const r1 = ((cum + freq) / maxTotal) * R;
+            cum += freq;
+            const a0r = a0 * Math.PI / 180;
+            const a1r = (a0 + 45) * Math.PI / 180;
+            const x0o = Math.cos(a0r) * r1, y0o = Math.sin(a0r) * r1;
+            const x1o = Math.cos(a1r) * r1, y1o = Math.sin(a1r) * r1;
+            const x0i = Math.cos(a0r) * r0, y0i = Math.sin(a0r) * r0;
+            const x1i = Math.cos(a1r) * r0, y1i = Math.sin(a1r) * r0;
+            const sweep = '0,0,1';
+            // wedge ring annulus segment
+            const path = r0 < 0.01
+                ? `M${x0o},${y0o} A${r1},${r1} ${sweep} ${x1o},${y1o} L0,0 Z`
+                : `M${x0o},${y0o} A${r1},${r1} ${sweep} ${x1o},${y1o} L${x1i},${y1i} A${r0},${r0} 0,0,0 ${x0i},${y0i} Z`;
+            const titlePct = (freq * 100).toFixed(1);
+            svg += `<path d="${path}" fill="${bandColors[b]}" stroke="var(--bg-surface)" stroke-width="0.5"><title>${sectors[i]} ${bandLabels[b]}: ${titlePct}%</title></path>`;
+        });
+    });
+    // Compass labels
+    sectors.forEach((s, i) => {
+        const a = i * 45 - 90;
+        const x = Math.cos(a * Math.PI / 180) * (R + 12);
+        const y = Math.sin(a * Math.PI / 180) * (R + 12) + 3;
+        svg += `<text class="climato-rose-label" x="${x}" y="${y}" text-anchor="middle">${s}</text>`;
+    });
+    // Legend bottom
+    const legY = R + 4;
+    bandLabels.forEach((lbl, b) => {
+        const lx = -R + b * (R * 2 / 3) + 4;
+        svg += `<rect x="${lx}" y="${legY + 4}" width="9" height="9" fill="${bandColors[b]}"/>`;
+        svg += `<text x="${lx + 12}" y="${legY + 12}" style="font-size:8px;">${lbl}${unit}</text>`;
+    });
+    _setSvg(svgId, svg);
+}
+
+function _renderYearly(c) {
+    const W = 720, H = 130;
+    const padL = 32, padR = 12, padT = 12, padB = 28;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const yrs = c.yearly_session;
+    const ys = c.year_start;
+    const maxPct = Math.max(60, ...yrs.filter(v => v != null));
+    const minPct = Math.min(20, ...yrs.filter(v => v != null));
+    const xAt = i => padL + (i / Math.max(1, yrs.length - 1)) * innerW;
+    const yAt = v => padT + innerH - ((v - minPct) / (maxPct - minPct)) * innerH;
+    let svg = '';
+    [minPct, (minPct + maxPct) / 2, maxPct].forEach(v => {
+        const y = yAt(v);
+        svg += `<line class="climato-axis" x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}"/>`;
+        svg += `<text x="${padL - 4}" y="${y + 3}" text-anchor="end">${Math.round(v)}%</text>`;
+    });
+    // Path
+    const path = yrs.map((v, i) => v == null ? '' : `${i === 0 ? 'M' : 'L'}${xAt(i)},${yAt(v)}`).filter(Boolean).join(' ');
+    svg += `<path class="climato-line" d="${path}"/>`;
+    yrs.forEach((v, i) => {
+        if (v == null) return;
+        svg += `<circle cx="${xAt(i)}" cy="${yAt(v)}" r="1.8" fill="var(--accent)"><title>${ys + i}: ${v.toFixed(1)}%</title></circle>`;
+    });
+    // Linear regression line for trend
+    const valid = yrs.map((v, i) => v == null ? null : [i, v]).filter(Boolean);
+    if (valid.length > 5) {
+        const n = valid.length;
+        const sx = valid.reduce((a, p) => a + p[0], 0);
+        const sy = valid.reduce((a, p) => a + p[1], 0);
+        const sxy = valid.reduce((a, p) => a + p[0] * p[1], 0);
+        const sx2 = valid.reduce((a, p) => a + p[0] * p[0], 0);
+        const slope = (n * sxy - sx * sy) / (n * sx2 - sx * sx);
+        const intercept = (sy - slope * sx) / n;
+        const i0 = valid[0][0], i1 = valid[valid.length - 1][0];
+        const v0 = intercept + slope * i0, v1 = intercept + slope * i1;
+        svg += `<line x1="${xAt(i0)}" y1="${yAt(v0)}" x2="${xAt(i1)}" y2="${yAt(v1)}" stroke="var(--text-light)" stroke-width="1" stroke-dasharray="3,3"/>`;
+    }
+    // Year ticks (every 5)
+    yrs.forEach((v, i) => {
+        const yr = ys + i;
+        if (yr % 5 === 0 || i === yrs.length - 1) {
+            svg += `<text x="${xAt(i)}" y="${padT + innerH + 14}" text-anchor="middle">${yr}</text>`;
+        }
+    });
+    _setSvg('climato-yearly', svg);
+}
+
+function renderClimato(spotId) {
+    const wrap = document.getElementById('climato-wrap');
+    if (!wrap) return;
+    if (!_climatoData || !_climatoData[spotId]) {
+        wrap.style.display = 'none';
+        document.getElementById('climato-period').textContent = '';
+        return;
+    }
+    const c = _climatoData[spotId];
+    wrap.style.display = '';
+    document.getElementById('climato-period').textContent = `${c.year_start}–${c.year_end} · ${c.n_years} years · CMEMS IBI + ERA5`;
+
+    // Annual band
+    const a = c.annual || {};
+    const tierClr = pct => pct == null ? 'var(--text-muted)'
+        : pct >= 50 ? 'var(--good)' : pct >= 35 ? 'var(--fair)' : 'var(--poor)';
+    const annualHtml = `
+        <div class="ca-cell"><span class="ca-label">Sessions / year</span>
+            <span class="ca-val" style="color:${tierClr(a.session_pct)}">${a.session_pct != null ? a.session_pct.toFixed(1) : '–'}<span class="ca-unit">%</span></span>
+            <span class="ca-sub">of all hours</span></div>
+        <div class="ca-cell"><span class="ca-label">Best month</span>
+            <span class="ca-val">${a.best_month || '–'}</span>
+            <span class="ca-sub">${a.best_pct != null ? a.best_pct.toFixed(1) + '% sessions' : ''}</span></div>
+        <div class="ca-cell"><span class="ca-label">Worst month</span>
+            <span class="ca-val">${a.worst_month || '–'}</span>
+            <span class="ca-sub">${a.worst_pct != null ? a.worst_pct.toFixed(1) + '% sessions' : ''}</span></div>
+        <div class="ca-cell"><span class="ca-label">Wave height</span>
+            <span class="ca-val">${a.hs_med != null ? a.hs_med.toFixed(2) : '–'}<span class="ca-unit">m</span></span>
+            <span class="ca-sub">P75 ${a.hs_p75 != null ? a.hs_p75.toFixed(2) : '–'} · P90 ${a.hs_p90 != null ? a.hs_p90.toFixed(2) : '–'}m</span></div>
+        <div class="ca-cell"><span class="ca-label">Period</span>
+            <span class="ca-val">${a.tp_med != null ? a.tp_med.toFixed(1) : '–'}<span class="ca-unit">s</span></span>
+            <span class="ca-sub">median Tp</span></div>
+        <div class="ca-cell"><span class="ca-label">Wind</span>
+            <span class="ca-val">${a.wind_med != null ? a.wind_med.toFixed(1) : '–'}<span class="ca-unit">km/h</span></span>
+            <span class="ca-sub">median speed</span></div>
+    `;
+    document.getElementById('climato-annual').innerHTML = annualHtml;
+
+    _renderMonthlySession(c);
+    _renderMonthlyHs(c);
+    _renderRose('climato-swell-rose', c.swell_rose,
+        ['#1e2e45', '#1ac0c6', '#ef4444'],
+        ['<0.5', '0.5–1.5', '≥1.5'], 'm');
+    _renderRose('climato-wind-rose', c.wind_rose,
+        ['#1e2e45', '#f59e0b', '#ef4444'],
+        ['<10', '10–20', '≥20'], 'km/h');
+    _renderYearly(c);
 }
 
 function renderDailyCarousel() {
@@ -3200,6 +3496,17 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('spot-name').textContent = 'Error loading forecast';
             console.error('Load error:', e);
         });
+
+    // Climatology data (lazy-loaded, separate from forecast)
+    fetch('data/climato_summary.json')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (data) {
+                _climatoData = data;
+                if (_currentSpot) renderClimato(_currentSpot);
+            }
+        })
+        .catch(() => { /* climatology is optional */ });
 });
 </script>
 
