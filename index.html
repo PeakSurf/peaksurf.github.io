@@ -3499,14 +3499,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Climatology data (lazy-loaded, runs regardless of inline FORECAST_DATA)
     fetch('data/climato_summary.json')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-            if (data) {
-                _climatoData = data;
-                if (_currentSpot) renderClimato(_currentSpot);
-            }
+        .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
         })
-        .catch(() => { /* climatology is optional */ });
+        .then(data => {
+            _climatoData = data;
+            if (_currentSpot) renderClimato(_currentSpot);
+        })
+        .catch(e => {
+            const period = document.getElementById('climato-period');
+            if (period) period.textContent = 'fetch failed: ' + (e && e.message || e);
+            console.error('climato fetch error:', e);
+        });
 
     if (typeof FORECAST_DATA !== 'undefined') {
         try {
