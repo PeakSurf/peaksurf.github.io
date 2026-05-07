@@ -544,12 +544,6 @@
             <div class="hero-val"><span id="hero-sst">--</span><span class="hero-val-unit">&deg;C</span></div>
             <span class="hero-desc" id="hero-sst-suit"></span>
         </div>
-        <!-- PHYSICS FIT (deterministic score, no ML) -->
-        <div class="hero-card" id="hero-physics-card" title="Pure physics score — orientation, wind direction & strength, gust, tide depth & trend. No ML.">
-            <span class="hero-card-title">Physics Fit</span>
-            <div class="hero-val"><span id="hero-physics-score">--</span><span class="hero-val-unit">/100</span></div>
-            <span class="hero-desc" id="hero-physics-detail">--</span>
-        </div>
     </div>
 
     <!-- Webcam link -->
@@ -604,12 +598,7 @@
     <!-- Daily Carousel -->
     <div class="section-title" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
         <span>7-Day Overview</span>
-        <span style="font-size:0.65rem;font-weight:500;color:var(--text-muted);margin-left:auto;">rank nearby by</span>
-        <div id="ranking-mode-pills" class="nearby-radius-pills" title="ML = AI rating · Physics = deterministic score from orientation + wind + tide">
-            <button type="button" class="nrp active" data-mode="ml">ML</button>
-            <button type="button" class="nrp" data-mode="physics">Physics</button>
-        </div>
-        <span style="font-size:0.65rem;font-weight:500;color:var(--text-muted);">radius</span>
+        <span style="font-size:0.65rem;font-weight:500;color:var(--text-muted);margin-left:auto;">radius</span>
         <div id="nearby-radius-pills" class="nearby-radius-pills">
             <button type="button" class="nrp" data-km="20">20</button>
             <button type="button" class="nrp" data-km="40">40</button>
@@ -646,7 +635,6 @@
                 <div class="time-row" id="time-row"></div>
                 <div class="rating-strip" id="rating-strip"></div>
                 <div class="rating-strip" id="surface-strip"></div>
-                <div class="rating-strip" id="physics-strip"></div>
                 <div class="waves-row" id="wave-bars"></div>
                 <div class="swell-dir-row" id="swell-dir-row"></div>
                 <div class="wind-row" id="wind-row"></div>
@@ -970,8 +958,8 @@ function getConfidenceMeta(conf) {
 }
 
 function getTideStatusLabel(h) {
-    // Prefer the continuous physics tide_score (0-100, depth + trend). Falls
-    // back to the old discrete label only if the score isn't available.
+    // Prefer the continuous tide_score (0-100, depth + trend). Falls back to
+    // the discrete label if the score isn't available.
     const pf = h && h.physics_fit;
     if (pf && pf.tide_score != null) {
         const s = Math.round(pf.tide_score);
@@ -1202,8 +1190,6 @@ function _lerpColor(a, b, t) {
 // Color scales for continuous variables
 const WAVE_SCALE = [[0,'#1e2e45'],[0.15,'#0ea5e9'],[0.4,'#10b981'],[0.65,'#f59e0b'],[1,'#ef4444']];
 const WIND_SCALE = [[0,'#10b981'],[0.3,'#f59e0b'],[0.6,'#ef4444'],[1,'#dc2626']];
-// Physics score 0→80+ on a cold→hot ramp; 80 already caps at 'epic'
-const PHYSICS_SCALE = [[0,'#1e2e45'],[0.18,'#ef4444'],[0.35,'#f59e0b'],[0.55,'#10b981'],[1,'#1ac0c6']];
 // Direction hue wheel: N=blue, E=green, S=red, W=purple
 function _dirColor(deg) {
     if (deg == null || isNaN(deg)) return '#1e2e45';
@@ -1303,11 +1289,6 @@ function _getMarkerProps(h, variable) {
             const dir = h.swell_direction;
             const v = h.swell_height_model || h.swell_height || 0;
             return { color: _dirColor(dir), radius: Math.max(3, Math.min(8, 3 + v*1.5)), label: (h.swell_direction_text||'--')+' '+v.toFixed(1)+'m', arrow: dir };
-        }
-        case 'physics_score': {
-            const v = (h.physics_fit && h.physics_fit.physics_score != null) ? h.physics_fit.physics_score : null;
-            if (v == null) return { color: '#1e2e45', radius: 4, label: '--' };
-            return { color: _colorScale(v, 0, 80, PHYSICS_SCALE), radius: Math.max(3, Math.min(9, 3 + v/12)), label: Math.round(v)+'/100' };
         }
         default: return { color: '#1e2e45', radius: 4, label: '--' };
     }
@@ -1461,7 +1442,6 @@ function _buildMapPopup(marker, sid, spotInfo, spotData, h) {
                 <div><span style="color:#94a3b8;">Surface:</span> <b style="color:#1e293b;">${surface}</b></div>
                 <div><span style="color:#94a3b8;">Wind:</span> <b style="color:#1e293b;">${windDir} ${windSpd}</b></div>
                 <div><span style="color:#94a3b8;">Gusts:</span> <b style="color:#1e293b;">${windGust || '--'}</b></div>
-                ${sel.physics_fit && sel.physics_fit.physics_score != null ? `<div style="grid-column:1/-1;border-top:1px dashed #cbd5e1;padding-top:0.25rem;margin-top:0.15rem;"><span style="color:#94a3b8;">Physics:</span> <b style="color:#1e293b;">${Math.round(sel.physics_fit.physics_score)}/100</b> <span style="color:#94a3b8;">&middot; ${(sel.physics_fit.wind_class||'').replace('-',' ')} &middot; exp ${sel.physics_fit.swell_exposure_pct!=null?Math.round(sel.physics_fit.swell_exposure_pct)+'%':'--'}${sel.physics_fit.tide_trend?' &middot; '+sel.physics_fit.tide_trend:''}</span></div>` : ''}
             </div>
             <div class="popup-hourly">${hourlyHtml}</div>
             <span class="popup-link" onclick="_switchToSpotAtTime('${sid}','${sel.time}');" style="display:block;text-align:center;padding:6px;font-size:0.75rem;font-weight:700;">View full forecast &rarr;</span>
@@ -1560,7 +1540,6 @@ function updateMapLegend() {
         else if (_mapVariable === 'wind_speed') { scale = WIND_SCALE; min = 0; max = 50; unit = 'km/h'; }
         else if (_mapVariable === 'wind_gust') { scale = WIND_SCALE; min = 0; max = 60; unit = 'km/h'; }
         else if (_mapVariable === 'hs_offshore') { scale = WAVE_SCALE; min = 0; max = 4; unit = 'm'; }
-        else if (_mapVariable === 'physics_score') { scale = PHYSICS_SCALE; min = 0; max = 80; unit = '/100'; }
         else { scale = WAVE_SCALE; min = 0; max = 3; unit = ''; }
         const grad = scale.map(s => `${s[1]} ${s[0]*100}%`).join(', ');
         document.getElementById('map-scale-gradient').style.background = `linear-gradient(to right, ${grad})`;
@@ -1860,36 +1839,6 @@ function _renderHeroWithHour(h, spotData) {
     document.getElementById('hero-sst-suit').textContent = sst < 14 ? '4/3mm Wetsuit' : sst < 18 ? '3/2mm Wetsuit' : sst < 22 ? 'Shorty / Spring suit' : 'Boardshorts';
     document.getElementById('hero-tide').textContent = h.tide_height != null ? fmt(h.tide_height) : '--';
     document.getElementById('hero-tide-trend').textContent = tideStatus;
-    renderPhysicsCard(h);
-}
-
-function renderPhysicsCard(h) {
-    const card = document.getElementById('hero-physics-card');
-    const scoreEl = document.getElementById('hero-physics-score');
-    const detailEl = document.getElementById('hero-physics-detail');
-    if (!card || !scoreEl || !detailEl) return;
-    const f = h && h.physics_fit;
-    if (!f || f.physics_score == null) {
-        scoreEl.textContent = '--';
-        detailEl.textContent = 'no physics data';
-        card.style.borderColor = 'var(--border)';
-        return;
-    }
-    const s = Math.round(f.physics_score);
-    scoreEl.textContent = s;
-    // Colour border by score band so it reads at a glance
-    let band;
-    if      (s >= 60) band = 'var(--accent)';     // epic-ish
-    else if (s >= 40) band = '#10b981';           // good
-    else if (s >= 22) band = '#f59e0b';           // fair
-    else              band = '#ef4444';           // poor
-    card.style.borderColor = band;
-    scoreEl.style.color = band;
-    // Detail line: wind class + alignment %
-    const exp = f.swell_exposure_pct != null ? Math.round(f.swell_exposure_pct) + '%' : '--';
-    const wc  = (f.wind_class || '').replace('-', ' ');
-    const tt  = f.tide_trend ? ' · ' + f.tide_trend : '';
-    detailEl.textContent = `${wc} · exp ${exp}${tt}`;
 }
 
 function getWindEffect(h, spot) {
@@ -2227,7 +2176,6 @@ function renderUnifiedTrack() {
     const timeRow = document.getElementById('time-row');
     const stripRow = document.getElementById('rating-strip');
     const surfRow  = document.getElementById('surface-strip');
-    const physRow = document.getElementById('physics-strip');
     const waveRow = document.getElementById('wave-bars');
     const swellDirRow = document.getElementById('swell-dir-row');
     const windRow = document.getElementById('wind-row');
@@ -2235,13 +2183,11 @@ function renderUnifiedTrack() {
 
     timeRow.innerHTML = ''; stripRow.innerHTML = ''; waveRow.innerHTML = '';
     if (surfRow) surfRow.innerHTML = '';
-    if (physRow) physRow.innerHTML = '';
     swellDirRow.innerHTML = ''; windRow.innerHTML = ''; shadesRow.innerHTML = '';
 
     timeRow.innerHTML = '<div class="row-label"></div>';
     stripRow.innerHTML = '<div class="row-label" style="height:6px;font-size:0.55rem;color:var(--text-light);display:flex;align-items:center;padding-left:4px;">ML</div>';
     if (surfRow) surfRow.innerHTML = '<div class="row-label" style="height:6px;font-size:0.55rem;color:var(--text-light);display:flex;align-items:center;padding-left:4px;">Surface</div>';
-    if (physRow) physRow.innerHTML = '<div class="row-label" style="height:6px;font-size:0.55rem;color:var(--text-light);display:flex;align-items:center;padding-left:4px;">Physics</div>';
     waveRow.innerHTML = '<div class="row-label">Waves</div>';
     swellDirRow.innerHTML = '<div class="row-label">Swell</div>';
     windRow.innerHTML = '<div class="row-label">Wind</div>';
@@ -2276,24 +2222,13 @@ function renderUnifiedTrack() {
         const dayLabel = isDayStart ? `<span class="day-label">${isToday ? 'Today' : tp.weekday + ' ' + tp.day}</span>` : '';
         timeRow.innerHTML += `<div class="time-slot${isNight ? ' slot-night' : ''} ${isDayStart ? 'day-start' : ''} ${isNow ? 'is-now' : ''}">${dayLabel}${showLabel ? localH + 'h' : ''}</div>`;
 
-        // Two separate strips: rating-strip = ML rating colour, physics-strip
-        // = physics_score colour (deterministic). Tooltip on each shows both
-        // so they can be cross-checked.
-        const pf = h.physics_fit;
-        const physScore = (pf && pf.physics_score != null) ? pf.physics_score : null;
-        const stripTitle = physScore != null
-            ? ` title="ML ${conseilLabel} · Physics ${Math.round(physScore)}/100"`
-            : ` title="ML ${conseilLabel}"`;
+        const stripTitle = ` title="ML ${conseilLabel}"`;
         stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"${stripTitle}></div>`;
         if (surfRow) {
             const surfTagStrip = h.ml_surface;
             const surfCls = surfTagStrip ? surfTagStrip.toLowerCase() : 'unknown';
             const surfTitle = surfTagStrip ? ` title="Surface: ${surfTagStrip}"` : ' title="Surface: unknown"';
             surfRow.innerHTML += `<div class="rating-segment surface-segment-${surfCls}${isNight ? ' slot-night' : ''}"${surfTitle}></div>`;
-        }
-        if (physRow) {
-            const physBg = physScore != null ? _colorScale(physScore, 0, 80, PHYSICS_SCALE) : '#1e2e45';
-            physRow.innerHTML += `<div class="rating-segment${isNight ? ' slot-night' : ''}" style="background:${physBg};"${stripTitle}></div>`;
         }
 
         const mlMax = h.ml_wave_height_max || 0;
@@ -2307,8 +2242,8 @@ function renderUnifiedTrack() {
         const slot = document.createElement('button');
         slot.className = 'wave-slot' + nightClass + (i === _selectedSlotIdx ? ' active' : '');
         const waveLabel = mlMin != null ? (Math.abs(mlMax - mlMin) < 0.1 ? fmt(mlMax) : `${fmt(mlMin)}-${fmt(mlMax)}`) : '--';
-        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}${physScore!=null?`, physics ${Math.round(physScore)}`:''}`);
-        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m${physScore!=null?` · Physics ${Math.round(physScore)}/100`:''}`;
+        slot.setAttribute('aria-label', `${localH}h: ${waveLabel}m typical, sets ${fmt(mlSets)}m, ${conseilLabel}`);
+        slot.title = `${waveLabel}m · sets ${fmt(mlSets)}m`;
         const surfTag = h.ml_surface;  // "Clean" / "Textured" / "Messy"
         const surfShort = surfTag === 'Clean' ? 'CLN'
                          : surfTag === 'Textured' ? 'TXT'
@@ -2771,18 +2706,8 @@ let _nearbyRadiusKm = (() => {
     } catch (e) {}
     return 80;
 })();
-const RANKING_MODES = ['ml', 'physics'];
-let _rankingMode = (() => {
-    try {
-        const v = localStorage.getItem('peaksurf_ranking_mode');
-        if (RANKING_MODES.includes(v)) return v;
-    } catch (e) {}
-    return 'ml';
-})();
-const MIN_SCORE_GAIN     = 3;      // candidate must beat local by this much (ML units ~= rating rank)
-const MIN_PHYS_GAIN      = 6;      // same idea but in physics-score units (0-100 scale)
-const DISTANCE_PENALTY   = 0.03;   // score points per km (ML)
-const DISTANCE_PENALTY_P = 0.15;   // physics — physics-score is denser per point, bump penalty
+const MIN_SCORE_GAIN   = 3;      // candidate must beat local by this much (ML units ~= rating rank)
+const DISTANCE_PENALTY = 0.03;   // score points per km
 const RATING_RANK = { 'Poor': 1, 'Fair': 2, 'Good': 3, 'Epic': 4 };
 
 function _probRank(h) {
@@ -2801,32 +2726,20 @@ function _probRank(h) {
 }
 
 function _daySummary(entry, dateStr) {
-    // Session score = Σ expected rank over daylight hours (confidence-aware),
-    // plus a parallel physics-score sum that lets the UI rank by deterministic
-    // physics instead. `score` reflects the currently active mode.
+    // Session score = Σ expected rank over daylight hours (confidence-aware).
     const spot = entry.spot;
-    let scoreML = 0, scorePhys = 0, good = 0, fair = 0, poor = 0, n = 0;
+    let score = 0, good = 0, fair = 0, poor = 0, n = 0;
     let bestH = null, bestScore = -Infinity;
     for (const h of (entry.hourly || [])) {
         if (!h.time.startsWith(dateStr)) continue;
         if (!isDaylight(h, spot)) continue;
         const r = _probRank(h);
-        scoreML += r;
-        if (h.physics_fit && h.physics_fit.physics_score != null) {
-            scorePhys += h.physics_fit.physics_score;
-        }
+        score += r;
         n++;
         if (r >= 2.5)      good++;
         else if (r >= 1.5) fair++;
         else               poor++;
-        // Best-moment uses the active mode so the badge/hint reflects what was
-        // actually ranked.
-        let hscore;
-        if (_rankingMode === 'physics' && h.physics_fit && h.physics_fit.physics_score != null) {
-            hscore = h.physics_fit.physics_score;
-        } else {
-            hscore = getBestPeriodHourScore(h);
-        }
+        const hscore = getBestPeriodHourScore(h);
         if (hscore > bestScore) {
             bestScore = hscore;
             const conseil = getNormalizedConseil(h) || h.rating || 'Poor';
@@ -2835,10 +2748,8 @@ function _daySummary(entry, dateStr) {
         }
     }
     if (n === 0) return null;
-    const score = (_rankingMode === 'physics') ? scorePhys : scoreML;
     return {
-        score, score_ml: scoreML, score_phys: scorePhys,
-        good, fair, poor,
+        score, good, fair, poor,
         best_hour:    bestH ? bestH.hour    : null,
         best_wave:    bestH ? bestH.wave    : null,
         best_conseil: bestH ? bestH.conseil : null,
@@ -2851,8 +2762,8 @@ function findBetterNearby(currentSlug, dateStr) {
     const me = data[currentSlug]; if (!me || !me.spot || me.spot.lat == null) return null;
     const myDay = _daySummary(me, dateStr); if (!myDay) return null;
 
-    const gain = (_rankingMode === 'physics') ? MIN_PHYS_GAIN : MIN_SCORE_GAIN;
-    const distPen = (_rankingMode === 'physics') ? DISTANCE_PENALTY_P : DISTANCE_PENALTY;
+    const gain = MIN_SCORE_GAIN;
+    const distPen = DISTANCE_PENALTY;
 
     let pick = null, pickAdj = -Infinity;
     for (const [slug, entry] of Object.entries(data)) {
@@ -3248,29 +3159,10 @@ function initNearbyRadiusPills() {
     });
 }
 
-function initRankingModePills() {
-    const wrap = document.getElementById('ranking-mode-pills');
-    if (!wrap) return;
-    wrap.querySelectorAll('.nrp').forEach(btn => {
-        const mode = btn.getAttribute('data-mode');
-        btn.classList.toggle('active', mode === _rankingMode);
-        btn.addEventListener('click', () => {
-            const newMode = btn.getAttribute('data-mode');
-            if (newMode === _rankingMode) return;
-            _rankingMode = newMode;
-            try { localStorage.setItem('peaksurf_ranking_mode', newMode); } catch (e) {}
-            wrap.querySelectorAll('.nrp').forEach(b => b.classList.toggle('active', b === btn));
-            if (typeof renderDailyCarousel === 'function') renderDailyCarousel();
-            if (typeof renderUnifiedTrack === 'function') renderUnifiedTrack();
-        });
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     initTapTips();
     initSpotlightClickJump();
     initNearbyRadiusPills();
-    initRankingModePills();
     // Wire search input
     const searchInput = document.getElementById('spot-search');
     if (searchInput) {
@@ -3333,7 +3225,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <option value="wind_dir">Wind Direction</option>
                     <option value="hs_offshore">Hs Offshore</option>
                     <option value="swell_dir">Swell Direction</option>
-                    <option value="physics_score">Physics Score</option>
                 </select>
             </div>
             <div class="map-ctrl-group" style="flex:1;">
@@ -3365,7 +3256,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="wind_dir">Wind Dir</option>
             <option value="hs_offshore">Hs Offshore</option>
             <option value="swell_dir">Swell Dir</option>
-            <option value="physics_score">Physics</option>
         </select>
         <button class="map-play-btn" id="mobile-map-play">&#9654;</button>
         <input type="range" id="mobile-map-slider" min="0" max="168" value="0">
