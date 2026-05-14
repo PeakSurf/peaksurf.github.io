@@ -471,11 +471,15 @@
         .climato-card.climato-full { grid-column: 1 / -1; }
         .climato-card-title { font-size: 0.78rem; font-weight: 700; color: var(--text-dark); }
         .climato-card-sub { font-size: 0.65rem; color: var(--text-muted); line-height: 1.45; }
+        .climato-howto { font-size: 0.65rem; color: var(--text-muted); line-height: 1.5; background: rgba(255,255,255,0.03); border-left: 2px solid var(--accent); border-radius: 6px; padding: 0.5rem 0.75rem; margin: 0.25rem 0; display: flex; flex-direction: column; gap: 0.25rem; }
+        .climato-howto strong { color: var(--text-dark); font-weight: 700; }
+        .climato-howto em { color: var(--accent); font-style: normal; }
         .climato-svg { width: 100%; height: auto; display: block; }
         .climato-svg text { fill: var(--text-muted); font-family: var(--font); font-size: 9px; }
         .climato-svg .climato-axis { stroke: var(--border); stroke-width: 0.5; }
         .climato-svg .climato-line { fill: none; stroke: var(--accent); stroke-width: 1.6; }
         .climato-svg .climato-band { fill: var(--accent); fill-opacity: 0.18; stroke: none; }
+        .climato-svg .climato-band-orange { fill: #f59e0b; fill-opacity: 0.18; stroke: none; }
         .climato-svg .climato-tier-good { fill: var(--good); }
         .climato-svg .climato-tier-fair { fill: var(--fair); }
         .climato-svg .climato-tier-poor { fill: var(--poor); }
@@ -689,13 +693,23 @@
                 <svg class="climato-svg" id="climato-monthly-session" viewBox="0 0 480 180"></svg>
             </div>
             <div class="climato-card">
-                <div class="climato-card-title">Wave height by month</div>
-                <div class="climato-card-sub">Median Hs (line) and P25–P75 range (band), in meters.</div>
+                <div class="climato-card-title">Offshore wave height by month</div>
+                <div class="climato-card-sub">Median open-sea Hs (line) and P25–P75 range (band), in meters.</div>
                 <svg class="climato-svg" id="climato-monthly-hs" viewBox="0 0 480 180"></svg>
             </div>
             <div class="climato-card climato-full">
+                <div class="climato-card-title">Predicted surf size at the beach by month</div>
+                <div class="climato-card-sub">Typical face heights our AI predicts: smallest wave (blue), average wave (cyan), biggest set wave (orange line + P75 shaded). 32-year median per month.</div>
+                <svg class="climato-svg" id="climato-monthly-ml-waves" viewBox="0 0 720 200"></svg>
+            </div>
+            <div class="climato-card climato-full">
                 <div class="climato-card-title">Wind, swell & beach orientation</div>
-                <div class="climato-card-sub">Where swells and winds come from over 32 years. The white arrow points toward the open sea (beach exposure). Inner ring = swell, outer ring = wind.</div>
+                <div class="climato-card-sub">Where swell and wind come from over 32 years.</div>
+                <div class="climato-howto">
+                    <div><strong>How to read:</strong> each colored slice points in the direction the swell/wind <em>comes from</em>. Longer slice = more frequent. Color = stronger.</div>
+                    <div><strong>Inner ring</strong> = swell direction &amp; height. <strong>Outer ring</strong> = wind direction &amp; speed.</div>
+                    <div><strong>Shore normal</strong> (white arrow at center) = the direction the beach faces, toward the open sea. A swell whose slice points <em>opposite</em> the arrow comes in perpendicular to the beach — usually the best angle.</div>
+                </div>
                 <svg class="climato-svg" id="climato-compass" viewBox="-160 -140 320 260" style="max-width:520px;margin:0 auto;"></svg>
             </div>
             <div class="climato-card climato-full">
@@ -2093,6 +2107,70 @@ function _roseSectorPath(rose, rIn, rOut, label, valLabels, valUnit) {
 }
 
 
+function _renderMonthlyMLWaves(c) {
+    const id = 'climato-monthly-ml-waves';
+    const el = document.getElementById(id);
+    if (!el) return;
+    const months = c.monthly || [];
+    // Only render if monthly entries have the ML fields
+    if (!months.some(m => m && m.ml_wave_sets_med != null)) { _setSvg(id, ''); return; }
+    const W = 720, H = 200;
+    const padL = 36, padR = 12, padT = 16, padB = 36;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const sets = months.map(m => m.ml_wave_sets_p75 || m.ml_wave_sets_med || 0);
+    const maxY = Math.max(1.5, ...sets) * 1.1;
+    const step = innerW / 11;
+    const xAt = i => padL + step * i;
+    const yAt = v => padT + innerH - (v / maxY) * innerH;
+    let svg = '';
+    for (let v = 0; v <= maxY + 1e-6; v += 0.5) {
+        const y = yAt(v);
+        if (v > 0) svg += `<line class="climato-axis" x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}"/>`;
+        svg += `<text x="${padL - 4}" y="${y + 3}" text-anchor="end">${v.toFixed(1)}</text>`;
+    }
+    const polyPts = (key) => months.map((m, i) => `${xAt(i)},${yAt(m && m[key] != null ? m[key] : 0)}`);
+    // Sets P75 ribbon
+    if (months.every(m => m.ml_wave_sets_p75 != null)) {
+        const top = months.map((m, i) => `${xAt(i)},${yAt(m.ml_wave_sets_p75)}`);
+        const bot = months.map((m, i) => `${xAt(i)},${yAt(m.ml_wave_sets_med)}`).reverse();
+        svg += `<polygon class="climato-band-orange" points="${top.concat(bot).join(' ')}"/>`;
+    }
+    // Lines: min (blue), max (cyan), sets (orange)
+    const lineDef = [
+        { key: 'ml_wave_min_med',  color: '#3b82f6', label: 'smallest wave' },
+        { key: 'ml_wave_max_med',  color: '#1ac0c6', label: 'average wave' },
+        { key: 'ml_wave_sets_med', color: '#f59e0b', label: 'biggest set wave' },
+    ];
+    lineDef.forEach(L => {
+        const pts = polyPts(L.key);
+        svg += `<path d="M${pts.join(' L')}" fill="none" stroke="${L.color}" stroke-width="2"/>`;
+        months.forEach((m, i) => {
+            const v = m && m[L.key];
+            if (v == null) return;
+            svg += `<circle cx="${xAt(i)}" cy="${yAt(v)}" r="2.5" fill="${L.color}"><title>${m.month}: ${L.label} ${v.toFixed(2)}m</title></circle>`;
+        });
+    });
+    // Month ticks
+    months.forEach((m, i) => {
+        svg += `<text x="${xAt(i)}" y="${padT + innerH + 14}" text-anchor="middle">${m.month}</text>`;
+    });
+    // Y-axis label + inline legend
+    svg += `<text x="${padL - 30}" y="${padT - 4}" style="font-size:9px;fill:var(--text-muted);">meters</text>`;
+    const legX = W - padR - 220;
+    const legY = padT + 4;
+    [
+        { color: '#3b82f6', lbl: 'smallest wave (min)' },
+        { color: '#1ac0c6', lbl: 'average wave (max)' },
+        { color: '#f59e0b', lbl: 'biggest set wave' },
+    ].forEach((L, k) => {
+        const y = legY + k * 13;
+        svg += `<line x1="${legX}" y1="${y}" x2="${legX + 16}" y2="${y}" stroke="${L.color}" stroke-width="2"/>`;
+        svg += `<text x="${legX + 20}" y="${y + 3}" style="font-size:9px;fill:var(--text-muted);">${L.lbl}</text>`;
+    });
+    _setSvg(id, svg);
+}
+
+
 function _renderCompass(c) {
     const id = 'climato-compass';
     if (!c || !c.swell_rose || !c.wind_rose) { _setSvg(id, ''); return; }
@@ -2279,6 +2357,7 @@ function _doRenderClimato(spotId) {
 
     _renderMonthlySession(c);
     _renderMonthlyHs(c);
+    _renderMonthlyMLWaves(c);
     _renderCompass(c);
     _renderYearly(c);
 }
