@@ -697,10 +697,10 @@
                 <div class="climato-card-sub">Median open-sea Hs (line) and P25–P75 range (band), in meters.</div>
                 <svg class="climato-svg" id="climato-monthly-hs" viewBox="0 0 480 180"></svg>
             </div>
-            <div class="climato-card climato-full">
+            <div class="climato-card">
                 <div class="climato-card-title">Predicted surf size at the beach by month</div>
                 <div class="climato-card-sub">Typical face heights our AI predicts: smallest wave (blue), average wave (cyan), biggest set wave (orange line + P75 shaded). 32-year median per month.</div>
-                <svg class="climato-svg" id="climato-monthly-ml-waves" viewBox="0 0 720 200"></svg>
+                <svg class="climato-svg" id="climato-monthly-ml-waves" viewBox="0 0 480 200"></svg>
             </div>
             <div class="climato-card climato-full">
                 <div class="climato-card-title">Wind, swell & beach orientation</div>
@@ -2114,8 +2114,8 @@ function _renderMonthlyMLWaves(c) {
     const months = c.monthly || [];
     // Only render if monthly entries have the ML fields
     if (!months.some(m => m && m.ml_wave_sets_med != null)) { _setSvg(id, ''); return; }
-    const W = 720, H = 200;
-    const padL = 36, padR = 12, padT = 16, padB = 36;
+    const W = 480, H = 200;
+    const padL = 28, padR = 8, padT = 16, padB = 28;
     const innerW = W - padL - padR, innerH = H - padT - padB;
     const sets = months.map(m => m.ml_wave_sets_p75 || m.ml_wave_sets_med || 0);
     const maxY = Math.max(1.5, ...sets) * 1.1;
@@ -2155,17 +2155,17 @@ function _renderMonthlyMLWaves(c) {
         svg += `<text x="${xAt(i)}" y="${padT + innerH + 14}" text-anchor="middle">${m.month}</text>`;
     });
     // Y-axis label + inline legend
-    svg += `<text x="${padL - 30}" y="${padT - 4}" style="font-size:9px;fill:var(--text-muted);">meters</text>`;
-    const legX = W - padR - 220;
-    const legY = padT + 4;
+    svg += `<text x="${padL - 22}" y="${padT - 4}" style="font-size:9px;fill:var(--text-muted);">m</text>`;
+    const legX = W - padR - 170;
+    const legY = padT + 2;
     [
-        { color: '#3b82f6', lbl: 'smallest wave (min)' },
-        { color: '#1ac0c6', lbl: 'average wave (max)' },
-        { color: '#f59e0b', lbl: 'biggest set wave' },
+        { color: '#3b82f6', lbl: 'min' },
+        { color: '#1ac0c6', lbl: 'avg' },
+        { color: '#f59e0b', lbl: 'sets max' },
     ].forEach((L, k) => {
-        const y = legY + k * 13;
-        svg += `<line x1="${legX}" y1="${y}" x2="${legX + 16}" y2="${y}" stroke="${L.color}" stroke-width="2"/>`;
-        svg += `<text x="${legX + 20}" y="${y + 3}" style="font-size:9px;fill:var(--text-muted);">${L.lbl}</text>`;
+        const y = legY + k * 12;
+        svg += `<line x1="${legX}" y1="${y}" x2="${legX + 14}" y2="${y}" stroke="${L.color}" stroke-width="2"/>`;
+        svg += `<text x="${legX + 18}" y="${y + 3}" style="font-size:8.5px;fill:var(--text-muted);">${L.lbl}</text>`;
     });
     _setSvg(id, svg);
 }
