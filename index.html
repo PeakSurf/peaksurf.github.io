@@ -685,7 +685,7 @@
         <div class="climato-grid">
             <div class="climato-card">
                 <div class="climato-card-title">Surf-session probability by month</div>
-                <div class="climato-card-sub">Hours meeting our session criteria (Hs 0.7-2.5m, Tp ≥ 8s, wind &lt; 15km/h, not strong-onshore).</div>
+                <div class="climato-card-sub">Share of hours rated <strong>Good</strong> by our v13_3c forecast model (same model used for the live prediction).</div>
                 <svg class="climato-svg" id="climato-monthly-session" viewBox="0 0 480 180"></svg>
             </div>
             <div class="climato-card">
@@ -2203,7 +2203,7 @@ function _doRenderClimato(spotId) {
     const c = _climatoData[spotId];
     const wrap = document.getElementById('climato-wrap');
     wrap.style.display = '';
-    document.getElementById('climato-period').textContent = `${c.year_start}–${c.year_end} · ${c.n_years} years · CMEMS IBI + ERA5`;
+    document.getElementById('climato-period').textContent = `${c.year_start}–${c.year_end} · ${c.n_years} years · ML v13_3c on CMEMS IBI + ERA5`;
 
     // Annual band
     const a = c.annual || {};
