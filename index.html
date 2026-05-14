@@ -708,7 +708,7 @@
                 <div class="climato-howto">
                     <div><strong>How to read:</strong> each colored slice points in the direction the swell/wind <em>comes from</em>. Longer slice = more frequent. Color = stronger.</div>
                     <div><strong>Inner ring</strong> = swell direction &amp; height. <strong>Outer ring</strong> = wind direction &amp; speed.</div>
-                    <div><strong>White arrow</strong> = the direction the beach faces (toward the open sea). It is perpendicular to the shoreline. A swell whose slice lines up with the arrow comes straight in head-on — usually the best angle.</div>
+                    <div><strong>White arrow</strong> = the offshore direction (perpendicular to the shoreline, pointing toward the open sea). A swell whose slice lines up with the arrow hits the beach head-on — usually the cleanest angle.</div>
                 </div>
                 <svg class="climato-svg" id="climato-compass" viewBox="-160 -140 320 260" style="max-width:520px;margin:0 auto;"></svg>
             </div>
@@ -2233,12 +2233,8 @@ function _renderCompass(c) {
     const h1 = ah(ar + Math.PI - 0.5, 0);
     const h2 = ah(ar + Math.PI + 0.5, 0);
     svg += `<polygon points="${tipX},${tipY} ${tipX + h1[0] * headLen},${tipY + h1[1] * headLen} ${tipX + h2[0] * headLen},${tipY + h2[1] * headLen}" fill="#fff"/>`;
-    svg += `<text x="0" y="${R_IN - 16}" text-anchor="middle" style="fill:var(--text-muted);font-size:8px;">beach faces</text>`;
+    svg += `<text x="0" y="${R_IN - 16}" text-anchor="middle" style="fill:var(--text-muted);font-size:8px;">offshore direction</text>`;
     svg += `<text x="0" y="${R_IN - 6}" text-anchor="middle" style="fill:#fff;font-size:9px;font-weight:700;">${sn}°</text>`;
-    // "open sea" label along the arrow tip, slightly offset
-    const labX = Math.cos(ar) * (R_IN + 6);
-    const labY = Math.sin(ar) * (R_IN + 6) + 3;
-    svg += `<text x="${labX}" y="${labY}" text-anchor="middle" style="fill:#fff;font-size:7.5px;font-weight:600;opacity:0.7;">open sea</text>`;
 
     // Legends below (two rows so labels don't collide with compass)
     const legY = R_OUT + 26;
