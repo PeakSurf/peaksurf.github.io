@@ -188,10 +188,6 @@
         .time-slot.is-now { background: rgba(255,255,255,0.08); color: var(--text-dark); font-weight: 800; }
 
         .rating-strip { display: flex; height: 6px; position: relative; z-index: 2; }
-        .surface-segment-clean    { background: #10b981; }
-        .surface-segment-textured { background: #f59e0b; }
-        .surface-segment-messy    { background: #ef4444; }
-        .surface-segment-unknown  { background: var(--flat); }
         .rating-segment { width: 56px; flex-shrink: 0; }
 
         /* Night shades hidden — replaced by data dimming */
@@ -666,7 +662,6 @@
                 <div class="night-shade-container" id="night-shades"></div>
                 <div class="time-row" id="time-row"></div>
                 <div class="rating-strip" id="rating-strip"></div>
-                <div class="rating-strip" id="surface-strip"></div>
                 <div class="waves-row" id="wave-bars"></div>
                 <div class="swell-dir-row" id="swell-dir-row"></div>
                 <div class="wind-row" id="wind-row"></div>
@@ -2608,19 +2603,16 @@ function renderDailyCarousel() {
 function renderUnifiedTrack() {
     const timeRow = document.getElementById('time-row');
     const stripRow = document.getElementById('rating-strip');
-    const surfRow  = document.getElementById('surface-strip');
     const waveRow = document.getElementById('wave-bars');
     const swellDirRow = document.getElementById('swell-dir-row');
     const windRow = document.getElementById('wind-row');
     const shadesRow = document.getElementById('night-shades');
 
     timeRow.innerHTML = ''; stripRow.innerHTML = ''; waveRow.innerHTML = '';
-    if (surfRow) surfRow.innerHTML = '';
     swellDirRow.innerHTML = ''; windRow.innerHTML = ''; shadesRow.innerHTML = '';
 
     timeRow.innerHTML = '<div class="row-label"></div>';
     stripRow.innerHTML = '<div class="row-label" style="height:6px;font-size:0.55rem;color:var(--text-light);display:flex;align-items:center;padding-left:4px;">ML</div>';
-    if (surfRow) surfRow.innerHTML = '<div class="row-label" style="height:6px;font-size:0.55rem;color:var(--text-light);display:flex;align-items:center;padding-left:4px;">Surface</div>';
     waveRow.innerHTML = '<div class="row-label">Waves</div>';
     swellDirRow.innerHTML = '<div class="row-label">Swell</div>';
     windRow.innerHTML = '<div class="row-label">Wind</div>';
@@ -2657,12 +2649,6 @@ function renderUnifiedTrack() {
 
         const stripTitle = ` title="ML ${conseilLabel}"`;
         stripRow.innerHTML += `<div class="rating-segment bg-${ratingColor}${isNight ? ' slot-night' : ''}"${stripTitle}></div>`;
-        if (surfRow) {
-            const surfTagStrip = h.ml_surface;
-            const surfCls = surfTagStrip ? surfTagStrip.toLowerCase() : 'unknown';
-            const surfTitle = surfTagStrip ? ` title="Surface: ${surfTagStrip}"` : ' title="Surface: unknown"';
-            surfRow.innerHTML += `<div class="rating-segment surface-segment-${surfCls}${isNight ? ' slot-night' : ''}"${surfTitle}></div>`;
-        }
 
         const mlMax = h.ml_wave_height_max || 0;
         const mlMin = h.ml_wave_height_min;
