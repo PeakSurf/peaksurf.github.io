@@ -693,15 +693,10 @@
                 <div class="climato-card-sub">Median Hs (line) and P25–P75 range (band), in meters.</div>
                 <svg class="climato-svg" id="climato-monthly-hs" viewBox="0 0 480 180"></svg>
             </div>
-            <div class="climato-card">
-                <div class="climato-card-title">Swell rose</div>
-                <div class="climato-card-sub">Dominant swell direction frequency × Hs band (&lt;0.5 / 0.5–1.5 / ≥1.5m).</div>
-                <svg class="climato-svg" id="climato-swell-rose" viewBox="-110 -110 220 220"></svg>
-            </div>
-            <div class="climato-card">
-                <div class="climato-card-title">Wind rose</div>
-                <div class="climato-card-sub">Wind direction frequency × speed band (&lt;10 / 10–20 / ≥20km/h).</div>
-                <svg class="climato-svg" id="climato-wind-rose" viewBox="-110 -110 220 220"></svg>
+            <div class="climato-card climato-full">
+                <div class="climato-card-title">Wind, swell & beach orientation</div>
+                <div class="climato-card-sub">Where swells and winds come from over 32 years. The white arrow points toward the open sea (beach exposure). Inner ring = swell, outer ring = wind.</div>
+                <svg class="climato-svg" id="climato-compass" viewBox="-160 -140 320 260" style="max-width:520px;margin:0 auto;"></svg>
             </div>
             <div class="climato-card climato-full">
                 <div class="climato-card-title">Yearly session % (1993 – 2024)</div>
@@ -2069,64 +2064,115 @@ function _renderMonthlyHs(c) {
     _setSvg('climato-monthly-hs', svg);
 }
 
-function _renderRose(svgId, rose, bandColors, bandLabels, unit) {
-    if (!rose || rose.length !== 8) { _setSvg(svgId, ''); return; }
-    const R = 90;  // outer radius
-    const sectors = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-    // Find max sector total to scale
+function _roseSectorPath(rose, rIn, rOut, label, valLabels, valUnit) {
+    // Returns SVG paths for one rose drawn between rIn and rOut.
+    if (!rose || rose.length !== 8) return '';
     const totals = rose.map(s => s.reduce((a, b) => a + b, 0));
     const maxTotal = Math.max(0.001, ...totals);
+    const sectors = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     let svg = '';
-    // Concentric guide circles
-    [0.33, 0.66, 1.0].forEach(f => {
-        svg += `<circle cx="0" cy="0" r="${R * f}" fill="none" stroke="var(--border)" stroke-width="0.5"/>`;
-    });
-    // 8 spokes
-    for (let i = 0; i < 8; i++) {
-        const a = i * 45 - 90;  // top = N
-        const x = Math.cos(a * Math.PI / 180) * R;
-        const y = Math.sin(a * Math.PI / 180) * R;
-        svg += `<line class="climato-rose-spoke" x1="0" y1="0" x2="${x}" y2="${y}"/>`;
-    }
-    // Sectors: each is a stack of 3 wedges
     rose.forEach((bands, i) => {
-        const a0 = i * 45 - 90 - 22.5; // sector centered on its compass dir
+        const a0 = i * 45 - 90 - 22.5;  // sector centered on compass dir
         let cum = 0;
         bands.forEach((freq, b) => {
             if (freq <= 0) { cum += freq; return; }
-            const r0 = (cum / maxTotal) * R;
-            const r1 = ((cum + freq) / maxTotal) * R;
+            const r0 = rIn + (cum / maxTotal) * (rOut - rIn);
+            const r1 = rIn + ((cum + freq) / maxTotal) * (rOut - rIn);
             cum += freq;
-            const a0r = a0 * Math.PI / 180;
-            const a1r = (a0 + 45) * Math.PI / 180;
+            const a0r = a0 * Math.PI / 180, a1r = (a0 + 45) * Math.PI / 180;
             const x0o = Math.cos(a0r) * r1, y0o = Math.sin(a0r) * r1;
             const x1o = Math.cos(a1r) * r1, y1o = Math.sin(a1r) * r1;
             const x0i = Math.cos(a0r) * r0, y0i = Math.sin(a0r) * r0;
             const x1i = Math.cos(a1r) * r0, y1i = Math.sin(a1r) * r0;
-            const sweep = '0,0,1';
-            // wedge ring annulus segment
-            const path = r0 < 0.01
-                ? `M${x0o},${y0o} A${r1},${r1} ${sweep} ${x1o},${y1o} L0,0 Z`
-                : `M${x0o},${y0o} A${r1},${r1} ${sweep} ${x1o},${y1o} L${x1i},${y1i} A${r0},${r0} 0,0,0 ${x0i},${y0i} Z`;
-            const titlePct = (freq * 100).toFixed(1);
-            svg += `<path d="${path}" fill="${bandColors[b]}" stroke="var(--bg-surface)" stroke-width="0.5"><title>${sectors[i]} ${bandLabels[b]}: ${titlePct}%</title></path>`;
+            const path = `M${x0o},${y0o} A${r1},${r1} 0,0,1 ${x1o},${y1o} L${x1i},${y1i} A${r0},${r0} 0,0,0 ${x0i},${y0i} Z`;
+            const cls = `rose-${label}-${b}`;
+            svg += `<path d="${path}" class="${cls}"><title>${sectors[i]} ${valLabels[b]}${valUnit}: ${(freq*100).toFixed(1)}%</title></path>`;
         });
     });
-    // Compass labels
+    return svg;
+}
+
+
+function _renderCompass(c) {
+    const id = 'climato-compass';
+    if (!c || !c.swell_rose || !c.wind_rose) { _setSvg(id, ''); return; }
+    const sectors = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const swellColors = ['#1e2e45', '#1ac0c6', '#ef4444'];  // <0.5, 0.5-1.5, >=1.5
+    const windColors  = ['#1e2e45', '#f59e0b', '#ef4444'];  // <10, 10-20, >=20
+    const swellLabels = ['<0.5', '0.5–1.5', '≥1.5'];
+    const windLabels  = ['<10', '10–20', '≥20'];
+
+    const R_OUT = 110;          // outer wind-ring
+    const R_MID = 78;           // boundary swell / wind
+    const R_IN  = 28;           // inner swell-ring edge (leaves room for arrow)
+
+    let svg = '';
+
+    // Style block for the wedge classes
+    svg += `<style>
+      .rose-swell-0 { fill: ${swellColors[0]}; stroke: var(--bg-surface); stroke-width: 0.5; }
+      .rose-swell-1 { fill: ${swellColors[1]}; stroke: var(--bg-surface); stroke-width: 0.5; }
+      .rose-swell-2 { fill: ${swellColors[2]}; stroke: var(--bg-surface); stroke-width: 0.5; }
+      .rose-wind-0  { fill: ${windColors[0]};  stroke: var(--bg-surface); stroke-width: 0.5; }
+      .rose-wind-1  { fill: ${windColors[1]};  stroke: var(--bg-surface); stroke-width: 0.5; }
+      .rose-wind-2  { fill: ${windColors[2]};  stroke: var(--bg-surface); stroke-width: 0.5; }
+    </style>`;
+
+    // Background ring guides
+    [R_IN, R_MID, R_OUT].forEach(r => {
+        svg += `<circle cx="0" cy="0" r="${r}" fill="none" stroke="var(--border)" stroke-width="0.5"/>`;
+    });
+
+    // 8 spokes (faint)
+    for (let i = 0; i < 8; i++) {
+        const a = (i * 45 - 90 - 22.5) * Math.PI / 180;
+        const x = Math.cos(a) * R_OUT, y = Math.sin(a) * R_OUT;
+        svg += `<line class="climato-rose-spoke" x1="${Math.cos(a) * R_IN}" y1="${Math.sin(a) * R_IN}" x2="${x}" y2="${y}"/>`;
+    }
+
+    // Swell rose (inner band: R_IN .. R_MID)
+    svg += _roseSectorPath(c.swell_rose, R_IN, R_MID, 'swell', swellLabels, 'm');
+    // Wind rose (outer band: R_MID .. R_OUT)
+    svg += _roseSectorPath(c.wind_rose, R_MID, R_OUT, 'wind', windLabels, 'km/h');
+
+    // Compass labels around the outside
     sectors.forEach((s, i) => {
-        const a = i * 45 - 90;
-        const x = Math.cos(a * Math.PI / 180) * (R + 12);
-        const y = Math.sin(a * Math.PI / 180) * (R + 12) + 3;
+        const a = (i * 45 - 90) * Math.PI / 180;
+        const x = Math.cos(a) * (R_OUT + 14);
+        const y = Math.sin(a) * (R_OUT + 14) + 4;
         svg += `<text class="climato-rose-label" x="${x}" y="${y}" text-anchor="middle">${s}</text>`;
     });
-    // Legend bottom
-    const legY = R + 4;
-    bandLabels.forEach((lbl, b) => {
-        const lx = -R + b * (R * 2 / 3) + 4;
-        svg += `<rect x="${lx}" y="${legY + 4}" width="9" height="9" fill="${bandColors[b]}"/>`;
-        svg += `<text x="${lx + 12}" y="${legY + 12}" style="font-size:8px;">${lbl}${unit}</text>`;
-    });
-    _setSvg(svgId, svg);
+
+    // Shore-normal arrow in the center
+    const sn = (c.shore_normal || 270);
+    const ar = (sn - 90) * Math.PI / 180;
+    const tipX = Math.cos(ar) * (R_IN - 4), tipY = Math.sin(ar) * (R_IN - 4);
+    const baseX = -Math.cos(ar) * (R_IN - 12), baseY = -Math.sin(ar) * (R_IN - 12);
+    svg += `<line x1="${baseX}" y1="${baseY}" x2="${tipX}" y2="${tipY}" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>`;
+    // Arrowhead
+    const ah = (a, off) => [Math.cos(a + off), Math.sin(a + off)];
+    const headLen = 7;
+    const h1 = ah(ar + Math.PI - 0.5, 0);
+    const h2 = ah(ar + Math.PI + 0.5, 0);
+    svg += `<polygon points="${tipX},${tipY} ${tipX + h1[0] * headLen},${tipY + h1[1] * headLen} ${tipX + h2[0] * headLen},${tipY + h2[1] * headLen}" fill="#fff"/>`;
+    svg += `<text x="0" y="${R_IN - 16}" text-anchor="middle" style="fill:var(--text-muted);font-size:8px;">shore normal</text>`;
+    svg += `<text x="0" y="${R_IN - 6}" text-anchor="middle" style="fill:#fff;font-size:9px;font-weight:700;">${sn}°</text>`;
+
+    // Legends below (two rows so labels don't collide with compass)
+    const legY = R_OUT + 26;
+    const drawLegend = (y, title, colors, labels, unit) => {
+        let s = `<text x="${-R_OUT}" y="${y - 2}" style="font-size:9px;font-weight:700;fill:var(--text-dark);">${title}</text>`;
+        labels.forEach((lbl, b) => {
+            const lx = -R_OUT + 60 + b * 60;
+            s += `<rect x="${lx}" y="${y - 8}" width="10" height="10" fill="${colors[b]}" rx="2"/>`;
+            s += `<text x="${lx + 14}" y="${y + 1}" style="font-size:9px;fill:var(--text-muted);">${lbl}${unit}</text>`;
+        });
+        return s;
+    };
+    svg += drawLegend(legY,      'Swell',  swellColors, swellLabels, ' m');
+    svg += drawLegend(legY + 18, 'Wind',   windColors,  windLabels,  ' km/h');
+
+    _setSvg(id, svg);
 }
 
 function _renderYearly(c) {
@@ -2233,12 +2279,7 @@ function _doRenderClimato(spotId) {
 
     _renderMonthlySession(c);
     _renderMonthlyHs(c);
-    _renderRose('climato-swell-rose', c.swell_rose,
-        ['#1e2e45', '#1ac0c6', '#ef4444'],
-        ['<0.5', '0.5–1.5', '≥1.5'], 'm');
-    _renderRose('climato-wind-rose', c.wind_rose,
-        ['#1e2e45', '#f59e0b', '#ef4444'],
-        ['<10', '10–20', '≥20'], 'km/h');
+    _renderCompass(c);
     _renderYearly(c);
 }
 
