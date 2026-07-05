@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071411">
+  <title>Peak Surf — Live surf intelligence</title>
+  <meta name="description" content="Live surf cameras and AI-guided forecasts for Atlantic surf spots.">
+  <link rel="icon" type="image/png" href="peak-surf-mark-web.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#071411;--panel:#10231f;--panel2:#17302a;--cream:#f2f0e8;--muted:#9cadA7;--line:rgba(255,255,255,.11);--lime:#d8ff62;--aqua:#66e3cd;--poor:#ff8d78;--fair:#ffd46a;--good:#83e6a3;--epic:#bca1ff;--radius:24px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--ink);color:var(--cream);font:15px/1.45 'DM Sans',sans-serif;min-height:100vh}button,input,select{font:inherit}button{color:inherit}.shell{width:min(1480px,100%);margin:auto;padding:0 28px 56px}
+    header{height:78px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:11px;font:800 21px/1 'Manrope';letter-spacing:-.04em}.brand-name{display:flex;gap:.22em}.brand-name span:last-child{color:var(--aqua)}.mark{width:42px;height:42px;border-radius:13px;background:var(--lime);display:grid;place-items:center;box-shadow:0 0 36px rgba(216,255,98,.18);overflow:hidden}.mark img{width:38px;height:38px;object-fit:contain;display:block}.lab{font:700 10px/1 'DM Sans';letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:7px 10px;margin-left:5px}.header-actions{display:flex;gap:8px}.pill,.icon-btn{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:99px;padding:10px 14px;text-decoration:none;cursor:pointer}.icon-btn{width:42px;height:42px;padding:0;display:grid;place-items:center}.pill:hover,.icon-btn:hover{background:rgba(255,255,255,.09)}
+    .location-row{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:22px 0 18px}.eyebrow{text-transform:uppercase;letter-spacing:.14em;color:var(--aqua);font-weight:700;font-size:11px;margin-bottom:7px}.location-row h1{font:800 clamp(32px,5vw,66px)/.98 'Manrope';letter-spacing:-.065em;margin:0}.sub{color:var(--muted);margin:10px 0 0}.spot-picker{display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:6px;border-radius:15px;min-width:min(420px,100%)}.spot-picker select{border:0;background:transparent;color:var(--cream);outline:0;width:100%;padding:7px 10px}.spot-picker select option{background:var(--panel)}
+    .live-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(330px,.75fr);gap:14px}.camera{position:relative;overflow:hidden;border-radius:var(--radius);background:#0b1916;min-height:clamp(390px,59vw,760px);border:1px solid var(--line)}.camera iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0b1916}.camera-empty{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:30px;background:radial-gradient(circle at 70% 30%,#1d4941 0,transparent 40%),linear-gradient(145deg,#10251f,#071411)}.camera-empty svg{width:72px;color:var(--aqua);opacity:.7}.live-badge{position:absolute;z-index:3;top:18px;left:18px;display:flex;align-items:center;gap:8px;background:rgba(7,20,17,.78);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.16);padding:9px 12px;border-radius:99px;font-weight:700;font-size:12px;letter-spacing:.05em}.dot{width:8px;height:8px;border-radius:50%;background:#ff5b55;box-shadow:0 0 0 5px rgba(255,91,85,.14);animation:pulse 1.8s infinite}@keyframes pulse{50%{box-shadow:0 0 0 9px rgba(255,91,85,0)}}.cam-actions{position:absolute;z-index:3;top:18px;right:18px;display:flex;gap:7px}.glass{background:rgba(7,20,17,.78);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.16)}.camera-caption{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:60px 20px 18px;background:linear-gradient(transparent,rgba(4,12,10,.86));display:flex;justify-content:space-between;align-items:end;pointer-events:none}.camera-caption strong{font:700 18px 'Manrope'}.camera-caption span{display:block;color:#c7d3cf;font-size:12px;margin-top:3px}.source-note{text-align:right;font-size:11px!important;color:#9fb0aa!important}
+    .now{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column}.now-top{display:flex;justify-content:space-between;align-items:start}.rating{padding:7px 10px;border-radius:9px;background:var(--fair);color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.08em}.now h2{font:700 13px 'Manrope';text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0}.call{font:800 clamp(30px,3.2vw,48px)/1.02 'Manrope';letter-spacing:-.05em;margin:22px 0 8px}.call-note{color:var(--muted);margin:0 0 24px}.face{padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:end}.face-label{font-size:12px;color:var(--muted)}.face-value{font:800 50px/.85 'Manrope';letter-spacing:-.06em}.face-value small{font-size:19px;margin-left:4px}.set-line{color:var(--aqua);font-weight:700;font-size:13px;margin-top:9px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:20px;border:1px solid var(--line);border-radius:16px;overflow:hidden}.metric{background:var(--panel);padding:15px}.metric label{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}.metric strong{font:700 17px 'Manrope'}.metric span{color:var(--muted);font-size:11px;margin-left:4px}.confidence{margin-top:auto;padding-top:18px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between}.confidence b{color:var(--cream)}
+    .section{margin-top:48px}.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:15px}.section-head h2{font:800 clamp(25px,3vw,38px)/1 'Manrope';letter-spacing:-.04em;margin:0}.section-head p{color:var(--muted);margin:0}.hours{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(142px,1fr);overflow:auto;gap:8px;padding-bottom:8px;scrollbar-width:thin}.hour{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:15px;min-height:180px}.hour.now-hour{border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime)}.hour-time{font-weight:700;font-size:12px;color:var(--muted)}.hour-wave{font:800 29px 'Manrope';letter-spacing:-.05em;margin-top:23px}.hour-wave small{font-size:13px}.hour-detail{color:var(--muted);font-size:12px;margin-top:2px}.bar{height:4px;background:rgba(255,255,255,.08);border-radius:9px;margin:24px 0 12px;overflow:hidden}.bar i{display:block;height:100%;background:var(--aqua);border-radius:9px}.hour-rating{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.08em}.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.day{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:16px}.day:first-child{background:var(--cream);color:var(--ink)}.day-name{font-weight:700}.day-date{font-size:11px;opacity:.58}.day-height{font:800 25px 'Manrope';margin-top:21px}.day-rating{text-transform:uppercase;font-weight:800;letter-spacing:.08em;font-size:10px;margin-top:5px}.footer{border-top:1px solid var(--line);margin-top:54px;padding-top:24px;display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.loading{position:fixed;inset:0;z-index:20;background:var(--ink);display:grid;place-items:center;font:700 16px 'Manrope';transition:.3s}.loading.done{opacity:0;pointer-events:none}
+    @media(max-width:900px){.shell{padding:0 15px 40px}.lab,.desktop-only{display:none}.location-row{align-items:start;flex-direction:column}.spot-picker{width:100%;min-width:0}.live-grid{grid-template-columns:1fr}.camera{min-height:56vw}.now{min-height:480px}.days{grid-template-columns:repeat(4,1fr)}}
+    @media(max-width:560px){header{height:65px}.header-actions .pill{display:none}.location-row{margin-top:15px}.camera{min-height:66vw;border-radius:19px}.source-note{display:none!important}.now{padding:19px;border-radius:19px}.metrics{grid-template-columns:1fr 1fr}.section{margin-top:38px}.section-head p{display:none}.days{display:grid;grid-auto-flow:column;grid-auto-columns:140px;grid-template-columns:none;overflow:auto}.footer{flex-direction:column;gap:8px}}
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">Reading the ocean…</div>
+  <main class="shell">
+    <header>
+      <div class="brand"><span class="mark"><img src="peak-surf-mark-web.png" alt=""></span><span class="brand-name"><span>peak</span><span>surf</span></span><span class="lab">Live intelligence</span></div>
+      <div class="header-actions"><a class="pill" href="../">View original</a><button class="icon-btn" id="favorite" title="Save spot">♡</button></div>
+    </header>
+
+    <div class="location-row">
+      <div><div class="eyebrow">Live surf intelligence</div><h1 id="spot-name">Hendaye</h1><p class="sub" id="spot-region">Pays Basque · France</p></div>
+      <label class="spot-picker"><span aria-hidden="true">⌕</span><select id="spot-select" aria-label="Choose a surf spot"></select></label>
+    </div>
+
+    <section class="live-grid">
+      <div class="camera">
+        <div class="camera-empty" id="camera-empty"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="3"/></svg><h3>No live camera at this break</h3><p>Forecast intelligence is still available below.</p></div></div>
+        <iframe id="camera-frame" title="Live surf camera" loading="eager" allow="autoplay; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div class="live-badge" id="live-badge"><i class="dot"></i> LIVE CAM</div>
+        <div class="cam-actions"><a class="icon-btn glass" id="cam-external" href="#" target="_blank" rel="noopener" title="Open camera source">↗</a></div>
+        <div class="camera-caption"><div><strong id="cam-name">Hendaye shoreline</strong><span>Muted autoplay · use the player control for sound</span></div><span class="source-note">Live camera supplied by third party</span></div>
+      </div>
+
+      <aside class="now">
+        <div class="now-top"><h2>Right now</h2><span class="rating" id="rating">FAIR</span></div>
+        <div class="call" id="call">Worth a look.</div><p class="call-note" id="call-note">Small but surfable, with manageable wind.</p>
+        <div class="face"><div><div class="face-label">Breaking face</div><div class="set-line" id="sets">Sets up to —</div></div><div class="face-value"><span id="height">—</span><small>m</small></div></div>
+        <div class="metrics">
+          <div class="metric"><label>Period</label><strong id="period">—</strong><span>s</span></div>
+          <div class="metric"><label>Wind</label><strong id="wind">—</strong><span>km/h</span></div>
+          <div class="metric"><label>Tide</label><strong id="tide">—</strong><span>m</span></div>
+          <div class="metric"><label>Water</label><strong id="water">—</strong><span>°C</span></div>
+        </div>
+        <div class="confidence"><span>AI forecast confidence</span><b id="confidence">—</b></div>
+      </aside>
+    </section>
+
+    <section class="section"><div class="section-head"><h2>Today, hour by hour</h2><p>See the window. Make the call.</p></div><div class="hours" id="hours"></div></section>
+    <section class="section"><div class="section-head"><h2>The week ahead</h2><p>Best surfable window each day</p></div><div class="days" id="days"></div></section>
+    <footer class="footer"><span>Peak Surf · See it live. Surf the right window.</span><span>Forecasts are guidance—not a substitute for local knowledge.</span></footer>
+  </main>
+
+  <script src="camera-streams.js"></script>
+  <script>
+    const $=id=>document.getElementById(id);let store,current;
+    const fmt=(v,n=1)=>Number.isFinite(Number(v))?Number(v).toFixed(n):'—';
+    const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const currentHour=data=>{const now=Date.now();return data.hourly?.reduce((best,h)=>Math.abs(new Date(h.time)-now)<Math.abs(new Date(best?.time||0)-now)?h:best,null)||{};};
+    const face=h=>h.ml_wave_height_max??h.breaker_height??h.wave_height;
+    const ratingColor=r=>({poor:'var(--poor)',fair:'var(--fair)',good:'var(--good)',epic:'var(--epic)'}[String(r).toLowerCase()]||'var(--fair)');
+    function chooseInitial(){const wanted=new URLSearchParams(location.search).get('spot');const saved=localStorage.getItem('peaksurf-live-spot');return store.data[wanted]?wanted:store.data[saved]?saved:store.data.hendaye?'hendaye':Object.keys(store.data)[0]}
+    function populate(){const select=$('spot-select');select.innerHTML=Object.entries(store.data).sort((a,b)=>a[1].spot.name.localeCompare(b[1].spot.name)).map(([id,d])=>`<option value="${esc(id)}">${esc(d.spot.name)} · ${esc(d.spot.region||'')}</option>`).join('');select.onchange=()=>render(select.value)}
+    function render(id){const d=store.data[id];if(!d)return;current=id;localStorage.setItem('peaksurf-live-spot',id);$('spot-select').value=id;$('spot-name').textContent=d.spot.name;$('spot-region').textContent=[d.spot.region,d.spot.country].filter(Boolean).join(' · ')||'Atlantic coast';$('cam-name').textContent=d.spot.name+' shoreline';renderCamera(d.spot.webcam);renderNow(d);renderHours(d);renderDays(d);history.replaceState(null,'','?spot='+encodeURIComponent(id))}
+    function renderCamera(url){
+      const has=Boolean(url),match=String(url||'').match(/gosurf\.fr\/webcam\/[^/]+\/(\d+)\//),source=match&&window.PEAKSURF_CAMERA_STREAMS?.[match[1]];
+      const playerUrl=source?'player.html?source='+encodeURIComponent(source):url;
+      $('camera-frame').style.display=has?'block':'none';$('camera-empty').style.display=has?'none':'grid';$('live-badge').style.display=has?'flex':'none';$('cam-external').style.display=has?'grid':'none';$('cam-external').href=url||'#';
+      $('live-badge').lastChild.textContent=source?' LIVE NOW':' CAMERA';
+      if(has&&$('camera-frame').getAttribute('src')!==playerUrl)$('camera-frame').src=playerUrl;else if(!has)$('camera-frame').removeAttribute('src');
+    }
+    function renderNow(d){const h=currentHour(d),r=String(h.ml_conseil||h.rating||'fair').toLowerCase(),v=face(h),set=h.ml_wave_height_sets;$('rating').textContent=r.toUpperCase();$('rating').style.background=ratingColor(r);$('height').textContent=fmt(v);$('sets').textContent=Number.isFinite(Number(set))?'Sets up to '+fmt(set)+'m':'Offshore '+fmt(h.wave_height)+'m';$('period').textContent=fmt(h.peak_period??h.swell_period,0);$('wind').textContent=fmt(h.wind_speed_kmh,0);$('tide').textContent=fmt(h.tide_height);$('water').textContent=fmt(h.sst,0);const calls={epic:['Drop everything.','Rare conditions are lining up right now.'],good:['Make the call.','A quality window is open at this break.'],fair:['Worth a look.','Surfable conditions if you choose the right equipment.'],poor:['Save the fuel.','Conditions are limited at this break right now.']};$('call').textContent=calls[r]?.[0]||calls.fair[0];$('call-note').textContent=h.ml_rating_helper||h.skill_text||calls[r]?.[1]||calls.fair[1];const conf=h.ml_conseil_conf;$('confidence').textContent=Number.isFinite(Number(conf))?Math.round(conf*100)+'%':'Model guided'}
+    function renderHours(d){const now=Date.now(),hours=(d.hourly||[]).filter(h=>{const t=new Date(h.time).getTime();return t>now-3600000&&t<now+24*3600000}).slice(0,12);const max=Math.max(...hours.map(h=>Number(face(h))||0),1);$('hours').innerHTML=hours.map((h,i)=>{const v=Number(face(h))||0,r=String(h.ml_conseil||h.rating||'fair').toLowerCase(),time=new Date(h.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});return `<article class="hour ${i===0?'now-hour':''}"><div class="hour-time">${i===0?'NOW · ':''}${time}</div><div class="hour-wave">${fmt(v)}<small>m</small></div><div class="hour-detail">${fmt(h.peak_period??h.swell_period,0)}s · ${fmt(h.wind_speed_kmh,0)} km/h</div><div class="bar"><i style="width:${Math.max(8,v/max*100)}%"></i></div><div class="hour-rating" style="color:${ratingColor(r)}">${esc(r)}</div></article>`}).join('')||'<p>No hourly data available.</p>'}
+    function renderDays(d){$('days').innerHTML=(d.daily||[]).slice(0,7).map((x,i)=>{const date=new Date(x.date+'T12:00:00'),r=String(x.best_rating||x.rating||'fair').toLowerCase(),v=x.best_wave_height??x.max_wave_height;return `<article class="day"><div class="day-name">${i===0?'Today':date.toLocaleDateString([],{weekday:'short'})}</div><div class="day-date">${date.toLocaleDateString([],{month:'short',day:'numeric'})}</div><div class="day-height">${fmt(v)}m</div><div class="day-rating" style="color:${i===0?'inherit':ratingColor(r)}">${esc(r)}</div></article>`}).join('')}
+    $('favorite').onclick=()=>{$('favorite').textContent=$('favorite').textContent==='♡'?'♥':'♡'};
+    fetch('../data/forecast.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json()}).then(data=>{store=data;populate();render(chooseInitial());$('loading').classList.add('done')}).catch(e=>{$('loading').textContent='Forecast unavailable · '+e.message});
+  </script>
+</body>
+</html>
