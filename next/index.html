@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PeakSurf — prévisions surf par IA</title>
+<meta name="description" content="Prévisions de surf spot par spot : hauteur des vagues à la plage, vent, marée et note IA, pour la France et la façade atlantique.">
+<meta name="theme-color" content="#061121">
+<meta name="color-scheme" content="dark">
+<meta name="ps-asset-version" content="20260927e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PeakSurf">
+<link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="app.css?v=20260927e">
+<script>
+/* Deployment knobs (see README.md). Paths are relative to this page. */
+window.PEAKSURF_CONFIG = {
+    dataBase: '../data/v2/',
+    statusUrl: '../data/status.json',
+    climatoUrl: '../data/climato_summary.json',
+    oceanUrl: '../data/ocean/latest.json',
+    cameraStreamsUrl: '../live-preview/camera-streams.js',
+    cameraPlayerUrl: '../live-preview/player.html',
+    staleAfterHours: 12
+};
+</script>
+<script defer src="i18n.js?v=20260927e"></script>
+<script defer src="util.js?v=20260927e"></script>
+<script defer src="data.js?v=20260927e"></script>
+<script defer src="webcam.js?v=20260927e"></script>
+<script defer src="forecast.js?v=20260927e"></script>
+<script defer src="app.js?v=20260927e"></script>
+</head>
+<body>
+<a class="skip-link" href="#main" data-i18n="a11y.skip">Aller au contenu</a>
+<div id="tap-tip" class="tap-tip" role="tooltip"></div>
+
+<header class="header">
+    <div class="header-inner">
+        <a class="logo" href="./">
+            <span class="logo-icon-wrap"><picture><source srcset="icons/logo-160.webp" type="image/webp"><img src="icons/logo-160.png" width="40" height="40" alt=""></picture></span>
+            PeakSurf
+        </a>
+        <div class="header-actions">
+            <span class="header-update" id="update-time" aria-live="polite"></span>
+            <button id="install-btn" class="header-btn install-only-browser" type="button" hidden data-i18n="install.button">Installer</button>
+            <div class="lang-switch" role="group" aria-label="Langue / Language">
+                <button type="button" data-set-lang="fr" lang="fr" aria-pressed="true">FR</button>
+                <button type="button" data-set-lang="en" lang="en" aria-pressed="false">EN</button>
+            </div>
+        </div>
+    </div>
+    <div class="tagline-banner">
+        <p data-i18n-html="tagline"><strong>PeakSurf</strong> combine modèles océaniques haute résolution et IA pour prévoir comment chaque spot transforme la houle du large en vagues surfables.</p>
+    </div>
+</header>
+
+<div class="status-banner" id="stale-banner" hidden role="status">
+    <div class="status-banner-inner"><span class="status-banner-icon" aria-hidden="true">!</span><span class="status-banner-text"></span></div>
+</div>
+<div class="status-banner" id="update-banner" hidden role="status">
+    <div class="status-banner-inner is-info"><span class="status-banner-text" data-i18n="banner.update">Une nouvelle prévision est disponible.</span><button type="button" class="btn btn-primary" id="update-apply" data-i18n="banner.updateBtn">Actualiser</button></div>
+</div>
+<div class="install-hint" id="ios-hint" hidden>
+    <div class="install-hint-inner">
+        <p data-i18n-html="install.iosHint">Installez PeakSurf : touchez <strong>Partager</strong> puis <strong>« Sur l’écran d’accueil »</strong>.</p>
+        <button class="install-hint-close" id="ios-hint-close" type="button" data-i18n-attr="aria-label:common.close" aria-label="Fermer">&times;</button>
+    </div>
+</div>
+
+<main class="container" id="main" tabindex="-1">
+    <noscript><div class="error-box"><p>PeakSurf a besoin de JavaScript pour afficher les prévisions. <span lang="en">PeakSurf needs JavaScript to show the forecast.</span></p></div></noscript>
+    <div class="error-box" id="app-error" hidden role="alert"><p></p><button type="button" class="btn btn-primary" data-i18n="common.retry">Réessayer</button></div>
+
+    <div class="spot-search-wrap">
+        <svg class="spot-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <label for="spot-search" class="visually-hidden" data-i18n="nav.searchLabel">Rechercher un spot</label>
+        <input type="search" class="spot-search" id="spot-search" autocomplete="off" enterkeyhint="search" data-i18n-attr="placeholder:nav.searchPlaceholder" placeholder="Rechercher un spot…">
+        <span id="spot-search-status" class="visually-hidden" aria-live="polite"></span>
+    </div>
+    <nav class="spot-nav" id="spot-nav" data-i18n-attr="aria-label:nav.aria" aria-label="Spots"></nav>
+
+    <div class="spot-header">
+        <div class="spot-header-row">
+            <h1 class="spot-name skeleton" id="spot-name">PeakSurf</h1>
+            <button class="spot-fav-toggle" id="fav-toggle" type="button" aria-pressed="false">&#9734;</button>
+        </div>
+        <div class="spot-sub" id="spot-desc"></div>
+    </div>
+
+    <div class="primary-view-tabs" role="tablist" data-i18n-attr="aria-label:tabs.aria">
+        <button class="primary-view-tab" id="forecast-tab" type="button" role="tab" aria-selected="true" aria-controls="forecast-view" data-primary-view="forecast">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15c2-4 4-8 9-8s7 4 9 8"></path><path d="M3 19c2-3 4-5 9-5s7 2 9 5"></path></svg>
+            <span data-i18n="tabs.forecast">Prévisions</span>
+        </button>
+        <button class="primary-view-tab" id="spots-map-tab" type="button" role="tab" aria-selected="false" aria-controls="spots-map-view" data-primary-view="spots" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            <span data-i18n="tabs.spots">Spots</span>
+        </button>
+        <button class="primary-view-tab" id="direction-map-tab" type="button" role="tab" aria-selected="false" aria-controls="direction-map-view" data-primary-view="ocean" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            <span data-i18n="tabs.ocean">Océan</span>
+        </button>
+    </div>
+
+    <!-- ============ FORECAST ============ -->
+    <section class="primary-view-panel" id="forecast-view" role="tabpanel" aria-labelledby="forecast-tab">
+        <div class="error-box" id="spot-error" hidden role="alert"><p></p><button type="button" class="btn btn-primary" data-i18n="common.retry">Réessayer</button></div>
+
+        <div class="decision-layout no-camera" id="decision-layout">
+            <div class="conditions-summary is-loading" id="conditions-summary">
+                <div class="section-title"><span data-i18n="hero.title">Conditions en ce moment</span><span class="now-pill" data-i18n="hero.now">Maintenant</span></div>
+                <div class="hero-grid">
+                    <div class="ai-premium-card">
+                        <div class="ai-header">
+                            <div class="ai-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                                <span data-i18n="hero.aiBadge">Prévision IA du spot</span>
+                            </div>
+                            <span class="rating-badge" id="hero-rating">--</span>
+                            <span class="conf-badge" id="hero-confidence" hidden></span>
+                        </div>
+                        <div class="ai-main-content">
+                            <div class="ai-size-block">
+                                <span class="ai-context-line tip-target" data-i18n="hero.face" data-i18n-attr="title:tip.face">Hauteur des vagues</span>
+                                <div class="hero-val hero-val-big"><span id="hero-height">--</span><span class="hero-val-unit">m</span></div>
+                                <span class="hero-desc" id="hero-wave-detail"></span>
+                            </div>
+                            <div class="ai-details-block" id="hero-ai-detail"></div>
+                        </div>
+                    </div>
+                    <div class="hero-card">
+                        <span class="hero-card-title" data-i18n="hero.wind">Vent à la plage</span>
+                        <div class="hero-val"><span id="hero-wind">--</span><span class="hero-val-unit">km/h</span></div>
+                        <span class="hero-desc" id="hero-wind-detail"></span>
+                    </div>
+                    <div class="hero-card">
+                        <span class="hero-card-title tip-target" data-i18n="hero.offshore" data-i18n-attr="title:tip.totalSea">Mer au large</span>
+                        <div class="hero-val"><span class="hero-val-prefix">Hs</span> <span id="hero-swell">--</span><span class="hero-val-unit">m</span> <span class="hero-val-prefix">· Tp</span> <span id="hero-period">--</span><span class="hero-val-unit">s</span></div>
+                        <span class="hero-desc" id="hero-swell-detail"></span>
+                    </div>
+                    <div class="hero-card">
+                        <span class="hero-card-title" data-i18n="hero.tide">Marée</span>
+                        <div class="hero-val"><span id="hero-tide">--</span><span class="hero-val-unit">m</span></div>
+                        <span class="hero-desc" id="hero-tide-trend"></span>
+                    </div>
+                    <div class="hero-card">
+                        <span class="hero-card-title" data-i18n="hero.water">Eau</span>
+                        <div class="hero-val"><span id="hero-sst">--</span><span class="hero-val-unit">&deg;C</span></div>
+                        <span class="hero-desc" id="hero-sst-suit"></span>
+                    </div>
+                </div>
+            </div>
+
+            <section class="live-camera-section" id="live-camera-section" aria-labelledby="live-camera-title" hidden>
+                <div class="live-camera-heading">
+                    <h2 class="live-camera-title" id="live-camera-title">
+                        <span data-i18n="cam.title">Webcam</span>
+                        <span class="live-camera-badge"><span class="live-camera-dot"></span><span id="live-camera-badge-text">LIVE</span></span>
+                    </h2>
+                    <span class="live-camera-status" id="live-camera-status" aria-live="polite"></span>
+                </div>
+                <div class="live-camera-card">
+                    <div class="live-camera-stage">
+                        <iframe class="live-camera-frame" id="live-camera-frame" title="Webcam" loading="eager" allow="autoplay; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                        <div class="live-camera-empty" id="live-camera-empty" hidden></div>
+                    </div>
+                    <div class="live-camera-footer">
+                        <span class="live-camera-credit" data-i18n="cam.credit">Image fournie par l’exploitant de la caméra. Lecture sans son par défaut.</span>
+                        <a class="live-camera-source" id="webcam-link" href="#" target="_blank" rel="noopener noreferrer">
+                            <span data-i18n="cam.source">Ouvrir la source</span>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7"></path><path d="M10 14L21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="section-title">
+            <span data-i18n="days.title">Les 7 prochains jours</span>
+            <span class="nearby-radius">
+                <span data-i18n="nearby.radius">Mieux ailleurs, rayon</span>
+                <span id="nearby-radius-pills" class="nearby-radius-pills" role="group" data-i18n-attr="aria-label:nearby.radiusAria">
+                    <button type="button" class="nrp" data-km="20">20</button>
+                    <button type="button" class="nrp" data-km="40">40</button>
+                    <button type="button" class="nrp" data-km="60">60</button>
+                    <button type="button" class="nrp" data-km="80">80</button>
+                    <button type="button" class="nrp" data-km="100">100</button>
+                </span>
+                <span>km</span>
+            </span>
+        </div>
+        <div class="daily-carousel" id="daily-carousel" role="list"></div>
+
+        <div class="section-title" style="margin-top:1.5rem">
+            <span data-i18n="hourly.title">Heure par heure</span>
+            <span class="section-sub" id="current-day-label"></span>
+        </div>
+        <div class="hourly-guide"><span class="hourly-guide-text" data-i18n="hourly.guide">Touchez une barre pour voir cette heure ; « Détail complet » donne toutes les données techniques.</span></div>
+        <div class="hourly-focus" id="hourly-focus" aria-live="polite"></div>
+
+        <div class="unified-wrapper">
+            <button class="scroll-btn left" id="scroll-left" type="button" data-i18n-attr="aria-label:hourly.scrollLeft" aria-label="Heures précédentes">&#8249;</button>
+            <button class="scroll-btn right" id="scroll-right" type="button" data-i18n-attr="aria-label:hourly.scrollRight" aria-label="Heures suivantes">&#8250;</button>
+            <div class="unified-skeleton" id="unified-skeleton" aria-hidden="true">
+                <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton tall"></div><div class="skeleton"></div><div class="skeleton tall"></div>
+            </div>
+            <div class="unified-scroller" id="unified-scroll" tabindex="0" role="region" data-i18n-attr="aria-label:hourly.scrollerAria" aria-label="Prévision heure par heure">
+                <div class="unified-track" id="unified-track" hidden>
+                    <div class="time-row" id="time-row"></div>
+                    <div class="rating-strip" id="rating-strip"></div>
+                    <div class="waves-row" id="wave-bars"></div>
+                    <div class="swell-dir-row" id="swell-dir-row"></div>
+                    <div class="wind-row" id="wind-row"></div>
+                    <div class="canvas-row">
+                        <div class="canvas-title" data-i18n="track.tide">Marée (m)</div>
+                        <div class="canvas-wrap"><canvas id="tide-canvas" role="img" aria-label="Marée"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-panel" id="detail-panel"></div>
+        </div>
+
+        <details class="climato-details" id="climato-details">
+            <summary><span data-i18n="climato.title">Climatologie du spot</span><span class="climato-period" id="climato-period"></span></summary>
+            <div class="climato-body">
+                <p class="climato-card-sub" id="climato-status" role="status"></p>
+                <div class="climato-wrap" id="climato-wrap" hidden>
+                    <div class="climato-annual" id="climato-annual"></div>
+                    <div class="climato-grid">
+                        <div class="climato-card">
+                            <h3 class="climato-card-title" data-i18n="climato.sessionTitle">Probabilité de session par mois</h3>
+                            <p class="climato-card-sub" data-i18n="climato.sessionSub">Part des heures avec des conditions surfables, selon notre IA appliquée à 32 ans de météo passée.</p>
+                            <svg class="climato-svg" id="climato-monthly-session" viewBox="0 0 480 190"></svg>
+                        </div>
+                        <div class="climato-card">
+                            <h3 class="climato-card-title" data-i18n="climato.hsTitle">Hauteur des vagues au large par mois</h3>
+                            <p class="climato-card-sub" data-i18n="climato.hsSub">Hs médiane au large (ligne) et plage P25–P75 (bande), en mètres.</p>
+                            <svg class="climato-svg" id="climato-monthly-hs" viewBox="0 0 480 190"></svg>
+                        </div>
+                        <div class="climato-card climato-full">
+                            <h3 class="climato-card-title" data-i18n="climato.mlTitle">Taille des vagues prévue à la plage par mois</h3>
+                            <p class="climato-card-sub" data-i18n="climato.mlSub">Hauteurs typiques prévues par notre IA : plus petites vagues, vague moyenne et plus grosses séries (médiane sur 32 ans ; bande orange = P75 des séries).</p>
+                            <svg class="climato-svg" id="climato-monthly-ml-waves" viewBox="0 0 480 230"></svg>
+                        </div>
+                        <div class="climato-card climato-full">
+                            <h3 class="climato-card-title" data-i18n="climato.roseTitle">Vent, houle et orientation de la plage</h3>
+                            <div class="climato-howto">
+                                <div data-i18n-html="climato.howto1"><strong>Lecture :</strong> chaque part pointe vers la direction <em>d’où viennent</em> la houle ou le vent. Plus elle est longue, plus c’est fréquent ; la couleur indique la force.</div>
+                                <div data-i18n-html="climato.howto2"><strong>Anneau intérieur</strong> = houle. <strong>Anneau extérieur</strong> = vent.</div>
+                                <div data-i18n-html="climato.howto3"><strong>Flèche blanche</strong> = direction du large (perpendiculaire à la plage). Une houle alignée avec la flèche arrive de face — souvent l’angle le plus propre.</div>
+                            </div>
+                            <svg class="climato-svg" id="climato-compass" viewBox="-160 -140 320 330" style="max-width:520px;margin:0 auto"></svg>
+                        </div>
+                        <div class="climato-card climato-full">
+                            <h3 class="climato-card-title" data-i18n="climato.yearlyHeading">Sessions par année</h3>
+                            <p class="climato-card-sub" data-i18n="climato.yearlySub">Évolution d’une année à l’autre de la probabilité de session (pointillés : tendance).</p>
+                            <svg class="climato-svg" id="climato-yearly" viewBox="0 0 720 150"></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    <!-- ============ SPOTS MAP ============ -->
+    <section class="primary-view-panel" id="spots-map-view" role="tabpanel" aria-labelledby="spots-map-tab" hidden>
+        <div class="spots-map-card">
+            <div class="spots-map-header">
+                <h2 class="spots-map-heading" data-i18n="spotsMap.title">Tous les spots</h2>
+                <p class="spots-map-sub" data-i18n="spotsMap.sub">Choisissez une variable et une heure ; touchez un spot pour le résumé.</p>
+            </div>
+            <div class="map-controls">
+                <div class="map-ctrl-group">
+                    <label class="map-ctrl-label" for="map-variable" data-i18n="spotsMap.show">Afficher</label>
+                    <select class="map-ctrl-select" id="map-variable">
+                        <option value="rating" data-i18n="mapVar.rating">Note IA</option>
+                        <option value="wave_range" data-i18n="mapVar.waveRange">Vagues à la plage</option>
+                        <option value="wave_sets" data-i18n="mapVar.waveSets">Séries</option>
+                        <option value="surface" data-i18n="mapVar.surface">État de surface</option>
+                        <option value="hs_offshore" data-i18n="mapVar.hs">Hs au large</option>
+                        <option value="wave_period" data-i18n="mapVar.period">Période</option>
+                        <option value="wave_dir" data-i18n="mapVar.waveDir">Direction de la houle</option>
+                        <option value="wind_speed" data-i18n="mapVar.windSpeed">Vent</option>
+                        <option value="wind_gust" data-i18n="mapVar.windGust">Rafales</option>
+                        <option value="wind_dir" data-i18n="mapVar.windDir">Direction du vent</option>
+                    </select>
+                </div>
+                <div class="map-ctrl-group grow">
+                    <button class="map-play-btn" id="map-play" type="button" aria-pressed="false" data-i18n-attr="aria-label:map.play" aria-label="Lancer l’animation">&#9654;</button>
+                    <input type="range" class="map-time-slider" id="map-time-slider" min="0" max="0" value="0" step="1" data-i18n-attr="aria-label:map.timeAria" aria-label="Heure de prévision">
+                    <span class="map-time-display" id="map-time-display" aria-hidden="true"></span>
+                </div>
+            </div>
+            <div class="spots-map-stage">
+                <div id="conditions-map" role="region" data-i18n-attr="aria-label:spotsMap.aria" aria-label="Carte des spots"></div>
+                <div class="map-legend" id="map-legend"></div>
+                <div class="map-scale-bar" id="map-scale-bar" hidden><div class="map-scale-gradient" id="map-scale-gradient"></div><div class="map-scale-labels" id="map-scale-labels"></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ OCEAN MAP (IBI swell field, ocean.js) ============ -->
+    <section class="primary-view-panel" id="direction-map-view" role="tabpanel" aria-labelledby="direction-map-tab" hidden>
+        <div class="oc-card">
+            <div class="oc-bar" role="toolbar" data-i18n-attr="aria-label:ocean.controls" aria-label="Map controls">
+                <div class="oc-seg" role="radiogroup" data-i18n-attr="aria-label:ocean.layerAria" aria-label="Colour layer">
+                    <button type="button" role="radio" aria-checked="true" data-oc-layer="hs" data-i18n="ocean.layerHs">Wave height</button>
+                    <button type="button" role="radio" aria-checked="false" data-oc-layer="tp" tabindex="-1" data-i18n="ocean.layerTp">Period</button>
+                </div>
+                <button type="button" class="oc-toggle" data-oc-toggle="flow" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8c3-3 6 3 9 0s6 3 9 0M3 16c3-3 6 3 9 0s6 3 9 0"/></svg><span data-i18n="ocean.flowToggle">Direction</span></button>
+                <button type="button" class="oc-toggle" data-oc-toggle="wind" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3"/></svg><span data-i18n="ocean.windToggle">Beach wind</span></button>
+                <span class="oc-status" id="oc-status" role="status" hidden></span>
+            </div>
+            <div class="oc-stage">
+                <div id="direction-map" role="region" aria-busy="true" data-i18n-attr="aria-label:ocean.aria" aria-label="Ocean map"></div>
+                <button type="button" class="oc-legend" id="oc-legend">
+                    <span class="oc-legend-head"><span id="oc-legend-title" data-i18n="ocean.legendHs">Wave height (m)</span><span class="oc-legend-mode" id="oc-legend-mode"></span></span>
+                    <span class="oc-legend-bar" id="oc-legend-bar"></span>
+                    <span class="oc-legend-ticks" id="oc-legend-ticks"></span>
+                </button>
+                <div class="oc-loading" id="oc-loading" role="status" hidden></div>
+            </div>
+            <div class="oc-timeline">
+                <button class="oc-play" id="oc-play" type="button" aria-pressed="false" data-i18n-attr="aria-label:map.play" aria-label="Play animation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+                <div class="oc-track">
+                    <div class="oc-time-row">
+                        <strong id="oc-time"></strong>
+                        <span class="oc-lead" id="oc-lead"></span>
+                        <button type="button" class="oc-now" id="oc-now" data-i18n="ocean.now">Now</button>
+                    </div>
+                    <div class="oc-slider">
+                        <div class="oc-days" id="oc-days" aria-hidden="true"></div>
+                        <div class="oc-rating-strip" id="oc-rating-strip" aria-hidden="true"></div>
+                        <span class="oc-now-mark" id="oc-now-mark" aria-hidden="true" hidden></span>
+                        <input type="range" class="oc-range" id="oc-range" min="0" max="0" value="0" step="1" disabled data-i18n-attr="aria-label:map.timeAria" aria-label="Forecast time">
+                    </div>
+                </div>
+            </div>
+            <div class="oc-readout" id="oc-readout" aria-live="polite"></div>
+            <details class="oc-about">
+                <summary data-i18n="ocean.aboutMap">About this map</summary>
+                <p data-i18n-html="ocean.aboutText"></p>
+            </details>
+        </div>
+    </section>
+</main>
+
+<div class="info-sections">
+    <section class="about-forecast" id="about-forecast" aria-labelledby="about-title">
+        <h2 id="about-title" data-i18n="about.title">À propos des prévisions</h2>
+        <p data-i18n-html="about.p1"></p>
+        <ul>
+            <li data-i18n-html="about.li1"></li>
+            <li data-i18n-html="about.li2"></li>
+            <li data-i18n-html="about.li3"></li>
+        </ul>
+        <p data-i18n-html="about.p2"></p>
+        <p class="accuracy-line" id="accuracy-line" hidden></p>
+        <p data-i18n-html="about.p3"></p>
+    </section>
+
+    <section class="rating-legend" aria-labelledby="legend-title">
+        <h2 class="rating-legend-title" id="legend-title" data-i18n="legend.title">Notes</h2>
+        <ul class="rating-legend-list" style="list-style:none;margin-bottom:1.25rem">
+            <li class="rating-legend-item"><span class="rating-legend-dot" style="background:var(--good)"></span><span><span class="rating-legend-name" style="color:var(--good)" data-i18n="rating.Good">Bon</span> — <span data-i18n="legend.good">conditions optimales : vagues propres, vent favorable, séries régulières.</span></span></li>
+            <li class="rating-legend-item"><span class="rating-legend-dot" style="background:var(--fair)"></span><span><span class="rating-legend-name" style="color:var(--fair)" data-i18n="rating.Fair">Moyen</span> — <span data-i18n="legend.fair">surfable mais imparfait : un peu de texture, vent de travers ou séries irrégulières.</span></span></li>
+            <li class="rating-legend-item"><span class="rating-legend-dot" style="background:var(--poor)"></span><span><span class="rating-legend-name" style="color:var(--poor)" data-i18n="rating.Poor">Mauvais</span> — <span data-i18n="legend.poor">trop petit, trop de vent ou vagues qui ferment. Déconseillé.</span></span></li>
+        </ul>
+        <h2 class="rating-legend-title" data-i18n="legend.windTitle">Vent</h2>
+        <ul class="rating-legend-list" style="list-style:none">
+            <li class="rating-legend-item"><span class="rating-legend-dot" style="background:#10b981"></span><span><span class="rating-legend-name" style="color:#10b981" data-i18n="wind.offshore">Offshore</span> — <span data-i18n="legend.offshore">de la terre vers la mer : lisse la face des vagues.</span></span></li>
+            <li class="rating-legend-item"><span class="rating-legend-dot" style="background:#94a3b8"></span><span><span class="rating-legend-name" style="color:#94a3b8" data-i18n="wind.cross">Side-shore</span> — <span data-i18n="legend.cross">parallèle à la côte : l’effet dépend de la force.</span></span></li>
+            <li class="rating-legend-item"><span class="rating-legend-dot" style="background:#ef4444"></span><span><span class="rating-legend-name" style="color:#ef4444" data-i18n="wind.onshore">Onshore</span> — <span data-i18n="legend.onshore">de la mer vers la terre : hache la surface.</span></span></li>
+            <li class="rating-legend-item"><span></span><span data-i18n-html="legend.numbers"></span></li>
+        </ul>
+    </section>
+</div>
+
+<footer class="footer">
+    <div class="footer-logo-wrap"><picture><source srcset="icons/logo-160.webp" type="image/webp"><img src="icons/logo-160.png" width="64" height="64" alt="PeakSurf" loading="lazy"></picture></div>
+    <div class="footer-brand" data-i18n="footer.brand">© 2026 PeakSurf — prévisions surf par IA</div>
+    <p class="footer-sources" data-i18n-html="footer.sources"></p>
+    <nav class="footer-links" data-i18n-attr="aria-label:footer.navAria">
+        <a href="about.html" data-i18n="footer.sourcesLink">Sources et attributions</a>
+        <a href="privacy.html" data-i18n="footer.privacy">Confidentialité</a>
+        <a href="mentions-legales.html" data-i18n="footer.legal">Mentions légales</a>
+    </nav>
+    <p class="footer-disclaimer" data-i18n="footer.disclaimer">Prévisions fournies à titre indicatif. Vérifiez toujours les conditions sur place.</p>
+</footer>
+</body>
+</html>
