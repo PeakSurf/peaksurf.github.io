@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr" data-title-fr="Confidentialité — PeakSurf" data-title-en="Privacy — PeakSurf">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Confidentialité — PeakSurf</title>
+<meta name="description" content="PeakSurf n’utilise ni cookies ni outil de mesure d’audience. Détail des données stockées sur votre appareil et des services tiers contactés.">
+<meta name="theme-color" content="#061121">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="page.css?v=20260927e">
+<script defer src="page.js?v=20260927e"></script>
+</head>
+<body>
+<header class="page-header">
+    <div class="page-header-inner">
+        <a class="page-logo" href="./"><img src="icons/logo-160.png" width="32" height="32" alt="">PeakSurf</a>
+        <div class="lang-switch" role="group" aria-label="Langue / Language">
+            <button type="button" data-set-lang="fr" lang="fr" aria-pressed="true">FR</button>
+            <button type="button" data-set-lang="en" lang="en" aria-pressed="false">EN</button>
+        </div>
+    </div>
+</header>
+
+<main id="main">
+<!-- ===================== FRANÇAIS ===================== -->
+<article data-lang="fr" lang="fr">
+    <p><a href="./">← Retour aux prévisions</a></p>
+    <h1>Confidentialité</h1>
+    <p class="lead">PeakSurf ne vous piste pas : <strong>aucun cookie, aucun outil de mesure d’audience, aucune publicité, aucun compte</strong>. Le site est statique : PeakSurf n’a pas de serveur qui reçoit vos données.</p>
+    <p class="muted">Dernière mise à jour : 27 septembre 2026.</p>
+
+    <h2>Ce qui reste sur votre appareil</h2>
+    <p>Quelques préférences sont enregistrées dans le stockage local de votre navigateur (<code>localStorage</code>). Elles ne quittent jamais votre appareil :</p>
+    <div class="table-wrap"><table>
+        <thead><tr><th>Clé</th><th>Contenu</th></tr></thead>
+        <tbody>
+            <tr><td><code>peaksurf_lang</code></td><td>Langue choisie (fr / en)</td></tr>
+            <tr><td><code>alaia_fav_spots</code>, <code>alaia_fav_v2</code></td><td>Vos spots favoris</td></tr>
+            <tr><td><code>peaksurf_nearby_radius_km</code></td><td>Rayon de recherche « mieux ailleurs »</td></tr>
+            <tr><td><code>peaksurf_ios_hint_dismissed</code></td><td>Astuce d’installation iPhone masquée</td></tr>
+        </tbody>
+    </table></div>
+    <p>Pour fonctionner hors ligne, l’application enregistre aussi ses fichiers et la dernière prévision dans le cache du navigateur (service worker). Vous pouvez tout effacer depuis les réglages de votre navigateur (« Effacer les données du site »).</p>
+
+    <h2>Services tiers contactés par votre navigateur</h2>
+    <p>Comme pour tout site web, ces services reçoivent votre adresse IP et des informations techniques (navigateur, page demandée) :</p>
+    <ul>
+        <li><strong>GitHub Pages</strong> (GitHub, Inc.) — hébergement du site et des fichiers de prévision, à chaque visite. <a href="https://docs.github.com/fr/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Déclaration de confidentialité de GitHub</a>.</li>
+        <li><strong>Esri</strong> (<code>server.arcgisonline.com</code>) — tuiles du fond de carte, uniquement quand vous ouvrez l’onglet « Spots » ou « Océan ». <a href="https://www.esri.com/en-us/privacy/overview" target="_blank" rel="noopener">Politique d’Esri</a>.</li>
+        <li><strong>Plateforme vidéo des webcams</strong> (<code>platforms6.joada.net</code> à <code>platforms12.joada.net</code>, et le serveur vidéo qu’elle indique) — uniquement quand le spot affiché a une webcam intégrée (GoSurf / Viewsurf).</li>
+    </ul>
+    <p>Les liens vers d’autres sites (Copernicus, Open-Meteo, page source d’une webcam, etc.) ne sont contactés que si vous cliquez dessus.</p>
+    <p>Les données météo et océaniques sont récupérées par PeakSurf à l’avance, côté serveur de calcul : votre navigateur ne contacte ni Copernicus, ni Open-Meteo, ni le SHOM.</p>
+
+    <h2>Contact</h2>
+    <p>Pour toute question : <span class="todo">TODO propriétaire : adresse e-mail de contact</span>.</p>
+    <p class="muted">Voir aussi : <a href="mentions-legales.html">Mentions légales</a> · <a href="about.html">Sources et attributions</a>.</p>
+</article>
+
+<!-- ===================== ENGLISH ===================== -->
+<article data-lang="en" lang="en" hidden>
+    <p><a href="./">← Back to the forecast</a></p>
+    <h1>Privacy</h1>
+    <p class="lead">PeakSurf does not track you: <strong>no cookies, no analytics, no ads, no account</strong>. The site is static: PeakSurf has no server that receives your data.</p>
+    <p class="muted">Last updated: 27 September 2026.</p>
+
+    <h2>What stays on your device</h2>
+    <p>A few preferences are saved in your browser’s local storage (<code>localStorage</code>). They never leave your device:</p>
+    <div class="table-wrap"><table>
+        <thead><tr><th>Key</th><th>Content</th></tr></thead>
+        <tbody>
+            <tr><td><code>peaksurf_lang</code></td><td>Chosen language (fr / en)</td></tr>
+            <tr><td><code>alaia_fav_spots</code>, <code>alaia_fav_v2</code></td><td>Your favourite spots</td></tr>
+            <tr><td><code>peaksurf_nearby_radius_km</code></td><td>“Better nearby” search radius</td></tr>
+            <tr><td><code>peaksurf_ios_hint_dismissed</code></td><td>iPhone install tip dismissed</td></tr>
+        </tbody>
+    </table></div>
+    <p>To work offline, the app also keeps its files and the latest forecast in the browser cache (service worker). You can clear everything from your browser settings (“Clear site data”).</p>
+
+    <h2>Third parties your browser contacts</h2>
+    <p>As with any website, these services receive your IP address and technical details (browser, requested page):</p>
+    <ul>
+        <li><strong>GitHub Pages</strong> (GitHub, Inc.) — hosts the site and forecast files, on every visit. <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement</a>.</li>
+        <li><strong>Esri</strong> (<code>server.arcgisonline.com</code>) — base-map tiles, only when you open the “Spots” or “Ocean” tab. <a href="https://www.esri.com/en-us/privacy/overview" target="_blank" rel="noopener">Esri privacy policy</a>.</li>
+        <li><strong>Webcam video platform</strong> (<code>platforms6.joada.net</code> to <code>platforms12.joada.net</code>, and the video server it points to) — only when the spot shown has an embedded webcam (GoSurf / Viewsurf).</li>
+    </ul>
+    <p>Links to other sites (Copernicus, Open-Meteo, a webcam’s source page, etc.) are only contacted if you click them.</p>
+    <p>Weather and ocean data are fetched by PeakSurf in advance, on its processing machine: your browser does not contact Copernicus, Open-Meteo or SHOM.</p>
+
+    <h2>Contact</h2>
+    <p>Questions: <span class="todo">TODO owner: contact e-mail address</span>.</p>
+    <p class="muted">See also: <a href="mentions-legales.html">Legal notice</a> · <a href="about.html">Sources &amp; attributions</a>.</p>
+</article>
+</main>
+
+<footer class="page-footer">
+    <span>© 2026 PeakSurf</span>
+    <a href="./" data-lang="fr" lang="fr">Prévisions</a><a href="./" data-lang="en" lang="en" hidden>Forecast</a>
+    <a href="about.html" data-lang="fr" lang="fr">Sources et attributions</a><a href="about.html" data-lang="en" lang="en" hidden>Sources &amp; attributions</a>
+    <a href="mentions-legales.html" data-lang="fr" lang="fr">Mentions légales</a><a href="mentions-legales.html" data-lang="en" lang="en" hidden>Legal notice</a>
+</footer>
+</body>
+</html>
