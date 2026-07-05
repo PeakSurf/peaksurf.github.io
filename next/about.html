@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr" data-title-fr="Sources et attributions — PeakSurf" data-title-en="Sources &amp; attributions — PeakSurf">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sources et attributions — PeakSurf</title>
+<meta name="description" content="Données, modèles et logiciels utilisés par PeakSurf, avec leurs licences et attributions.">
+<meta name="theme-color" content="#061121">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="page.css?v=20260927e">
+<script defer src="page.js?v=20260927e"></script>
+</head>
+<body>
+<header class="page-header">
+    <div class="page-header-inner">
+        <a class="page-logo" href="./"><img src="icons/logo-160.png" width="32" height="32" alt="">PeakSurf</a>
+        <div class="lang-switch" role="group" aria-label="Langue / Language">
+            <button type="button" data-set-lang="fr" lang="fr" aria-pressed="true">FR</button>
+            <button type="button" data-set-lang="en" lang="en" aria-pressed="false">EN</button>
+        </div>
+    </div>
+</header>
+
+<main id="main">
+<!-- ===================== FRANÇAIS ===================== -->
+<article data-lang="fr" lang="fr">
+    <p><a href="./">← Retour aux prévisions</a></p>
+    <h1>Sources et attributions</h1>
+    <p class="lead">PeakSurf assemble des données publiques et des modèles ouverts, puis les interprète avec une intelligence artificielle. Merci à leurs producteurs.</p>
+
+    <h2>Océan : Copernicus Marine Service</h2>
+    <div class="card">
+        <p class="quote">Produit à partir d’informations du Copernicus Marine Service de l’Union européenne.<br><span lang="en">Generated using E.U. Copernicus Marine Service Information.</span></p>
+        <ul>
+            <li><strong>Vagues : Atlantique, Manche, mer du Nord</strong> — modèle IBI (Iberia-Biscay-Ireland) Ocean Wave Analysis and Forecast, produit <code>IBI_ANALYSISFORECAST_WAV_005_005</code>, jeu <code>cmems_mod_ibi_wav_anfc_0.027deg</code> — <a href="https://doi.org/10.48670/moi-00025" target="_blank" rel="noopener">doi:10.48670/moi-00025</a>. Réanalyse <code>cmems_mod_ibi_wav_my_0.027deg</code> pour la climatologie.</li>
+            <li><strong>Vagues : Méditerranée</strong> — modèle MED, jeux <code>cmems_mod_med_wav_anfc_4.2km</code> (prévision) et <code>cmems_mod_med_wav_my_4.2km</code> (climatologie).</li>
+            <li><strong>Vagues : hors de ces domaines</strong> — modèle global, jeux <code>cmems_mod_glo_wav_anfc_0.083deg</code> et <code>cmems_mod_glo_wav_my_0.2deg</code>, le cas échéant.</li>
+            <li><strong>Niveau de la mer et température de l’eau</strong> — modèle IBI physique, jeux <code>cmems_mod_ibi_phy_anfc_0.027deg-2D</code> (variables <code>zos</code>, <code>thetao</code>).</li>
+        </ul>
+        <p class="muted">Conditions : <a href="https://marine.copernicus.eu/user-corner/service-commitments-and-licence" target="_blank" rel="noopener">licence Copernicus Marine</a>.</p>
+    </div>
+
+    <h2>Météo : Open-Meteo</h2>
+    <div class="card">
+        <p>Données météo (vent, rafales, jour/nuit) fournies par <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>, sous licence <a href="https://creativecommons.org/licenses/by/4.0/deed.fr" target="_blank" rel="noopener">CC BY 4.0</a>. Open-Meteo agrège les modèles des services météorologiques nationaux (Météo-France, ECMWF, DWD, etc.).</p>
+        <p>Climatologie du vent : archive historique Open-Meteo, basée sur la réanalyse ERA5. <span lang="en">Contains modified Copernicus Climate Change Service information.</span></p>
+    </div>
+
+    <h2>Marée</h2>
+    <div class="card">
+        <ul>
+            <li><strong>Prédictions de marée © SHOM</strong> (Service hydrographique et océanographique de la Marine), via <a href="https://data.shom.fr/" target="_blank" rel="noopener">data.shom.fr</a>. La bathymétrie SHOM sert aussi à estimer la pente des plages.</li>
+            <li>À défaut, niveau de la mer du modèle Copernicus IBI (ci-dessus) ou modèle de marée <strong>FES2014</strong> : <span lang="en">FES2014 was produced by Noveltis, Legos and CLS and distributed by Aviso+, with support from CNES</span> (<a href="https://www.aviso.altimetry.fr/" target="_blank" rel="noopener">aviso.altimetry.fr</a>).</li>
+        </ul>
+    </div>
+
+    <h2>Cartes</h2>
+    <div class="card">
+        <ul>
+            <li>Fond de carte © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">contributeurs OpenStreetMap</a> (ODbL) ; tuiles © <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a> (Esri, HERE, Garmin).</li>
+            <li>Contours des terres (carte océan) : <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> (domaine public).</li>
+        </ul>
+    </div>
+
+    <h2>Observations et intelligence artificielle</h2>
+    <div class="card">
+        <p>Le modèle qui note chaque heure (Bon / Moyen / Mauvais) et estime la hauteur des vagues à la plage a été entraîné sur des <strong>observations participatives publiées par des surfeurs sur <a href="https://www.surf-report.com/" target="_blank" rel="noopener">surf-report.com</a></strong>, croisées avec les données ci-dessus. Il estime ce qu’un surfeur aurait observé ; ce n’est pas une mesure.</p>
+    </div>
+
+    <h2>Webcams</h2>
+    <div class="card">
+        <p>Les flux vidéo intégrés appartiennent à leurs exploitants (GoSurf, Viewsurf). Chaque lecteur renvoie vers la page source de la caméra.</p>
+    </div>
+
+    <h2>Logiciels</h2>
+    <div class="card">
+        <ul>
+            <li><a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a> 1.9.4 — licence BSD-2-Clause.</li>
+            <li>Polices <a href="https://rsms.me/inter/" target="_blank" rel="noopener">Inter</a> et <a href="https://github.com/Outfitio/Outfit-Fonts" target="_blank" rel="noopener">Outfit</a> — SIL Open Font License 1.1 (hébergées sur ce site).</li>
+            <li><a href="https://github.com/video-dev/hls.js" target="_blank" rel="noopener">hls.js</a> (lecteur des webcams) — licence Apache-2.0.</li>
+        </ul>
+    </div>
+    <p class="muted">Voir aussi : <a href="privacy.html">Confidentialité</a> · <a href="mentions-legales.html">Mentions légales</a>.</p>
+</article>
+
+<!-- ===================== ENGLISH ===================== -->
+<article data-lang="en" lang="en" hidden>
+    <p><a href="./">← Back to the forecast</a></p>
+    <h1>Sources &amp; attributions</h1>
+    <p class="lead">PeakSurf combines public data and open models, then interprets them with machine learning. Thanks to the people who produce them.</p>
+
+    <h2>Ocean: Copernicus Marine Service</h2>
+    <div class="card">
+        <p class="quote">Generated using E.U. Copernicus Marine Service Information.</p>
+        <ul>
+            <li><strong>Waves: Atlantic, Channel, North Sea</strong> — IBI (Iberia-Biscay-Ireland) Ocean Wave Analysis and Forecast, product <code>IBI_ANALYSISFORECAST_WAV_005_005</code>, dataset <code>cmems_mod_ibi_wav_anfc_0.027deg</code> — <a href="https://doi.org/10.48670/moi-00025" target="_blank" rel="noopener">doi:10.48670/moi-00025</a>. Reanalysis <code>cmems_mod_ibi_wav_my_0.027deg</code> for the climatology.</li>
+            <li><strong>Waves: Mediterranean</strong> — MED model, datasets <code>cmems_mod_med_wav_anfc_4.2km</code> (forecast) and <code>cmems_mod_med_wav_my_4.2km</code> (climatology).</li>
+            <li><strong>Waves: outside those domains</strong> — global model, datasets <code>cmems_mod_glo_wav_anfc_0.083deg</code> and <code>cmems_mod_glo_wav_my_0.2deg</code>, where used.</li>
+            <li><strong>Sea level and water temperature</strong> — IBI physics model, dataset <code>cmems_mod_ibi_phy_anfc_0.027deg-2D</code> (variables <code>zos</code>, <code>thetao</code>).</li>
+        </ul>
+        <p class="muted">Terms: <a href="https://marine.copernicus.eu/user-corner/service-commitments-and-licence" target="_blank" rel="noopener">Copernicus Marine licence</a>.</p>
+    </div>
+
+    <h2>Weather: Open-Meteo</h2>
+    <div class="card">
+        <p>Weather data (wind, gusts, day/night) by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Open-Meteo aggregates models from national weather services (Météo-France, ECMWF, DWD and others).</p>
+        <p>Wind climatology: Open-Meteo historical archive, based on the ERA5 reanalysis. Contains modified Copernicus Climate Change Service information.</p>
+    </div>
+
+    <h2>Tides</h2>
+    <div class="card">
+        <ul>
+            <li><strong>Tide predictions © SHOM</strong> (French Navy Hydrographic and Oceanographic Service), via <a href="https://data.shom.fr/" target="_blank" rel="noopener">data.shom.fr</a>. SHOM bathymetry is also used to estimate beach slopes.</li>
+            <li>As a fallback, sea level from the Copernicus IBI model (above) or the <strong>FES2014</strong> tide model: FES2014 was produced by Noveltis, Legos and CLS and distributed by Aviso+, with support from CNES (<a href="https://www.aviso.altimetry.fr/" target="_blank" rel="noopener">aviso.altimetry.fr</a>).</li>
+        </ul>
+    </div>
+
+    <h2>Maps</h2>
+    <div class="card">
+        <ul>
+            <li>Base map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL); tiles © <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a> (Esri, HERE, Garmin).</li>
+            <li>Land outlines (ocean map): <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> (public domain).</li>
+        </ul>
+    </div>
+
+    <h2>Observations and machine learning</h2>
+    <div class="card">
+        <p>The model that rates each hour (Good / Fair / Poor) and estimates the wave height at the beach was trained on <strong>crowd-sourced reports posted by surfers on <a href="https://www.surf-report.com/" target="_blank" rel="noopener">surf-report.com</a></strong>, matched with the data above. It estimates what a surfer would have observed; it is not a measurement.</p>
+    </div>
+
+    <h2>Webcams</h2>
+    <div class="card">
+        <p>Embedded video streams belong to their operators (GoSurf, Viewsurf). Each player links to the camera’s source page.</p>
+    </div>
+
+    <h2>Software</h2>
+    <div class="card">
+        <ul>
+            <li><a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a> 1.9.4 — BSD-2-Clause licence.</li>
+            <li><a href="https://rsms.me/inter/" target="_blank" rel="noopener">Inter</a> and <a href="https://github.com/Outfitio/Outfit-Fonts" target="_blank" rel="noopener">Outfit</a> fonts — SIL Open Font License 1.1 (self-hosted).</li>
+            <li><a href="https://github.com/video-dev/hls.js" target="_blank" rel="noopener">hls.js</a> (webcam player) — Apache-2.0 licence.</li>
+        </ul>
+    </div>
+    <p class="muted">See also: <a href="privacy.html">Privacy</a> · <a href="mentions-legales.html">Legal notice</a>.</p>
+</article>
+</main>
+
+<footer class="page-footer">
+    <span>© 2026 PeakSurf</span>
+    <a href="./" data-lang="fr" lang="fr">Prévisions</a><a href="./" data-lang="en" lang="en" hidden>Forecast</a>
+    <a href="privacy.html" data-lang="fr" lang="fr">Confidentialité</a><a href="privacy.html" data-lang="en" lang="en" hidden>Privacy</a>
+    <a href="mentions-legales.html" data-lang="fr" lang="fr">Mentions légales</a><a href="mentions-legales.html" data-lang="en" lang="en" hidden>Legal notice</a>
+</footer>
+</body>
+</html>
