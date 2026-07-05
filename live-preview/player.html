@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Peak Surf live camera</title>
+  <style>
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#071411}video{display:block;width:100%;height:100%;background:#071411;object-fit:cover}.state{position:absolute;inset:0;display:grid;place-items:center;color:#f2f0e8;font:600 13px system-ui,sans-serif;letter-spacing:.04em;background:#071411;z-index:1;text-align:center}.state.hidden{display:none}.spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,.2);border-top-color:#d8ff62;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div class="state" id="state"><div><div class="spinner"></div>Connecting to live camera…</div></div>
+  <video id="live-cam" muted autoplay playsinline webkit-playsinline preload="auto" controls></video>
+  <script>window.__playerErrors=[];window.addEventListener('error',event=>window.__playerErrors.push(event.message||String(event.error||'Script load error')));</script>
+  <script src="vendor/hls.min.js"></script>
+  <script>
+    (()=>{
+      const sourceId=new URLSearchParams(location.search).get('source');
+      const state=document.getElementById('state');
+      const video=document.getElementById('live-cam');
+      const tell=(type,detail='')=>parent.postMessage({scope:'peaksurf-camera',type,detail},location.origin);
+      const fail=message=>{const detail=[...window.__playerErrors,message].filter(Boolean).join(' · ');console.error('[Peak Surf camera]',detail);state.innerHTML='<div>Live stream unavailable<br><small>Use the source link to view the camera.</small></div>';state.dataset.error=detail;state.classList.remove('hidden');tell('error',detail)};
+      if(!sourceId){fail('Missing camera source');return}
+      const getSources=async id=>{
+        const hosts=[6,7,8,9,10,11,12].sort(()=>Math.random()-.5);
+        let lastError;
+        for(const host of hosts){
+          try{const response=await fetch(`https://platforms${host}.joada.net/api/videos/manifest/${encodeURIComponent(id)}`);if(!response.ok)throw Error(`Camera service ${response.status}`);return await response.json()}
+          catch(error){lastError=error}
+        }
+        throw lastError||Error('Camera service unavailable');
+      };
+      getSources(sourceId).then(sources=>{
+        if(!sources||!sources.m3u8)throw Error('No live source returned');
+        video.poster=sources.poster||'';video.muted=true;
+        const play=()=>{const attempt=video.play();if(attempt&&attempt.catch)attempt.catch(error=>tell('blocked',error.message))};
+        if(window.Hls&&Hls.isSupported()){
+          const hls=new Hls({lowLatencyMode:true,liveSyncDurationCount:3,startLevel:0});
+          hls.loadSource(sources.m3u8);hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED,play);
+          hls.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal)fail(data.details||data.type||'HLS playback error')});
+        }else if(video.canPlayType('application/vnd.apple.mpegurl')){video.src=sources.m3u8;video.addEventListener('loadedmetadata',play,{once:true})}
+        else throw Error('This browser cannot play HLS video');
+        video.addEventListener('playing',()=>{state.classList.add('hidden');tell('playing')});
+        video.addEventListener('error',()=>fail(video.error?.message||'Playback error'));
+      }).catch(error=>fail(error.message));
+    })();
+  </script>
+</body>
+</html>
